@@ -1,35 +1,52 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "finetune-am"
 version = "0.0.1"
 authors = [
-  { name="Peter Pak", email="ppak10@gmail.com" },
-  { name="Francis Ogoke", email="oogoke@andrew.cmu.edu" },
+  { name = "Peter Pak", email = "ppak10@gmail.com" },
+  { name = "Francis Ogoke", email = "oogoke@andrew.cmu.edu" },
 ]
 description = "Additive Manufacturing related tools"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
 ]
-dynamic = ["scripts"]
+
+dependencies = []  # Add runtime dependencies here
+
+[project.scripts]
+am = "am.manage:main"
 
 [project.urls]
 Homepage = "https://github.com/ppak10/finetune-am"
 Issues = "https://github.com/ppak10/finetune-am/issues"
 
+[tool.hatch.build]
+# Assume source code is under `src/am`
+sources = ["src"]
+
+[tool.hatch.build.targets.wheel]
+include = [
+  "src/am/**/*",
+  "README.md",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/am/**/*",
+  "README.md",
+]
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q"
-testpaths = [
-	"test",
-]
-
+testpaths = ["test"]
 
 [tool.black]
-line-length = 88          # Set max line length
-target-version = ['py310'] # Target specific Python version
+line-length = 88
+target-version = ["py310"]

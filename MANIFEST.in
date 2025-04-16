@@ -1,1 +1,3 @@
-recursive-include am/data *.ini
+include README.md
+include pyproject.toml
+recursive-include am *
