@@ -3,14 +3,18 @@ import ast
 
 from am import Portfolio
 
+
 def parse_value(value):
     try:
         return ast.literal_eval(value)
     except (ValueError, SyntaxError):
         return value.strip()  # Return as string if it can't be parsed
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Manage and execute methods for `workspace`.")
+    parser = argparse.ArgumentParser(
+        description="Manage and execute methods for `workspace`."
+    )
     parser.add_argument(
         "method",
         help="Method within class (e.g., `create_job`).",
@@ -27,8 +31,8 @@ def main():
     args, unknown_args = parser.parse_known_args()
 
     portfolio = Portfolio(
-        portfolio_path = args.portfolio_path,
-        verbose = args.verbose,
+        portfolio_path=args.portfolio_path,
+        verbose=args.verbose,
     )
 
     # Separate positional and keyword arguments
@@ -52,6 +56,7 @@ def main():
         method(*positional_args, **kwargs)
     except Exception as e:
         print(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     main()

@@ -29,14 +29,19 @@ python manage.py parse_gcode
 python manage.py create_solver model="eagar-tsai" name="eagar-tsai" device="cuda:0"
 ```
 
-7. Create simulation .
+7. Create simulation.
 ```
 python manage.py create_simulation
 ```
 
-8. Run simulation .
+8. Run simulation.
 ```
 python manage.py run_simulation layer_index="99"
+```
+
+9. Visualize simulation
+```
+python manage.py visualize_simulation layer_index="99"
 ```
 
 

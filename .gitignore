@@ -163,3 +163,5 @@ cython_debug/
 
 dev
 out
+
+!src/am/data/solver/build/

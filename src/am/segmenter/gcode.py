@@ -8,6 +8,7 @@ from tqdm import tqdm
 # Names of parts included in package.
 PARTS = ["overhang"]
 
+
 class SegmenterGCode:
     """
     GCode parsing methods for Segmenter class.
@@ -40,7 +41,9 @@ class SegmenterGCode:
         }
 
         if gcode_filepath in PARTS:
-            gcode_filepath = files(data).joinpath("segmenter", "part", f"{gcode_filepath}.gcode")
+            gcode_filepath = files(data).joinpath(
+                "segmenter", "part", f"{gcode_filepath}.gcode"
+            )
 
         with open(gcode_filepath, "r") as f:
 
@@ -100,13 +103,12 @@ class SegmenterGCode:
 
     # TODO: Call these subsegments.
     def convert_gcode_commands_to_segments(
-            self,
-            gcode_commands = None,
-            max_distance_xy = 1.0, # units are relative to GCode file.
-
-            # TODO: Move this to be a more classwide setting.
-            units = "mm",
-        ):
+        self,
+        gcode_commands=None,
+        max_distance_xy=1.0,  # units are relative to GCode file.
+        # TODO: Move this to be a more classwide setting.
+        units="mm",
+    ):
         """
         Parses list of gcode commands to segments of x, y, z, and e since
         plotting all will unintentionally show travel movements.

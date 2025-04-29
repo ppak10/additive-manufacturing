@@ -4,7 +4,9 @@ from rich.console import Console
 from rich.table import Table
 
 console = Console()
-class WorkspaceUtils():
+
+
+class WorkspaceUtils:
     def select_file(self, directory, extension="*"):
         """List and present matching files in a directory recursively, filtered by extension."""
 
@@ -14,12 +16,16 @@ class WorkspaceUtils():
 
         # List matching files
         file_list = [
-            file for _, _, files in os.walk(directory)
-            for file in files if extension is None or file.endswith(extension)
+            file
+            for _, _, files in os.walk(directory)
+            for file in files
+            if extension is None or file.endswith(extension)
         ]
 
         if not file_list:
-            console.print(f"[bold red]No files found with extension '{extension}' in {directory}![/bold red]")
+            console.print(
+                f"[bold red]No files found with extension '{extension}' in {directory}![/bold red]"
+            )
             return None
 
         # Display files in a styled table
@@ -47,13 +53,14 @@ class WorkspaceUtils():
             console.print(f"\n[bold green]You selected:[/bold green] {selected_file}")
 
         return selected_file
-    
+
     def select_folder(self, directory):
         """List and present only the top-level folders in a directory."""
 
         # List only immediate subdirectories (not recursive)
         folder_list = [
-            d for d in os.listdir(directory)
+            d
+            for d in os.listdir(directory)
             if os.path.isdir(os.path.join(directory, d))
         ]
 

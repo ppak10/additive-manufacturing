@@ -4,22 +4,17 @@ from .models import SolverModels
 from .utils import SolverUtils
 
 
-class Solver(
-    SolverBase,
-    SolverHeatDiffusion,
-    SolverModels,
-    SolverUtils
-):
+class Solver(SolverBase, SolverHeatDiffusion, SolverModels, SolverUtils):
     def __init__(
         self,
         model: str,
         name: str = None,
-        filename = None, 
-        build_config_file: str="default.ini",
-        material_config_file: str="SS316L.ini",
-        mesh_config_file: str="scale_millimeter.ini",
-        device:str = "cpu",
-        verbose:bool = False,
+        filename=None,
+        build_config_file: str = "default.ini",
+        material_config_file: str = "SS316L.ini",
+        mesh_config_file: str = "scale_millimeter.ini",
+        device: str = "cpu",
+        verbose: bool = False,
         **kwargs,
     ):
         """
@@ -35,7 +30,7 @@ class Solver(
         super().__init__(
             model=model,
             name=name,
-            filename = filename, 
+            filename=filename,
             build_config_file=build_config_file,
             material_config_file=material_config_file,
             mesh_config_file=mesh_config_file,

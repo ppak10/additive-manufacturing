@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from scipy.ndimage import gaussian_filter
 from torchvision.transforms.functional import gaussian_blur
 
+
 class SolverHeatDiffusion:
     """
     Class for modeling heat diffusion from a source using torch.
@@ -17,7 +18,7 @@ class SolverHeatDiffusion:
 
         D = self.thermal_diffusivity
 
-        # Wolfer et al. Section 2.2 
+        # Wolfer et al. Section 2.2
         diffuse_sigma = np.sqrt(2 * D * dt)
 
         # Compute padding values
@@ -29,7 +30,7 @@ class SolverHeatDiffusion:
         theta_minus_t_0 = self.temperatures - self.temperature_preheat
 
         # Unsqueeze to account for batch dimension
-        # https://github.com/pytorch/pytorch/issues/72521#issuecomment-1090350222 
+        # https://github.com/pytorch/pytorch/issues/72521#issuecomment-1090350222
         theta_minus_t_0 = theta_minus_t_0.unsqueeze(0)
 
         # Mirror padding
@@ -53,12 +54,12 @@ class SolverHeatDiffusion:
         # TODO: Double check this
         if self.boundary_condition == "flux":
             # X and Y values are mirrored alongside boundary condition
-            theta_padded[-pad_x:, :, :] = theta_padded[-2 * pad_x:-pad_x, :, :]
-            theta_padded[:pad_x, :, :] = theta_padded[pad_x:2 * pad_x, :, :]
-            theta_padded[:, -pad_y:, :] = theta_padded[:, -2 * pad_y:-pad_y, :]
-            theta_padded[:, :pad_y, :] = theta_padded[:, pad_y:2 * pad_y, :]
-            theta_padded[:, :, -pad_z:] = theta_padded[:, :, -(2*pad_z):-pad_z]
-            theta_padded[:, :, :pad_z] = theta_padded[:, :, pad_z:2*pad_z]
+            theta_padded[-pad_x:, :, :] = theta_padded[-2 * pad_x : -pad_x, :, :]
+            theta_padded[:pad_x, :, :] = theta_padded[pad_x : 2 * pad_x, :, :]
+            theta_padded[:, -pad_y:, :] = theta_padded[:, -2 * pad_y : -pad_y, :]
+            theta_padded[:, :pad_y, :] = theta_padded[:, pad_y : 2 * pad_y, :]
+            theta_padded[:, :, -pad_z:] = theta_padded[:, :, -(2 * pad_z) : -pad_z]
+            theta_padded[:, :, :pad_z] = theta_padded[:, :, pad_z : 2 * pad_z]
 
         # Apply Gaussian smoothing
         sigma = diffuse_sigma / self.z_step
@@ -78,9 +79,7 @@ class SolverHeatDiffusion:
                 # sigma = torch.tensor(diffuse_sigma / self.mesh["z_step"])
                 kernel_size = 5
                 theta_filtered = gaussian_blur(
-                    theta_padded,
-                    kernel_size = [kernel_size, kernel_size],
-                    sigma=sigma
+                    theta_padded, kernel_size=[kernel_size, kernel_size], sigma=sigma
                 )
 
                 # Crop out the padded areas.
@@ -90,13 +89,18 @@ class SolverHeatDiffusion:
                 # Create a 3D Gaussian kernel
                 kernel_size = int(4 * sigma) | 1  # Ensure kernel size is odd
                 kernel_size = max(3, kernel_size)
-                x = torch.arange(kernel_size, dtype=torch.float32, device=self.device) - (kernel_size - 1) / 2
-                g = torch.exp(-(x ** 2) / (2 * sigma ** 2))
+                x = (
+                    torch.arange(kernel_size, dtype=torch.float32, device=self.device)
+                    - (kernel_size - 1) / 2
+                )
+                g = torch.exp(-(x**2) / (2 * sigma**2))
                 g /= g.sum()
                 kernel_3d = torch.einsum("i,j,k->ijk", g, g, g).to(theta_padded.dtype)
                 kernel = kernel_3d.unsqueeze(0).unsqueeze(0)
 
-                theta_filtered = F.conv3d(theta_padded.unsqueeze(0), kernel, padding=0).squeeze(0)
+                theta_filtered = F.conv3d(
+                    theta_padded.unsqueeze(0), kernel, padding=0
+                ).squeeze(0)
 
                 # Crop the padded area
                 theta_cropped = theta_filtered

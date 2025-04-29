@@ -6,6 +6,7 @@ from importlib.resources import files
 
 from pprint import pprint
 
+
 class SolverUtils:
     """
     Class for handling solver utility functions

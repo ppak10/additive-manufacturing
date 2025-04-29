@@ -5,18 +5,19 @@ import torch
 from datetime import datetime
 from tqdm import tqdm
 
+
 class SimulationBase:
     """
     Base file for Simulation class.
     """
 
-    def __init__(self, name=None, filename=None, verbose = False, **kwargs):
+    def __init__(self, name=None, filename=None, verbose=False, **kwargs):
         self.set_name(name, filename)
 
         self.verbose = verbose
         super().__init__(**kwargs)
 
-    def set_name(self, name = None, filename = None):
+    def set_name(self, name=None, filename=None):
         """
         Sets the `name` and `filename` values of the class.
 
@@ -36,20 +37,24 @@ class SimulationBase:
             self.filename = filename
 
     def run_layer_index(
-            self,
-            segmenter,
-            solver,
-            layer_index,
-            out_dir="timesteps",
-            save_compressed=False,
-            **kwargs
-        ):
+        self,
+        segmenter,
+        solver,
+        layer_index,
+        out_dir="timesteps",
+        save_compressed=False,
+        **kwargs,
+    ):
         if not os.path.isdir(out_dir):
             os.makedirs(out_dir)
 
         # Load in layer segments from segmenter.
-        gcode_layer_commands = segmenter.get_gcode_commands_by_layer_change_index(layer_index)
-        gcode_segments = segmenter.convert_gcode_commands_to_segments(gcode_layer_commands, max_distance_xy=0.5)
+        gcode_layer_commands = segmenter.get_gcode_commands_by_layer_change_index(
+            layer_index
+        )
+        gcode_segments = segmenter.convert_gcode_commands_to_segments(
+            gcode_layer_commands, max_distance_xy=0.5
+        )
 
         # Load initial coordinates into solver.
         solver.x = gcode_segments[0]["X"][0]
@@ -63,7 +68,7 @@ class SimulationBase:
         # TODO: Implement timesteps saving correctly since this is really just
         # gcode segments.
         for index in tqdm(range(len(gcode_segments))):
-        
+
             segment = gcode_segments[index]
             dt = segment["distance_xy"] / solver.velocity
 

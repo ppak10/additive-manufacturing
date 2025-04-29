@@ -1,11 +1,12 @@
 import os
 
+
 class PortfolioBase:
     """
     Main portfolio methods that do not rely on other classes.
     """
 
-    def __init__(self, portfolio_path = "out", verbose = False, **kwargs):
+    def __init__(self, portfolio_path="out", verbose=False, **kwargs):
         """
         Initializes portfolio variables and creates output directory.
 

@@ -4,6 +4,7 @@ import os
 
 from am import Workspace
 
+
 def parse_value(value):
     """
     Try to convert the value to the most appropriate type.
@@ -19,8 +20,11 @@ def parse_value(value):
     except (ValueError, SyntaxError):
         return value.strip()  # Return as string if it can't be parsed
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Manage and execute methods for `workspace` and `simulation`.")
+    parser = argparse.ArgumentParser(
+        description="Manage and execute methods for `workspace` and `simulation`."
+    )
     parser.add_argument(
         "method",
         help="Method within class (e.g., `create_simulation`).",
@@ -68,6 +72,7 @@ def main():
         method(*positional_args, **kwargs)
     except Exception as e:
         print(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     main()

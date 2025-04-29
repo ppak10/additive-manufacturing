@@ -7,6 +7,7 @@ from .solver.base import WorkspaceSolverBase
 from .solver.utils import WorkspaceSolverUtils
 from .utils import WorkspaceUtils
 
+
 class Workspace(
     WorkspaceBase,
     WorkspaceSegmenterGCode,
@@ -15,20 +16,20 @@ class Workspace(
     WorkspaceSimulationUtils,
     WorkspaceSolverBase,
     WorkspaceSolverUtils,
-    WorkspaceUtils
+    WorkspaceUtils,
 ):
     def __init__(
-            self,
-            name: str = None,
-            filename: str = None,
-            workspace_path: str = None,
-            verbose = False,
-            **kwargs,
-        ):
+        self,
+        name: str = None,
+        filename: str = None,
+        workspace_path: str = None,
+        verbose=False,
+        **kwargs,
+    ):
         super().__init__(
-            name = name,
-            filename = filename,
-            verbose = verbose,
-            workspace_path = workspace_path,
+            name=name,
+            filename=filename,
+            verbose=verbose,
+            workspace_path=workspace_path,
             **kwargs,
         )

@@ -2,6 +2,7 @@ import os
 
 from am.segmenter import Segmenter
 
+
 class WorkspaceSegmenterGCode:
     """
     Workspace SegmeneterGCode class abstraction layer.
@@ -17,4 +18,3 @@ class WorkspaceSegmenterGCode:
         segmenter.load_gcode_commands(selected_file_path)
         segmenter.set_name(selected_file.split(".gcode")[0])
         self.create_segmenter_folder(segmenter)
-    
