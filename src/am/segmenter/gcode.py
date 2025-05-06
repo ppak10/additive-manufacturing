@@ -17,6 +17,7 @@ class SegmenterGCode:
     def __init__(self):
         self.gcode_commands = []
         self.gcode_layer_change_indexes = []
+        self.gcode_layer_count = None
 
     def load_gcode_commands(self, gcode_filepath):
         """
@@ -87,6 +88,8 @@ class SegmenterGCode:
                     }
 
                     self.gcode_commands.append(current_command)
+            
+            self.gcode_layer_count = len(self.gcode_layer_change_indexes)
 
         return self.gcode_commands
 

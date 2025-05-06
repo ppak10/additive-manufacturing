@@ -1,6 +1,7 @@
 from .base import WorkspaceBase
 from .segmenter.gcode import WorkspaceSegmenterGCode
 from .segmenter.utils import WorkspaceSegmenterUtils
+from .segmenter.visualize import WorkspaceSegmenterVisualize
 from .simulation.base import WorkspaceSimulationBase
 from .simulation.utils import WorkspaceSimulationUtils
 from .solver.base import WorkspaceSolverBase
@@ -14,6 +15,7 @@ class Workspace(
     WorkspaceSegmenterUtils,
     WorkspaceSimulationBase,
     WorkspaceSimulationUtils,
+    WorkspaceSegmenterVisualize,
     WorkspaceSolverBase,
     WorkspaceSolverUtils,
     WorkspaceUtils,

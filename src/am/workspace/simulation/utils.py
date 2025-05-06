@@ -7,7 +7,7 @@ class WorkspaceSimulationUtils:
     Utility functions for workspace simulation class.
     """
 
-    def create_simulation_folders(self, simulation, save_simulation=False):
+    def create_simulation_folders(self, simulation, save=False):
         """
         Creates file and folders for `simulation`.
         Also creates parent `simulations` folder if not existant.
@@ -40,10 +40,11 @@ class WorkspaceSimulationUtils:
             simulation.filename,
             "layers",
         )
+
         if not os.path.isdir(simulation_layers_path):
             os.makedirs(simulation_layers_path)
 
-        if save_simulation:
+        if save:
             # Creates simulation pickle file.
             simulation_pkl_path = os.path.join(
                 # `/out/<self.workspace_path>/simulations/<simulation.filename>/simulation.pkl`

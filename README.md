@@ -44,6 +44,16 @@ python manage.py run_simulation layer_index="99"
 python manage.py visualize_simulation layer_index="99"
 ```
 
+## Other
+- Visualize GCode
+```
+python manage.py segmenter_visualize_layer_index layer_index=1
+```
+
+```
+python manage.py segmenter_visualize_all_layers num_proc=16
+```
+
 
 ## References
 
