@@ -1,6 +1,6 @@
 import torch
 
-from datetime import datetime
+from am.units import MMGS
 
 
 class SolverBase:
@@ -18,14 +18,16 @@ class SolverBase:
         mesh_config_file="scale_millimeter.ini",
         device="cpu",
         dtype=torch.float16,
+        units=MMGS,
         verbose=False,
         # TODO: Add setting for dtype
         # This may help with reducing size and computational cost.
         **kwargs,
     ):
-        self.set_name(name, filename)
+        self.set_name(name, filename, model)
         self.device = device
         self.dtype = dtype
+        self.units = units
         self.verbose = verbose
         self.model = model
 
@@ -99,25 +101,6 @@ class SolverBase:
 
         super().__init__()
         # super().__init__(**kwargs)
-
-    def set_name(self, name=None, filename=None):
-        """
-        Sets the `name` and `filename` values of the class.
-
-        @param name: Name of segmenter
-        @param filename: `filename` override of segmenter (no spaces)
-        """
-        # Sets `name` to approximate timestamp.
-        if name is None:
-            self.name = datetime.now().strftime("%Y%m%d_%H%M%S")
-        else:
-            self.name = name
-
-        # Autogenerates `filename` from `name` if not provided.
-        if filename == None:
-            self.filename = self.name.replace(" ", "_")
-        else:
-            self.filename = filename
 
     def forward(self, segment):
 

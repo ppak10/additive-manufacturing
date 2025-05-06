@@ -21,22 +21,22 @@ python manage.py
 
 5. Select and parse `.gcode` file within `parts` folder with.
 ```
-python manage.py parse_gcode
+python manage.py segmenter_parse_gcode
 ```
 
 6. Create solver.
 ```
-python manage.py create_solver model="eagar-tsai" name="eagar-tsai" device="cuda:0"
+python manage.py solver_init model=eagar-tsai device=cuda:0
 ```
 
 7. Create simulation.
 ```
-python manage.py create_simulation
+python manage.py simulation_init 
 ```
 
 8. Run simulation.
 ```
-python manage.py run_simulation layer_index="99"
+python manage.py simulation_run_layer_index layer_index=99
 ```
 
 9. Visualize simulation

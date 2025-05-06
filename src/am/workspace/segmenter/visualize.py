@@ -4,6 +4,7 @@ import pickle
 
 from tqdm import tqdm
 
+
 class WorkspaceSegmenterVisualize:
     """
     Workspace SegmeneterVisualize class abstraction layer.
@@ -28,7 +29,7 @@ class WorkspaceSegmenterVisualize:
 
         segmenter.visualize_layer_index(layer_index)
 
-    def segmenter_visualize_all_layers(self, num_proc = 1, **kwargs):
+    def segmenter_visualize_all_layers(self, num_proc=1, **kwargs):
         """
         Initialize Segmenter class and parse gcode commands from selected file.
         """
@@ -50,8 +51,7 @@ class WorkspaceSegmenterVisualize:
 
                 for layer_index in range(segmenter.gcode_layer_count):
                     pool.apply_async(
-                        segmenter.visualize_layer_index,
-                        args = (layer_index, )
+                        segmenter.visualize_layer_index, args=(layer_index,)
                     )
                 pool.close()
                 pool.join()

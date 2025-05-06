@@ -3,6 +3,8 @@ from .heat_diffusion import SolverHeatDiffusion
 from .models import SolverModels
 from .utils import SolverUtils
 
+from am.units import MMGS
+
 
 class Solver(SolverBase, SolverHeatDiffusion, SolverModels, SolverUtils):
     def __init__(
@@ -14,6 +16,7 @@ class Solver(SolverBase, SolverHeatDiffusion, SolverModels, SolverUtils):
         material_config_file: str = "SS316L.ini",
         mesh_config_file: str = "scale_millimeter.ini",
         device: str = "cpu",
+        units=MMGS,
         verbose: bool = False,
         **kwargs,
     ):
@@ -25,6 +28,7 @@ class Solver(SolverBase, SolverHeatDiffusion, SolverModels, SolverUtils):
         @param material_config_file: File for default material parameter values
         @param mesh_config_file: File for default mesh configuration values,
         @param device: pytorch device input field (i.e. "cpu", "cuda" 1 GPU max)
+        @param units: MMGS
         @param verbose: For debugging
         """
         super().__init__(
@@ -35,6 +39,7 @@ class Solver(SolverBase, SolverHeatDiffusion, SolverModels, SolverUtils):
             material_config_file=material_config_file,
             mesh_config_file=mesh_config_file,
             device=device,
+            units=units,
             verbose=verbose,
             **kwargs,
         )

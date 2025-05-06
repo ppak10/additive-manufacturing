@@ -4,6 +4,7 @@ from .segmenter.utils import WorkspaceSegmenterUtils
 from .segmenter.visualize import WorkspaceSegmenterVisualize
 from .simulation.base import WorkspaceSimulationBase
 from .simulation.utils import WorkspaceSimulationUtils
+from .simulation.visualize import WorkspaceSimulationVisualize
 from .solver.base import WorkspaceSolverBase
 from .solver.utils import WorkspaceSolverUtils
 from .utils import WorkspaceUtils
@@ -18,6 +19,7 @@ class Workspace(
     WorkspaceSegmenterVisualize,
     WorkspaceSolverBase,
     WorkspaceSolverUtils,
+    WorkspaceSimulationVisualize,
     WorkspaceUtils,
 ):
     def __init__(

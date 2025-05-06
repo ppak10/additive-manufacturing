@@ -88,7 +88,7 @@ class SegmenterGCode:
                     }
 
                     self.gcode_commands.append(current_command)
-            
+
             self.gcode_layer_count = len(self.gcode_layer_change_indexes)
 
         return self.gcode_commands
@@ -195,16 +195,16 @@ class SegmenterGCode:
                     "travel": travel,
                 }
 
-                if units == "mm":
-                    segment = {
-                        "X": [prev_x / 1000, next_x / 1000],
-                        "Y": [prev_y / 1000, next_y / 1000],
-                        "Z": [prev_z / 1000, next_z / 1000],
-                        "E": [prev_e / 1000, next_e / 1000],
-                        "angle_xy": next_angle_xy,
-                        "distance_xy": segment_distance / 1000,
-                        "travel": travel,
-                    }
+                # if units == "mm":
+                #     segment = {
+                #         "X": [prev_x / 1000, next_x / 1000],
+                #         "Y": [prev_y / 1000, next_y / 1000],
+                #         "Z": [prev_z / 1000, next_z / 1000],
+                #         "E": [prev_e / 1000, next_e / 1000],
+                #         "angle_xy": next_angle_xy,
+                #         "distance_xy": segment_distance / 1000,
+                #         "travel": travel,
+                #     }
 
                 segments.append(segment)
 

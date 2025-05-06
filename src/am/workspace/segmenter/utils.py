@@ -16,7 +16,7 @@ class WorkspaceSegmenterUtils:
         segmenters_path = os.path.join(
             # `/out/<self.workspace_path>/segmenters/`
             self.workspace_path,
-            "segmenters"
+            "segmenters",
         )
         if not os.path.isdir(segmenters_path):
             os.makedirs(segmenters_path)
@@ -46,7 +46,7 @@ class WorkspaceSegmenterUtils:
             segmenter_pkl_path = os.path.join(
                 # `/out/<self.workspace_path>/segmenter/<segmenter.filename>/segmenter.pkl`
                 segmenter_path,
-                "segmenter.pkl"
+                "segmenter.pkl",
             )
             with open(segmenter_pkl_path, "wb") as file:
                 pickle.dump(segmenter, file)

@@ -1,16 +1,38 @@
 import configparser
 import os
 
-from am import data
+from datetime import datetime
 from importlib.resources import files
-
 from pprint import pprint
 
+from am import data
 
 class SolverUtils:
     """
     Class for handling solver utility functions
     """
+
+    def set_name(self, name=None, filename=None, model=None):
+        """
+        Sets the `name` and `filename` values of the class.
+
+        @param name: Name of segmenter
+        @param filename: `filename` override of segmenter (no spaces)
+        """
+        if name:
+            self.name = name
+        if model is not None:
+            self.name = model
+        else:
+            # Sets `name` to approximate timestamp.
+            self.name = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Autogenerates `filename` from `name` if not provided.
+        if filename == None:
+            self.filename = self.name.replace(" ", "_")
+        else:
+            self.filename = filename
+
 
     def load_config_file(self, config_dir, config_file):
         """

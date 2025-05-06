@@ -1,4 +1,5 @@
 from datetime import datetime
+from am.units import MMGS
 
 
 class SegmenterBase:
@@ -6,9 +7,11 @@ class SegmenterBase:
     Base file for Segmenter class.
     """
 
-    def __init__(self, name=None, filename=None, verbose=False, **kwargs):
+    def __init__(self, name=None, filename=None, units=MMGS, zfill=8, verbose=False, **kwargs):
         self.set_name(name, filename)
 
+        self.units = units
+        self.zfill = zfill
         self.verbose = verbose
         super().__init__(**kwargs)
 

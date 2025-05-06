@@ -17,4 +17,4 @@ class WorkspaceSegmenterGCode:
         segmenter = Segmenter()
         segmenter.load_gcode_commands(selected_file_path)
         segmenter.set_name(selected_file.split(".gcode")[0])
-        self.create_segmenter_folders(segmenter, save = True)
+        self.create_segmenter_folders(segmenter, save=True)
