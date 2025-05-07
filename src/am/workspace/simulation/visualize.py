@@ -4,6 +4,7 @@ import pickle
 import imageio.v2 as imageio
 
 from tqdm import tqdm
+import numpy as np
 
 
 class WorkspaceSimulationVisualize:
@@ -46,32 +47,36 @@ class WorkspaceSimulationVisualize:
         if not os.path.isdir(out_dir):
             os.makedirs(out_dir)
 
-        if num_proc > 1:
-            tasks = [
-                (os.path.join(segments_path, segment_file), out_dir)
-                for segment_file in segment_files
-            ]
+        # Load solver class to retrieve X and Y and unload solver for torch.
+        simulation.load_solver()
+        X = simulation.solver.X.cpu()
+        Y = simulation.solver.Y.cpu()
+        simulation.solver = None
 
-            with multiprocessing.get_context("spawn").Pool(processes=num_proc) as pool:
-                pool.starmap(simulation.visualize_layer_segment, tasks)
+        # if num_proc > 1:
+        #     tasks = [
+        #         (X, Y, os.path.join(segments_path, segment_file), out_dir)
+        #         for segment_file in segment_files
+        #     ]
+
+        #     with multiprocessing.get_context("spawn").Pool(processes=num_proc) as pool:
+        #         pool.starmap(simulation.visualize_layer_segment, tasks)
+
+        if num_proc > 1:
+            with multiprocessing.Pool(processes=num_proc) as pool:
+
+                for segment_file in segment_files:
+                    segment_path = os.path.join(segments_path, segment_file)
+                    pool.apply_async(
+                        simulation.visualize_layer_segment,
+                        args=(X, Y, segment_path, out_dir, )
+                    )
+                pool.close()
+                pool.join()
         else:
             for segment_file in tqdm(segment_files):
                 segment_path = os.path.join(segments_path, segment_file)
-                simulation.visualize_layer_segment(segment_path, out_dir)
-
-        # Saves images as .gif
-        # images = []
-        # if self.verbose: print("Compiling images to .gif")
-        # for image_filename in tqdm(sorted(os.listdir(out_dir))):
-        #     if image_filename.endswith(".png"):
-        #         image_path = os.path.join(out_dir, image_filename)
-        #         images.append(imageio.imread(image_path))
-
-        # gif_path = os.path.join(
-        #     "simulations", simulation_folder, "layers", layer_folder, "temperatures.gif"
-        # )
-
-        # imageio.mimwrite(gif_path, images, fps=60, loop=0)
+                simulation.visualize_layer_segment(X, Y, segment_path, out_dir)
 
         # Ensure filenames are sequential: frame_0000.png, frame_0001.png, etc.
         for idx, fname in enumerate(sorted(os.listdir(out_dir))):

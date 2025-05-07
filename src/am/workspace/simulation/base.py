@@ -13,16 +13,20 @@ class WorkspaceSimulationBase:
         if segmenter is None:
             segmenter_folder = self.select_folder("segmenters")
             segmenter_path = os.path.join("segmenters", segmenter_folder, "segmenter.pkl")
-            with open(segmenter_path, "rb") as f:
-                segmenter = pickle.load(f)
+            # with open(segmenter_path, "rb") as f:
+            #     segmenter = pickle.load(f)
 
         if solver is None:
             solver_folder = self.select_folder("solvers")
             solver_path = os.path.join("solvers", solver_folder, "solver.pkl")
-            with open(solver_path, "rb") as f:
-                solver = pickle.load(f)
+            # with open(solver_path, "rb") as f:
+            #     solver = pickle.load(f)
 
-        simulation = Simulation(**kwargs)
+        simulation = Simulation(
+            segmenter_path=segmenter_path,
+            solver_path=solver_path,
+            **kwargs
+        )
         self.create_simulation_folders(simulation, save=True)
 
     # alias
@@ -65,7 +69,7 @@ class WorkspaceSimulationBase:
         self.create_simulation_folders(simulation)
 
         # Appends zeros to layer index value for file ordering purposes.
-        layer_index_string = f"{layer_index}".zfill(8)
+        layer_index_string = f"{layer_index}".zfill(simulation.zfill)
         out_dir = os.path.join(
             # i.e. `/out/test/simulations/test_simulation/layers/00000001/timesteps`
             "simulations",

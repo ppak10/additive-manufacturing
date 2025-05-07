@@ -41,7 +41,7 @@ python manage.py simulation_run_layer_index layer_index=99
 
 9. Visualize simulation
 ```
-python manage.py visualize_simulation layer_index="99"
+python manage.py simulation_visualize_layer_segments num_proce=16
 ```
 
 ## Other

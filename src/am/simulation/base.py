@@ -1,6 +1,7 @@
 import gzip
 import os
 import torch
+import numpy as np
 
 from tqdm import tqdm
 
@@ -13,28 +14,34 @@ class SimulationBase:
     def __init__(
         self,
         segmenter=None,
+        segmenter_path=None,
         solver=None,
+        solver_path=None,
         name=None,
         filename=None,
         zfill=8,
         verbose=False,
         **kwargs,
     ):
-        self.set_name(name, filename, segmenter, solver)
+        self.set_name(name, filename, segmenter, segmenter_path, solver, solver_path)
 
-        self.segmenter = self.load_segmenter(segmenter)
-        self.solver = self.load_solver(solver)
+        # Directly loads segmenter and solver instance if provided as arguments.
+        self.segmenter = segmenter
+        self.solver = solver
+
+        # Keeps path for segmenter and solver for loading later.
+        # Load segmenter or solver with `self.load_segmenter()` or
+        # `self.load_solver()` respectively.
+        # Implemented for cases where loading torch in multiprocessing is not
+        # ideal or necessary (i.e. visualization).
+        self.segmenter_path = segmenter_path
+        self.solver_path = solver_path
+
         self.zfill = zfill
         self.verbose = verbose
         super().__init__(**kwargs)
 
-    def run_layer_index(
-        self,
-        layer_index,
-        out_dir="segments",
-        save_compressed=False,
-        **kwargs,
-    ):
+    def run_layer_index(self, layer_index, out_dir="segments", **kwargs):
         if not os.path.isdir(out_dir):
             os.makedirs(out_dir)
 
@@ -65,16 +72,27 @@ class SimulationBase:
             else:
                 self.solver.power = power
 
+            # Torch
+            # if dt > 0:
+            #     self.solver.forward(segment)
+            #     # TODO: Implement alternative saving functionalities that don't
+            #     # write to disk as often.
+            #     temperatures = self.solver.temperatures.cpu()
+            #     filename = f"{index}".zfill(self.zfill)
+            #     if save_compressed:
+            #         file_path = os.path.join(out_dir, f"{filename}.pt.gz")
+            #         with gzip.open(file_path, "wb") as f:
+            #             torch.save(temperatures, f)
+            #     else:
+            #         file_path = os.path.join(out_dir, f"{filename}.pt")
+            #         torch.save(temperatures, file_path)
+
             if dt > 0:
                 self.solver.forward(segment)
                 # TODO: Implement alternative saving functionalities that don't
                 # write to disk as often.
-                temperatures = self.solver.temperatures.cpu()
+                temperatures = self.solver.temperatures.cpu().numpy()
                 filename = f"{index}".zfill(self.zfill)
-                if save_compressed:
-                    file_path = os.path.join(out_dir, f"{filename}.pt.gz")
-                    with gzip.open(file_path, "wb") as f:
-                        torch.save(temperatures, f)
-                else:
-                    file_path = os.path.join(out_dir, f"{filename}.pt")
-                    torch.save(temperatures, file_path)
+
+                file_path = os.path.join(out_dir, f"{filename}.npz")
+                np.savez(file_path, temperatures=temperatures)

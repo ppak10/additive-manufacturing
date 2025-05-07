@@ -1,6 +1,7 @@
-import gzip
+# import gzip
 import os
-import torch
+# import torch
+import numpy as np
 
 import matplotlib.pyplot as plt
 
@@ -9,22 +10,24 @@ class SimulationVisualize:
     Method for visualizing simulations.
     """
 
-    def visualize_layer_segment(self, segment_path, out_dir="temperatures"):
+    # TODO: Find a way to decouple this from cuda so that when running
+    # multiprocessing visualizations does eat up a bunch of vram.
+    # Potentially due to the fact that self.solver is part of the simulation now
+    def visualize_layer_segment(self, X, Y, segment_path, out_dir="temperatures"):
         """
         Creates `.gif` animation of layer segments.
         """
-
         filename = os.path.basename(segment_path)
-        if filename.endswith(".pt"):
-            temperatures = torch.load(segment_path)
-        elif filename.endswith(".pt.gz"):
-            with gzip.open(segment_path, "rb") as f:
-                temperatures = torch.load(f)
+        # if filename.endswith(".pt"):
+        #     temperatures = torch.load(segment_path)
+        # elif filename.endswith(".pt.gz"):
+        #     with gzip.open(segment_path, "rb") as f:
+        #         temperatures = torch.load(f)
+        data  = np.load(segment_path)
+        temperatures = data["temperatures"]
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 5))
 
-        X = self.solver.X.cpu()
-        Y = self.solver.Y.cpu()
         ax.pcolormesh(X, Y, temperatures[:, :, -1].T, cmap= "jet", vmin=300, vmax = 1923)
 
         figure_filename = f"{filename.split('.')[0]}.png"
