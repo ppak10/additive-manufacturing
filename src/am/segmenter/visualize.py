@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 from tqdm import tqdm
 
+from am.units import MMGS
 
 def get_bounds(gcode_commands):
     # Range of gcode commands allowing for indexing of next command.
@@ -44,10 +45,14 @@ class SegmenterVisualize:
         Creates `.gif` animation of layer within gcode file.
         """
 
+        # Output here is in mm
         gcode_layer_commands = self.get_gcode_commands_by_layer_change_index(
             layer_index
         )
+
+        # Output here is in m
         gcode_segments = self.convert_gcode_commands_to_segments(gcode_layer_commands)
+        # print(gcode_segments)
 
         if len(gcode_segments) < 1:
             print(f"layer_index: {0} has no gcode_segments.")
@@ -60,7 +65,14 @@ class SegmenterVisualize:
         # if self.units.length == "millimeter":
         #     scale = 1000
 
+        # Already in mm
         min_x, min_y, max_x, max_y = get_bounds(gcode_layer_commands)
+
+        # print(
+        #     f"Auto Bounds ({self.units.length}): ({min_x}, {min_y}), ({max_x}, {max_y})"
+        # )
+        # if self.units == MMGS:
+        #     min_x, min_y, max_x, max_y = [b * 1000 for b in (min_x, min_y, max_x, max_y)]
 
         print(
             f"Auto Bounds ({self.units.length}): ({min_x}, {min_y}), ({max_x}, {max_y})"
@@ -79,6 +91,11 @@ class SegmenterVisualize:
             if not line["travel"]:
                 x = [line["X"][0], line["X"][1]]
                 y = [line["Y"][0], line["Y"][1]]
+
+                if self.units == MMGS:
+                    x = [line["X"][0] * 1000, line["X"][1] * 1000]
+                    y = [line["Y"][0] * 1000, line["Y"][1] * 1000]
+
                 ax.plot(x, y)
 
         animate = FuncAnimation(fig, update, frames=tqdm(range(len(gcode_segments))))

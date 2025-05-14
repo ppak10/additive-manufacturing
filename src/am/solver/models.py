@@ -7,8 +7,8 @@ from importlib.resources import files
 from scipy import integrate
 
 # Small non-zero value for integration and other purposes
-FLOOR = 10**-3  # Float16
-# FLOOR = 10**-7 # Float32
+# FLOOR = 10**-3  # Float16
+FLOOR = 10**-7 # Float32
 
 
 class SolverModels:
@@ -80,6 +80,8 @@ class SolverModels:
 
         # Note: torch.trapz does not seem to produce accurate results.
         integration = integrate.fixed_quad(integral, FLOOR, dt, n=num)
+        # integration = integrate.fixed_quad(integral, FLOOR, dt, n=75)
+        # print(np.unique(integration[0]))
 
         return torch.tensor(theta + integration[0]).to(self.device)
 

@@ -4,7 +4,6 @@ import pickle
 import imageio.v2 as imageio
 
 from tqdm import tqdm
-import numpy as np
 
 
 class WorkspaceSimulationVisualize:
@@ -78,14 +77,6 @@ class WorkspaceSimulationVisualize:
                 segment_path = os.path.join(segments_path, segment_file)
                 simulation.visualize_layer_segment(X, Y, segment_path, out_dir)
 
-        # Ensure filenames are sequential: frame_0000.png, frame_0001.png, etc.
-        for idx, fname in enumerate(sorted(os.listdir(out_dir))):
-            if fname.endswith(".png"):
-                src = os.path.join(out_dir, fname)
-                dst = os.path.join(out_dir, f"frame_{idx:04d}.png")
-                if src != dst:
-                    os.rename(src, dst)
-
         if self.verbose:
             print("Compiling images to video using imageio-ffmpeg")
 
@@ -97,8 +88,8 @@ class WorkspaceSimulationVisualize:
 
         # Use imageio's ffmpeg plugin to compile the frames into a video
         with imageio.get_writer(video_path, fps=60) as writer:
-            for idx in tqdm(range(len(sorted(os.listdir(out_dir)))), desc="Writing frames"):
-                image_path = os.path.join(out_dir, f"frame_{idx:04d}.png")
+            for image_file in tqdm(sorted(os.listdir(out_dir)), desc="Writing frames"):
+                image_path = os.path.join(out_dir, image_file)
                 image = imageio.imread(image_path)
                 writer.append_data(image)
 

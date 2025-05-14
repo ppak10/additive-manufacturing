@@ -1,9 +1,11 @@
 import math
 
-from am import data
 from importlib.resources import files
 from pygcode import Line, words2dict, GCodeLinearMove
 from tqdm import tqdm
+
+from am import data
+from am.units import MMGS
 
 # Names of parts included in package.
 PARTS = ["overhang"]
@@ -109,8 +111,6 @@ class SegmenterGCode:
         self,
         gcode_commands=None,
         max_distance_xy=1.0,  # units are relative to GCode file.
-        # TODO: Move this to be a more classwide setting.
-        units="mm",
     ):
         """
         Parses list of gcode commands to segments of x, y, z, and e since
@@ -195,16 +195,17 @@ class SegmenterGCode:
                     "travel": travel,
                 }
 
-                # if units == "mm":
-                #     segment = {
-                #         "X": [prev_x / 1000, next_x / 1000],
-                #         "Y": [prev_y / 1000, next_y / 1000],
-                #         "Z": [prev_z / 1000, next_z / 1000],
-                #         "E": [prev_e / 1000, next_e / 1000],
-                #         "angle_xy": next_angle_xy,
-                #         "distance_xy": segment_distance / 1000,
-                #         "travel": travel,
-                #     }
+                if self.units == MMGS:
+                    # Exports the segments from mm to m for use with solver (m)
+                    segment = {
+                        "X": [prev_x / 1000, next_x / 1000],
+                        "Y": [prev_y / 1000, next_y / 1000],
+                        "Z": [prev_z / 1000, next_z / 1000],
+                        "E": [prev_e / 1000, next_e / 1000],
+                        "angle_xy": next_angle_xy,
+                        "distance_xy": segment_distance / 1000,
+                        "travel": travel,
+                    }
 
                 segments.append(segment)
 

@@ -79,7 +79,11 @@ class WorkspaceSimulationBase:
             "segments",
         )
         # simulation.run_layer_index(segmenter, solver, layer_index, out_dir)
+        simulation.load_segmenter()
+        simulation.load_solver()
         simulation.run_layer_index(layer_index, out_dir)
+        simulation.segmenter = None
+        simulation.solver = None
 
     def visualize_simulation_layer(self, layer_index: int, **kwargs):
         # TODO: Move to decorator

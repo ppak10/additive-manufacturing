@@ -17,7 +17,7 @@ class SolverBase:
         material_config_file="SS316L.ini",
         mesh_config_file="scale_millimeter.ini",
         device="cpu",
-        dtype=torch.float16,
+        dtype=torch.float32,
         units=MMGS,
         verbose=False,
         # TODO: Add setting for dtype
@@ -100,7 +100,8 @@ class SolverBase:
         )
 
         super().__init__()
-        # super().__init__(**kwargs)
+
+        print(self.__dict__)
 
     def forward(self, segment):
 
