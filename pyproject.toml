@@ -1,7 +1,33 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.0"
-description = "Add your description here"
+dynamic = ["version"]
+authors = [
+  { name = "Peter Pak", email = "ppak10@gmail.com" },
+]
+description = "Package for additive manufacturing related tools."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "imageio>=2.37.0",
+    "inquirer>=3.4.0",
+    "matplotlib>=3.10.3",
+    "pygcode>=0.2.1",
+    "rich>=14.0.0",
+    "scipy>=1.16.0",
+    "torch>=2.7.1",
+    "torchvision>=0.22.1",
+    "tqdm>=4.67.1",
+    "typer>=0.16.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ipykernel>=6.29.5",
+    "jupyter>=1.1.1",
+    "jupyter-client>=8.6.3",
+    "pynvim>=0.5.2",
+]
+
+[project.scripts]
+am = "am.cli:app"
+

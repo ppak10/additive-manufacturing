@@ -1,4 +1,4 @@
-# finetune-am
+# additive-manufacturing
 Additive Manufacturing related software modules
 
 ## Getting Started
