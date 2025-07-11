@@ -1,7 +1,8 @@
-from .__main__ import app, workspace_app, VerboseOption
-
-from .workspace_initialize import register_workspace_initialize
+from .__main__ import app, VerboseOption
 from .version import register_version
+
+from .workspace.__main__ import workspace_app 
+from .workspace.initialize import register_workspace_initialize
 
 __all__ = ["app", "VerboseOption"]
 
