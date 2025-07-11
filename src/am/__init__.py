@@ -16,4 +16,3 @@ from .solver import Solver
 from .units import UnitSystem, MMGS, IPS
 
 __all__ = ["Workspace", "Simulation", "Segmenter", "Solver"]
-

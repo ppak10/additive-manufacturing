@@ -34,9 +34,8 @@ class WorkspaceConfig(BaseModel):
     def populate_missing_paths(self) -> "WorkspaceConfig":
         if not self.out_path:
             self.out_path = self.get_project_root_from_package() / "out"
-    
+
         if not self.workspace_path:
             self.workspace_path = self.out_path / self.name
-    
-        return self
 
+        return self

@@ -1,4 +1,5 @@
 import os
+
 # import shutil
 
 # from importlib.resources import files
@@ -8,6 +9,7 @@ from typing import Optional
 
 # from am import data
 from am.workspace.config import WorkspaceConfig
+
 
 class Workspace:
     """
@@ -33,7 +35,9 @@ class Workspace:
     def verbose(self):
         return self.config.verbose
 
-    def create_workspace(self, out_path: Optional[Path] = None, force: Optional[bool] = False):
+    def create_workspace(
+        self, out_path: Optional[Path] = None, force: Optional[bool] = False
+    ):
         # Use the out_path if provided, otherwise default to package out_path.
         if out_path is None:
             out_path = self.config.out_path
@@ -45,7 +49,9 @@ class Workspace:
         workspace_path = out_path / self.config.name
 
         if workspace_path.exists() and not force:
-            rprint(f"⚠️  [yellow]Configuration already exists at {workspace_path}[/yellow]")
+            rprint(
+                f"⚠️  [yellow]Configuration already exists at {workspace_path}[/yellow]"
+            )
             rprint("Use [cyan]--force[/cyan] to overwrite, or edit the existing file.")
             raise Exception("Workspace already exists")
 
@@ -67,4 +73,3 @@ class Workspace:
         # shutil.copy(README_md_resource_path, README_md_workspace_path)
 
         return self.config.workspace_path
-
