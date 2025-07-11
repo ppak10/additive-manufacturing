@@ -3,7 +3,6 @@ __author__ = "Peter Pak"
 __email__ = "ppak10@gmail.com"
 
 # Managers
-from .portfolio import Portfolio
 from .workspace import Workspace
 
 # Simulation
@@ -15,3 +14,6 @@ from .solver import Solver
 
 # Units
 from .units import UnitSystem, MMGS, IPS
+
+__all__ = ["Workspace", "Simulation", "Segmenter", "Solver"]
+

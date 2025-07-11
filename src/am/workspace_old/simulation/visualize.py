@@ -13,7 +13,7 @@ class WorkspaceSimulationVisualize:
 
     def simulation_visualize_layer_segments(self, num_proc=1, **kwargs):
         """
-        Visualize segments from layer. 
+        Visualize segments from layer.
         """
 
         simulation_folder = self.select_folder("simulations")
@@ -68,7 +68,12 @@ class WorkspaceSimulationVisualize:
                     segment_path = os.path.join(segments_path, segment_file)
                     pool.apply_async(
                         simulation.visualize_layer_segment,
-                        args=(X, Y, segment_path, out_dir, )
+                        args=(
+                            X,
+                            Y,
+                            segment_path,
+                            out_dir,
+                        ),
                     )
                 pool.close()
                 pool.join()

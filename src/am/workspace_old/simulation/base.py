@@ -12,7 +12,9 @@ class WorkspaceSimulationBase:
         """
         if segmenter is None:
             segmenter_folder = self.select_folder("segmenters")
-            segmenter_path = os.path.join("segmenters", segmenter_folder, "segmenter.pkl")
+            segmenter_path = os.path.join(
+                "segmenters", segmenter_folder, "segmenter.pkl"
+            )
             # with open(segmenter_path, "rb") as f:
             #     segmenter = pickle.load(f)
 
@@ -23,9 +25,7 @@ class WorkspaceSimulationBase:
             #     solver = pickle.load(f)
 
         simulation = Simulation(
-            segmenter_path=segmenter_path,
-            solver_path=solver_path,
-            **kwargs
+            segmenter_path=segmenter_path, solver_path=solver_path, **kwargs
         )
         self.create_simulation_folders(simulation, save=True)
 

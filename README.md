@@ -4,12 +4,12 @@ Additive Manufacturing related software modules
 ## Getting Started
 1. Installation
 ```bash
-pip install am
+pip install additive-manufacturing
 ```
 
 2. Create a new `Workspace`:
 ```bash
-am create_workspace test
+am workspace init test
 ```
 
 3. Navigate to workspace directory and `manage.py` file

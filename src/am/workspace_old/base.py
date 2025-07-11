@@ -20,8 +20,8 @@ class WorkspaceBase:
 
     def __init__(
         self,
-        name: str = None,
-        filename: str = None,
+        name: str | None = None,
+        filename: str | None = None,
         workspace_path=None,
         verbose=False,
         **kwargs,

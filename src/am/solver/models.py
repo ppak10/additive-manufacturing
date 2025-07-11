@@ -8,7 +8,7 @@ from scipy import integrate
 
 # Small non-zero value for integration and other purposes
 # FLOOR = 10**-3  # Float16
-FLOOR = 10**-7 # Float32
+FLOOR = 10**-7  # Float32
 
 
 class SolverModels:

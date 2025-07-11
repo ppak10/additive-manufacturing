@@ -3,6 +3,7 @@ import importlib.metadata
 from rich import print as rprint
 import typer
 
+
 def register_version(app):
     @app.command()
     def version() -> None:
@@ -11,7 +12,7 @@ def register_version(app):
             version = importlib.metadata.version("additive-manufacturing")
             rprint(f"✅ additive-manufacturing version {version}")
         except importlib.metadata.PackageNotFoundError:
-            rprint("⚠️  [yellow]additive-manufacturing version unknown (package not installed)[/yellow]")
+            rprint(
+                "⚠️  [yellow]additive-manufacturing version unknown (package not installed)[/yellow]"
+            )
             typer.Exit()
-
-

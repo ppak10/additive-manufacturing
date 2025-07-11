@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 from am.units import MMGS
 
+
 def get_bounds(gcode_commands):
     # Range of gcode commands allowing for indexing of next command.
     gcode_commands_range = range(len(gcode_commands) - 2)

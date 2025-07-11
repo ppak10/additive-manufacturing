@@ -4,14 +4,23 @@ import pickle
 from datetime import datetime
 
 from am.segmenter import Segmenter
-from am.solver import Solver 
+from am.solver import Solver
+
 
 class SimulationUtils:
     """
     Class for handling solver utility functions
     """
 
-    def set_name(self, name=None, filename=None, segmenter=None, segmenter_path=None, solver=None, solver_path=None):
+    def set_name(
+        self,
+        name=None,
+        filename=None,
+        segmenter=None,
+        segmenter_path=None,
+        solver=None,
+        solver_path=None,
+    ):
         """
         Sets the `name` and `filename` values of the class.
 
@@ -79,4 +88,3 @@ class SimulationUtils:
                 self.solver = pickle.load(f)
         else:
             self.solver = None
-

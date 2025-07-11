@@ -7,7 +7,9 @@ class SegmenterBase:
     Base file for Segmenter class.
     """
 
-    def __init__(self, name=None, filename=None, units=MMGS, zfill=8, verbose=False, **kwargs):
+    def __init__(
+        self, name=None, filename=None, units=MMGS, zfill=8, verbose=False, **kwargs
+    ):
         self.set_name(name, filename)
 
         self.units = units

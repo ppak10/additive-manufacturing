@@ -7,6 +7,7 @@ from pprint import pprint
 
 from am import data
 
+
 class SolverUtils:
     """
     Class for handling solver utility functions
@@ -32,7 +33,6 @@ class SolverUtils:
             self.filename = self.name.replace(" ", "_")
         else:
             self.filename = filename
-
 
     def load_config_file(self, config_dir, config_file):
         """

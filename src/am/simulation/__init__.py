@@ -16,7 +16,7 @@ class Simulation(SimulationBase, SimulationUtils, SimulationVisualize):
         filename=None,
         zfill=8,
         verbose=False,
-        **kwargs
+        **kwargs,
     ):
         """
         @param segmenter: Segmenter class instantiation or filename
@@ -33,5 +33,5 @@ class Simulation(SimulationBase, SimulationUtils, SimulationVisualize):
             filename=filename,
             zfill=zfill,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
