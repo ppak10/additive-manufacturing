@@ -27,6 +27,7 @@ dev = [
     "black>=25.1.0",
     "pytest>=8.4.1",
 ]
+segmenter = []
 
 [project.scripts]
 am = "am.cli:app"
