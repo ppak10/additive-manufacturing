@@ -1,8 +1,6 @@
 import sys
 import typer
 
-from typing_extensions import Annotated
-
 from rich.console import Console
 from rich import print as rprint
 
@@ -12,18 +10,6 @@ app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
 )
-
-workspace_app = typer.Typer(
-    name="workspace",
-    help="Workspace management",
-    add_completion=False,
-    no_args_is_help=True,
-)
-
-VerboseOption = Annotated[
-    bool, typer.Option("--verbose", "-v", help="Enable verbose logging")
-]
-
 
 def _rich_exception_handler(exc_type, exc_value, exc_traceback):
     """Handle exceptions with rich formatting."""

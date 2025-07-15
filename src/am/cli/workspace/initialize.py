@@ -4,15 +4,15 @@ from pathlib import Path
 from rich import print as rprint
 from typing_extensions import Annotated
 
-from am.cli import VerboseOption
+from am.cli.options import VerboseOption
 from am.workspace import Workspace
 
 
-def register_workspace_initialize(app):
+def register_workspace_initialize(app: typer.Typer):
     @app.command(name="initialize")
     def workspace_initialize(
         workspace_name: str,
-        verbose: VerboseOption | None = None,
+        verbose: VerboseOption | None = False,
         out_path: Path | None = None,
         force: Annotated[
             bool, typer.Option("--force", help="Overwrite existing workspace")
@@ -22,14 +22,16 @@ def register_workspace_initialize(app):
 
         try:
             workspace = Workspace(
-                name=workspace_name, verbose=verbose, out_path=out_path
+                name=workspace_name,
+                verbose=verbose,
+                out_path=out_path,
             )
             workspace_path = workspace.create_workspace(out_path, force)
             rprint(f"✅ Workspace initialized at: {workspace_path}")
         except:
             rprint("⚠️  [yellow]Unable to create workspace directory[/yellow]")
-            typer.Exit()
+            _ = typer.Exit()
 
-    app.command(name="init")(workspace_initialize)
+    _ = app.command(name="init")(workspace_initialize)
 
     return workspace_initialize

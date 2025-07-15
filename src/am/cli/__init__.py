@@ -1,13 +1,12 @@
-from .__main__ import app, VerboseOption
+from .__main__ import app
 from .version import register_version
 
-from .workspace.__main__ import workspace_app
-from .workspace.initialize import register_workspace_initialize
+from .segmenter import segmenter_app
+from .workspace import workspace_app
 
-__all__ = ["app", "VerboseOption"]
+__all__ = ["app"]
 
-register_workspace_initialize(workspace_app)
-
+app.add_typer(segmenter_app, name="segmenter")
 app.add_typer(workspace_app, name="workspace")
 register_version(app)
 

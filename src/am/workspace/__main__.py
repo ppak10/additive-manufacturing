@@ -5,7 +5,6 @@ import os
 # from importlib.resources import files
 from pathlib import Path
 from rich import print as rprint
-from typing import Optional
 
 # from am import data
 from am.workspace.config import WorkspaceConfig
@@ -16,8 +15,19 @@ class Workspace:
     Base workspace methods.
     """
 
-    def __init__(self, **kwargs):
-        self.config = WorkspaceConfig(**kwargs)
+    def __init__(
+            self,
+            name: str,
+            out_path: Path | None = None,
+            workspace_path: Path | None = None,
+            verbose: bool | None = False,
+        ):
+        self.config: WorkspaceConfig = WorkspaceConfig(
+            name=name,
+            out_path=out_path,
+            workspace_path=workspace_path,
+            verbose=verbose
+        )
 
     @property
     def name(self):
@@ -28,15 +38,15 @@ class Workspace:
         return self.config.workspace_path
 
     @workspace_path.setter
-    def workspace_path(self, value):
-        self.config.workspace_path = Path(value)
+    def workspace_path(self, value: Path):
+        self.config.workspace_path = value
 
     @property
     def verbose(self):
         return self.config.verbose
 
     def create_workspace(
-        self, out_path: Optional[Path] = None, force: Optional[bool] = False
+        self, out_path: Path | None = None, force: bool | None = False
     ):
         # Use the out_path if provided, otherwise default to package out_path.
         if out_path is None:
@@ -56,6 +66,8 @@ class Workspace:
             raise Exception("Workspace already exists")
 
         self.config.workspace_path = workspace_path
+        workspace_config_file = self.config.save()
+        rprint(f"Workspace config file saved at: {workspace_config_file}")
 
         # Copy manage.py
         # resource_path = os.path.join("workspace", "manage.py")
@@ -64,8 +76,8 @@ class Workspace:
         # shutil.copy(manage_py_resource_path, manage_py_workspace_path)
 
         # Create parts directory
-        workspace_parts_path = os.path.join(self.config.workspace_path, "parts")
-        os.makedirs(workspace_parts_path, exist_ok=True)
+        # workspace_parts_path = os.path.join(self.config.workspace_path, "parts")
+        # os.makedirs(workspace_parts_path, exist_ok=True)
 
         # resource_path = os.path.join("workspace", "parts", "README.md")
         # README_md_resource_path = files(data).joinpath(resource_path)

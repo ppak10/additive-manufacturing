@@ -1,15 +1,15 @@
-from pydantic import BaseModel, field_validator, model_validator
-from typing import Optional
-from pathlib import Path
 import importlib.util
+import json
 import re
 
+from pydantic import BaseModel, field_validator, model_validator
+from pathlib import Path
 
 class WorkspaceConfig(BaseModel):
     name: str
-    out_path: Optional[Path] = None
-    workspace_path: Optional[Path] = None
-    verbose: Optional[bool] = False
+    out_path: Path | None = None
+    workspace_path: Path | None = None
+    verbose: bool | None = False
 
     @field_validator("name", mode="before")
     @classmethod
@@ -39,3 +39,31 @@ class WorkspaceConfig(BaseModel):
             self.workspace_path = self.out_path / self.name
 
         return self
+
+    
+    def save(self, path: Path | None = None) -> Path:
+        """
+        Save the configuration to a YAML file.
+        If no path is given, saves to '<workspace_path>/config.yaml'.
+        """
+        if path is None:
+            if not self.workspace_path:
+                raise ValueError("workspace_path must be set to determine save location.")
+            path = self.workspace_path / "config.json"
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _ = path.write_text(self.model_dump_json(indent=2))
+
+        return path
+
+
+    @classmethod
+    def load(cls: type["WorkspaceConfig"], path: Path) -> "WorkspaceConfig":
+        if not path.exists():
+            raise FileNotFoundError(f"Config file not found at {path}")
+
+        return cls.model_validate_json(path.read_text())
+
+
+
+
