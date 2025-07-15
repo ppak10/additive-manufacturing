@@ -5,7 +5,7 @@ from rich import print as rprint
 from typing_extensions import Annotated
 
 from am.cli.options import VerboseOption
-from am.workspace import WorkspaceConfig
+from am.segmenter import Segmenter
 
 def register_segmenter_initialize(app: typer.Typer):
     @app.command(name="initialize")
@@ -25,9 +25,8 @@ def register_segmenter_initialize(app: typer.Typer):
             raise typer.Exit(code=1)
 
         try:
-            workspace_config = WorkspaceConfig.load(config_file)
-            print(workspace_config)
-            # TODO: Initialize segmenter here
+            segmenter = Segmenter()
+            segmenter.create_segmenter(segmenter_path = cwd / "segmenter")
             rprint(f"✅ Segmenter initialized")
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to create workspace directory: {e}[/yellow]")
