@@ -19,7 +19,7 @@ am segmenter init
 
 4. Convert `.gcode` file to segments
 ```bash
-am segmenter gcode overhang.gcode --units mm
+am segmenter parse overhang.gcode --units mm
 ```
 
 5. Create solver.

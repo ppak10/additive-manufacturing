@@ -3,108 +3,16 @@ import json
 
 from pathlib import Path
 from pygcode import Line, words2dict, GCodeLinearMove, GCode
-from pydantic import BaseModel, field_validator, ConfigDict, ValidationError
-from pint import Quantity, Unit
-from typing import cast, TypedDict, Literal
+from pint import Quantity
+from typing import cast
 from tqdm import tqdm
 
 from .config import SegmenterConfig
+from .types import Command, Segment
 
-class Command(TypedDict):
-    x: Quantity
-    y: Quantity
-    z: Quantity
-    e: Quantity
-
-# TypedDict for Quantity serialized as dict
-class QuantityDict(TypedDict):
-    magnitude: float
-    units: str
-
-# SegmentDict with QuantityDict for quantities and bool for travel
-class SegmentDict(TypedDict):
-    x: QuantityDict
-    y: QuantityDict
-    z: QuantityDict
-    e: QuantityDict
-    x_next: QuantityDict
-    y_next: QuantityDict
-    z_next: QuantityDict
-    e_next: QuantityDict
-    angle_xy: QuantityDict
-    distance_xy: QuantityDict
-    travel: bool
-
-class Segment(BaseModel):
-    x: Quantity
-    y: Quantity
-    z: Quantity
-    e: Quantity
-    x_next: Quantity
-    y_next: Quantity
-    z_next: Quantity
-    e_next: Quantity
-    angle_xy: Quantity
-    distance_xy: Quantity
-    travel: bool
-
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
-
-    @staticmethod
-    def _quantity_to_dict(q: Quantity) -> QuantityDict:
-        return {"magnitude": q.magnitude, "units": str(q.units)}
-
-    @staticmethod
-    def _dict_to_quantity(d: QuantityDict) -> Quantity:
-        # Create Quantity from magnitude and units string
-        return Quantity(d["magnitude"], d["units"])
-
-    @field_validator(
-        "x", "y", "z", "e",
-        "x_next", "y_next", "z_next", "e_next",
-        "angle_xy", "distance_xy",
-        mode="before"
-    )
-    def parse_quantity(cls, v: QuantityDict | Quantity) -> Quantity:
-        if isinstance(v, dict):
-            # Strict check keys and types
-            expected_keys = {"magnitude", "units"}
-            if set(v.keys()) != expected_keys:
-                raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
-            if not isinstance(v["magnitude"], float):
-                raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
-            if not isinstance(v["units"], str):
-                raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
-            return cls._dict_to_quantity(v)
-        elif isinstance(v, Quantity):
-            return v
-        else:
-            raise ValidationError(f"Expected QuantityDict or Quantity, got {type(v)}")
-
-    def to_dict(self) -> SegmentDict:
-        return {
-            "x": self._quantity_to_dict(self.x),
-            "y": self._quantity_to_dict(self.y),
-            "z": self._quantity_to_dict(self.z),
-            "e": self._quantity_to_dict(self.e),
-            "x_next": self._quantity_to_dict(self.x_next),
-            "y_next": self._quantity_to_dict(self.y_next),
-            "z_next": self._quantity_to_dict(self.z_next),
-            "e_next": self._quantity_to_dict(self.e_next),
-            "angle_xy": self._quantity_to_dict(self.angle_xy),
-            "distance_xy": self._quantity_to_dict(self.distance_xy),
-            "travel": self.travel,
-        }
-
-    @classmethod
-    def from_dict(cls, data: SegmentDict) -> "Segment":
-        return cls(**data)
-
-class SegmenterGCode:
+class SegmenterParse:
     """
-    GCode parsing methods for segmenter class.
+    Parses files (`.gcode`) into commands and then into segments.
     """
 
     def __init__(self, config: SegmenterConfig):
@@ -115,9 +23,9 @@ class SegmenterGCode:
         # List of indexes for `self.gcode_commands` where layer change occurs.
         self.commands_layer_change_indexes: list[int] = []
     
-    def parse_commands(self, path: Path, unit: str | None = None):
+    def gcode_to_commands(self, path: Path, unit: str | None = None):
         """
-        Load and parse linear move values within GCode file.
+        Load and parse linear move values within GCode file into commands.
 
         @param path: Absolute path for gcode file location.
         @return: List gcode command objects coordinate and action values.
@@ -159,7 +67,7 @@ class SegmenterGCode:
         with open(path, "r") as f:
 
             # Open gcode file to begin parsing linear moves line by line.
-            for line_text in tqdm(f.readlines()):
+            for line_text in tqdm(f.readlines(), desc=f"Parsing GCode file"):
                 line = Line(line_text)  # Parses raw gcode text to line instance.
                 block = line.block
 
@@ -228,7 +136,7 @@ class SegmenterGCode:
 
         # max_segment_length_quantity = max_segment_length
 
-        for command_index in tqdm(commands_range):
+        for command_index in tqdm(commands_range, desc="Converting to segments"):
             current_command = commands[command_index]
             next_command = commands[command_index + 1]
 
@@ -327,9 +235,22 @@ class SegmenterGCode:
         if segments is None:
             segments = self.segments
 
-        segments_data = [segment.to_dict() for segment in segments]
+        segments_data = [
+            segment.to_dict() for segment in tqdm(segments, desc="Serializing segments")
+        ]
+
+        # with path.open("w") as f:
+        #     json.dump(segments_data, f, indent=2)
+
         with path.open("w") as f:
-            json.dump(segments_data, f, indent=2)
+            _ = f.write("[\n")
+            for i, segment_dict in enumerate(tqdm(segments_data, desc="Writing segments")):
+                json.dump(segment_dict, f, indent=2)
+                if i < len(segments_data) - 1:
+                    _ = f.write(",\n")
+                else:
+                    _ = f.write("\n")
+            _ = f.write("]\n")
 
         return path
 

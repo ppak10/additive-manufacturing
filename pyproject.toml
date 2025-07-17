@@ -9,14 +9,11 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "imageio>=2.37.0",
-    "inquirer>=3.4.0",
     "matplotlib>=3.10.3",
     "pint>=0.24.4",
     "pydantic>=2.11.7",
-    "pygcode>=0.2.1",
     "rich>=14.0.0",
     "scipy>=1.15.3",
-    "torch>=2.7.1",
     "torchvision>=0.22.1",
     "tqdm>=4.67.1",
     "typer>=0.16.0",
@@ -27,7 +24,12 @@ dev = [
     "black>=25.1.0",
     "pytest>=8.4.1",
 ]
-segmenter = []
+segmenter = [
+    "pygcode>=0.2.1",
+]
+solver = [
+    "torch>=2.7.1",
+]
 
 [project.scripts]
 am = "am.cli:app"

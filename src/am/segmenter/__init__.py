@@ -1,6 +1,6 @@
 from .__main__ import Segmenter
 from .config import SegmenterConfig
-from .gcode import SegmenterGCode
+from .parse import SegmenterParse
 
-__all__ = ["Segmenter", "SegmenterConfig", "SegmenterGCode"]
+__all__ = ["Segmenter", "SegmenterConfig", "SegmenterParse"]
 
