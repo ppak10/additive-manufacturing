@@ -12,19 +12,17 @@ pip install additive-manufacturing
 am workspace init test
 ```
 
-3. Navigate to workspace directory and `manage.py` file
-```
-python manage.py
-```
-
-4. Drop `.gcode` file in `parts` folder within workspace directory.
-
-5. Select and parse `.gcode` file within `parts` folder with.
-```
-python manage.py segmenter_parse_gcode
+3. Navigate to workspace directory and initialize segmenter
+```bash
+am segmenter init
 ```
 
-6. Create solver.
+4. Convert `.gcode` file to segments
+```bash
+am segmenter gcode overhang.gcode --units mm
+```
+
+5. Create solver.
 ```
 python manage.py solver_init model=eagar-tsai device=cuda:0
 ```
