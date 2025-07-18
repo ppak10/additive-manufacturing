@@ -8,7 +8,7 @@ from typing import cast
 from tqdm import tqdm
 
 from .config import SegmenterConfig
-from .types import Command, Segment
+from .types import Command, Segment, SegmentDict
 
 class SegmenterParse:
     """
@@ -23,7 +23,7 @@ class SegmenterParse:
         # List of indexes for `self.gcode_commands` where layer change occurs.
         self.commands_layer_change_indexes: list[int] = []
     
-    def gcode_to_commands(self, path: Path, unit: str | None = None):
+    def gcode_to_commands(self, path: Path, unit: str | None = None, verbose: bool | None = False):
         """
         Load and parse linear move values within GCode file into commands.
 
@@ -67,7 +67,7 @@ class SegmenterParse:
         with open(path, "r") as f:
 
             # Open gcode file to begin parsing linear moves line by line.
-            for line_text in tqdm(f.readlines(), desc=f"Parsing GCode file"):
+            for line_text in tqdm(f.readlines(), desc=f"Parsing GCode file", disable=not verbose):
                 line = Line(line_text)  # Parses raw gcode text to line instance.
                 block = line.block
 
@@ -120,6 +120,7 @@ class SegmenterParse:
             self,
             commands: list[Command] | None = None,
             max_segment_length: float = 1.0,
+            verbose: bool | None = False,
         ):
         """
         Converts commands to segments
@@ -136,7 +137,7 @@ class SegmenterParse:
 
         # max_segment_length_quantity = max_segment_length
 
-        for command_index in tqdm(commands_range, desc="Converting to segments"):
+        for command_index in tqdm(commands_range, desc="Converting to segments", disable=not verbose):
             current_command = commands[command_index]
             next_command = commands[command_index + 1]
 
@@ -226,7 +227,8 @@ class SegmenterParse:
     def save_segments(
             self,
             path: Path | str,
-            segments: list[Segment] | None = None
+            segments: list[Segment] | None = None,
+            verbose: bool | None = False
         ) -> Path:
 
         path = Path(path)
@@ -236,7 +238,7 @@ class SegmenterParse:
             segments = self.segments
 
         segments_data = [
-            segment.to_dict() for segment in tqdm(segments, desc="Serializing segments")
+            segment.to_dict() for segment in tqdm(segments, desc="Serializing segments", disable=not verbose)
         ]
 
         # with path.open("w") as f:
@@ -244,8 +246,10 @@ class SegmenterParse:
 
         with path.open("w") as f:
             _ = f.write("[\n")
-            for i, segment_dict in enumerate(tqdm(segments_data, desc="Writing segments")):
-                json.dump(segment_dict, f, indent=2)
+            for i, segment_dict in enumerate(tqdm(segments_data, desc="Writing segments", disable=not verbose)):
+                json_str = json.dumps(segment_dict, indent=2)
+                indented_str = "  " + json_str.replace("\n", "\n ")  # 2-space indent after [
+                _ = f.write(indented_str)
                 if i < len(segments_data) - 1:
                     _ = f.write(",\n")
                 else:

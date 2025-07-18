@@ -4,7 +4,7 @@ from rich import print as rprint
 import typer
 
 
-def register_version(app):
+def register_version(app: typer.Typer):
     @app.command()
     def version() -> None:
         """Show the additive-manufacturing version."""
@@ -15,4 +15,6 @@ def register_version(app):
             rprint(
                 "⚠️  [yellow]additive-manufacturing version unknown (package not installed)[/yellow]"
             )
-            typer.Exit()
+            raise typer.Exit()
+    return version
+

@@ -39,13 +39,13 @@ def register_segmenter_parse(app: typer.Typer):
 
             # Assumes file is in `workspace/segmenter/parts/`
             filepath = cwd / "segmenter" / "parts" / filename
-            _ = segmenter_parse.gcode_to_commands(filepath, units)
-            _ = segmenter_parse.commands_to_segments()
+            _ = segmenter_parse.gcode_to_commands(filepath, units, verbose=verbose)
+            _ = segmenter_parse.commands_to_segments(verbose=verbose)
 
 
             filename_no_ext = filename.split(".")[0]
             segments_path = cwd / "segmenter" / "segments" / f"{filename_no_ext}.json"
-            output_path = segmenter_parse.save_segments(segments_path)
+            output_path = segmenter_parse.save_segments(segments_path, verbose=verbose)
             rprint(f"✅Parsed segments `{filename}` saved at `{output_path}`")
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to initialize segmenter: {e}[/yellow]")

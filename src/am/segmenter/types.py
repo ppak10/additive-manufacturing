@@ -1,7 +1,6 @@
-from pydantic import BaseModel, field_validator, ValidationError
+from pydantic import BaseModel, ConfigDict, field_validator, ValidationError
 from pint import Quantity
-from typing import TypedDict
-from tqdm import tqdm
+from typing import ClassVar, TypedDict
 
 class Command(TypedDict):
     x: Quantity
@@ -29,6 +28,7 @@ class SegmentDict(TypedDict):
     travel: bool
 
 class Segment(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True) 
     x: Quantity
     y: Quantity
     z: Quantity
@@ -41,9 +41,6 @@ class Segment(BaseModel):
     distance_xy: Quantity
     travel: bool
 
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
 
     @staticmethod
     def _quantity_to_dict(q: Quantity) -> QuantityDict:

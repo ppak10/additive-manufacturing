@@ -3,43 +3,38 @@ from pathlib import Path
 from pydantic import BaseModel, model_validator, PrivateAttr
 from typing import Literal
 
-
-class SegmenterConfig(BaseModel):
+class SolverConfig(BaseModel):
     # Subset of units systems from `dir(ureg.sys)`
     ureg_default_system: Literal['cgs', 'mks'] = "cgs"
-    segmenter_path: Path | None = None
-    verbose: bool | None = False
+    solver_path: Path | None = None
 
     _ureg: UnitRegistry = PrivateAttr() 
-
-    @model_validator(mode="after")
-    def init_ureg(self) -> "SegmenterConfig":
-        self._ureg = UnitRegistry()
-        self._ureg.default_system = self.ureg_default_system
-        return self
 
     @property
     def ureg(self) -> UnitRegistry:
         return self._ureg
 
+
+    @model_validator(mode="after")
+    def initialize(self) -> "SolverConfig":
+        self._ureg = UnitRegistry()
+        self._ureg.default_system = self.ureg_default_system
+
+        return self
+
     def save(self, path: Path | None = None) -> Path:
-        """
-        Save the configuration to a YAML file.
-        If no path is given, saves to '<workspace_path>/config.yaml'.
-        """
         if path is None:
-            if not self.segmenter_path:
+            if not self.solver_path:
                 raise ValueError("solver_path must be set to determine save location.")
-            path = self.segmenter_path / "config.json"
+            path = self.solver_path / "config.json"
 
         path.parent.mkdir(parents=True, exist_ok=True)
         _ = path.write_text(self.model_dump_json(indent=2))
 
         return path
 
-
     @classmethod
-    def load(cls: type["SegmenterConfig"], path: Path) -> "SegmenterConfig":
+    def load(cls: type["SolverConfig"], path: Path) -> "SolverConfig":
         if not path.exists():
             raise FileNotFoundError(f"Config file not found at {path}")
 
