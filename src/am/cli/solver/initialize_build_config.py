@@ -30,7 +30,7 @@ def register_solver_initialize_build_config(app: typer.Typer):
         # try:
         solver_config = SolverConfig.load(solver_config_file)
         build_config = BuildConfig.create_default(solver_config.ureg)
-        default_save_path = cwd / "solver" / "build_configs" / "default.json"
+        default_save_path = cwd / "solver" / "config" / "build" / "default.json"
         save_path = build_config.save(default_save_path)
         rprint(f"✅ Initialized solver build at {save_path}")
         # except Exception as e:

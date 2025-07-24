@@ -1,6 +1,9 @@
+import json
+
 from pydantic import BaseModel, ConfigDict, field_validator, ValidationError
 from pint import Quantity
-from typing import ClassVar, TypedDict
+from pathlib import Path
+from typing import Any, ClassVar, TypedDict
 
 class Command(TypedDict):
     x: Quantity
@@ -91,3 +94,16 @@ class Segment(BaseModel):
     @classmethod
     def from_dict(cls, data: SegmentDict) -> "Segment":
         return cls(**data)
+
+    @classmethod
+    def load(cls, path: Path) -> list["Segment"]:
+        with path.open("r") as f:
+            data = json.load(f)
+
+        if isinstance(data, list):
+            return [cls.from_dict(item) for item in data]
+        elif isinstance(data, dict):
+            return [cls.from_dict(data)]
+        else:
+            raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
+

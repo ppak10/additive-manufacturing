@@ -20,8 +20,9 @@ class SegmenterParse:
         self.commands: list[Command] = []
         self.segments: list[Segment] = []
 
-        # List of indexes for `self.gcode_commands` where layer change occurs.
+        # List of indexes for `self.commands` where layer change occurs.
         self.commands_layer_change_indexes: list[int] = []
+        self.segments_layer_change_indexes: list[int] = []
     
     def gcode_to_commands(self, path: Path, unit: str | None = None, verbose: bool | None = False):
         """
@@ -138,6 +139,12 @@ class SegmenterParse:
         # max_segment_length_quantity = max_segment_length
 
         for command_index in tqdm(commands_range, desc="Converting to segments", disable=not verbose):
+
+            if command_index in self.commands_layer_change_indexes:
+                # Adds current length of segments if command is marked as a 
+                # layer change.
+                self.segments_layer_change_indexes.append(len(self.segments))
+
             current_command = commands[command_index]
             next_command = commands[command_index + 1]
 
@@ -226,37 +233,65 @@ class SegmenterParse:
 
     def save_segments(
             self,
-            path: Path | str,
+            path: Path,
             segments: list[Segment] | None = None,
-            verbose: bool | None = False
+            verbose: bool | None = False,
+            split_by_layer_index: bool | None = True,
         ) -> Path:
 
-        path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
         if segments is None:
             segments = self.segments
 
         segments_data = [
-            segment.to_dict() for segment in tqdm(segments, desc="Serializing segments", disable=not verbose)
+            segment.to_dict() for segment in tqdm(
+                segments,
+                desc="Serializing segments",
+                disable=not verbose
+            )
         ]
 
-        # with path.open("w") as f:
-        #     json.dump(segments_data, f, indent=2)
+        if split_by_layer_index:
+            layer_changes = len(self.segments_layer_change_indexes)
+            segments_dir = path.with_suffix("")
+            segments_dir.mkdir(parents=True, exist_ok=True)
 
-        with path.open("w") as f:
-            _ = f.write("[\n")
-            for i, segment_dict in enumerate(tqdm(segments_data, desc="Writing segments", disable=not verbose)):
-                json_str = json.dumps(segment_dict, indent=2)
-                indented_str = "  " + json_str.replace("\n", "\n ")  # 2-space indent after [
-                _ = f.write(indented_str)
-                if i < len(segments_data) - 1:
-                    _ = f.write(",\n")
-                else:
-                    _ = f.write("\n")
-            _ = f.write("]\n")
+            prev = 0
+            for layer_change_index, current in tqdm(
+                    enumerate(self.segments_layer_change_indexes),
+                    desc="Writing segments",
+                    disable=not verbose,
+                    total=layer_changes,
+            ):
+                z_fill = len(f"{layer_changes}")
+                layer_index_string = f"{layer_change_index}".zfill(z_fill)
+                layer_path = segments_dir / f"{layer_index_string}.json"
+                layer_segments = segments_data[prev:current]
+                with layer_path.open("w") as f:
+                    json.dump(layer_segments, f, indent=2)
+                prev = current
 
-        return path
+            last_layer_index = len(self.segments_layer_change_indexes)
+            last_layer_path = segments_dir / f"{last_layer_index}.json"
+            with last_layer_path.open("w") as f:
+                json.dump(segments_data[prev::], f, indent=2)
+
+            return path
+        else:
+            with path.open("w") as f:
+                _ = f.write("[\n")
+                for i, segment_dict in enumerate(tqdm(segments_data, desc="Writing segments", disable=not verbose)):
+                    json_str = json.dumps(segment_dict, indent=2)
+                    indented_str = "  " + json_str.replace("\n", "\n ")  # 2-space indent after [
+                    _ = f.write(indented_str)
+                    if i < len(segments_data) - 1:
+                        _ = f.write(",\n")
+                    else:
+                        _ = f.write("\n")
+                _ = f.write("]\n")
+
+            return path
 
     def load_segments(self, path: Path | str) -> list[Segment]:
         path = Path(path)

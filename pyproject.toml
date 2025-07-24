@@ -28,6 +28,7 @@ segmenter = [
     "pygcode>=0.2.1",
 ]
 solver = [
+    "scipy-stubs>=1.15.3.0",
     "torch>=2.7.1",
 ]
 

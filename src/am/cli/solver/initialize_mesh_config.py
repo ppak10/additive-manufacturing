@@ -30,7 +30,7 @@ def register_solver_initialize_mesh_config(app: typer.Typer):
         # try:
         solver_config = SolverConfig.load(solver_config_file)
         mesh_config = MeshConfig.create_default(solver_config.ureg)
-        default_save_path = cwd / "solver" / "mesh_configs" / "default.json"
+        default_save_path = cwd / "solver" / "config" / "mesh" / "default.json"
         save_path = mesh_config.save(default_save_path)
         rprint(f"✅ Initialized solver mesh at {save_path}")
         # except Exception as e:

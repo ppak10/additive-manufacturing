@@ -1,12 +1,18 @@
 import os
 
+from datetime import datetime
 from pathlib import Path
-from pint import UnitRegistry
+from pint import Quantity, UnitRegistry
 from rich import print as rprint
-from typing import Literal
+from typing import cast, Literal
+from tqdm import tqdm
 
 from .config import SolverConfig
 
+from am.segmenter.types import Segment
+from am.solver.types import BuildConfig, MaterialConfig, MeshConfig
+from am.solver.mesh import SolverMesh
+from am.solver.model import EagarTsai
 
 class Solver:
     """
@@ -37,26 +43,89 @@ class Solver:
     def solver_path(self, value: Path):
         self.config.solver_path = value
 
-    def create_solver(self, solver_path: Path):
+    def create_solver_config(self, solver_path: Path):
         # Create `solver` folder
         solver_path.mkdir(exist_ok=True)
         self.config.solver_path = solver_path
         solver_config_file = self.config.save()
         rprint(f"Solver config file saved at: {solver_config_file}")
 
-        # Create `solver/mesh_configs` directory
-        solver_meshes_path = self.config.solver_path / "mesh_configs"
-        os.makedirs(solver_meshes_path, exist_ok=True)
+    def create_default_configs(self, config_path:  Path | None = None):
+        if config_path is None:
+            if self.config.solver_path:
+                config_path = self.config.solver_path / "config"
+            else:
+                config_path = Path.cwd() / "config"
 
-        # Create `solver/material_configs` directory
-        solver_materials_path = self.config.solver_path / "material_configs"
-        os.makedirs(solver_materials_path, exist_ok=True)
+        build_config = BuildConfig.create_default(self.ureg)
+        build_config_path = config_path / "build" / "default.json"
+        _ = build_config.save(build_config_path)
 
-        # Create `solver/models` directory
-        solver_models_path = self.config.solver_path / "models"
-        os.makedirs(solver_models_path, exist_ok=True)
- 
-        # Create `solver/simulations` directory
-        solver_simulations_path = self.config.solver_path / "simulations"
-        os.makedirs(solver_simulations_path, exist_ok=True)
+        material_config = MaterialConfig.create_default(self.ureg)
+        material_config_path = config_path / "material" / "default.json"
+        _ = material_config.save(material_config_path)
+
+        mesh_config = MeshConfig.create_default(self.ureg)
+        mesh_config_path = config_path / "mesh" / "default.json"
+        _ = mesh_config.save(mesh_config_path)
+
+    def _forward(
+            self,
+            model: EagarTsai,
+            solver_mesh: SolverMesh,
+            segment: Segment,
+    ) -> SolverMesh:
+        solver_mesh = model(solver_mesh, segment)
+
+        # self.temperatures = self.diffuse(dt)
+        # self.update_location(segment)
+        # self.temperatures = self.graft(theta)
+        return solver_mesh
+
+    def run_layer(
+            self,
+            segments: list[Segment],
+            build_config: BuildConfig,
+            material_config: MaterialConfig,
+            mesh_config: MeshConfig,
+            # model_name: Literal["eagar-tsai", "rosenthal", "surrogate"] | None = None,
+            run_name: str | None = None,
+        ):
+        """
+        2D layer solver, segments must be for a single layer.
+        """
+
+        model = EagarTsai(build_config, material_config)
+
+        # TODO
+        # if model_name is not None:
+        #     self.model = model
+
+        if run_name is None:
+            run_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
+
+        cwd = Path.cwd()
+        run_out_path = cwd / "solver" / "runs"
+        run_out_path.mkdir(exist_ok=True, parents=True)
+
+        initial_temperature = cast(float, build_config.temperature_preheat.magnitude)
+
+        solver_mesh = SolverMesh(self.config, mesh_config)
+        _ = solver_mesh.initialize_grid(initial_temperature)
+
+        zfill = len(f"{len(segments)}")
+
+        for segment_index, segment in tqdm(enumerate(segments[0:3])):
+
+            solver_mesh = self._forward(model, solver_mesh, segment)
+
+            # TODO: Implement alternative saving functionalities that don't
+            # write to disk as often.
+            # Or maybe make this asynchronous.
+            segment_index_string = f"{segment_index}".zfill(zfill)
+            _ = solver_mesh.save(run_out_path / run_name / f"{segment_index_string}.pt")
+
+    def run(self) -> None:
+        # TODO: Save for 3D implementation
+        raise NotImplementedError("Not yet implemented")
 

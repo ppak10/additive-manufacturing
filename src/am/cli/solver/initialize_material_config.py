@@ -27,15 +27,15 @@ def register_solver_initialize_material_config(app: typer.Typer):
 
         if not solver_config_file.exists():
             rprint("❌ [red]Solver material config not initialized. `solver/config.json` not found.[/red]")
-        # try:
-        solver_config = SolverConfig.load(solver_config_file)
-        material_config = MaterialConfig.create_default(solver_config.ureg)
-        default_save_path = cwd / "solver" / "material_configs" / "default.json"
-        save_path = material_config.save(default_save_path)
-        rprint(f"✅ Initialized solver material at {save_path}")
-        # except Exception as e:
-        #     rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
-        #     raise typer.Exit(code=1)
+        try:
+            solver_config = SolverConfig.load(solver_config_file)
+            material_config = MaterialConfig.create_default(solver_config.ureg)
+            default_save_path = cwd / "solver" / "config" / "material" / "default.json"
+            save_path = material_config.save(default_save_path)
+            rprint(f"✅ Initialized solver material at {save_path}")
+        except Exception as e:
+            rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
+            raise typer.Exit(code=1)
 
     _ = app.command(name="init_material_config")(solver_initialize_material_config)
     return solver_initialize_material_config

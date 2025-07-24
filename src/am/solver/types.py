@@ -1,3 +1,5 @@
+import json
+
 from pathlib import Path
 from pint import Quantity, UnitRegistry
 from pydantic import BaseModel, ConfigDict, field_validator, field_serializer, ValidationError
@@ -94,10 +96,61 @@ class MaterialConfig(BaseModel):
             "temperature_solidus": self._quantity_to_dict(self.temperature_solidus),
         }
 
+    @property
+    def thermal_diffusivity(self) -> Quantity:
+        # Thermal Diffusivity (Wolfer et al. Equation 1)
+        return self.thermal_conductivity / (
+            self.density * self.specific_heat_capacity
+        )
+
+    @staticmethod
+    def _dict_to_quantity(d: QuantityDict) -> Quantity:
+        # Create Quantity from magnitude and units string
+        return Quantity(d["magnitude"], d["units"])
+
+    @field_validator(
+        "specific_heat_capacity",
+        "absorptivity",
+        "thermal_conductivity",
+        "density",
+        "temperature_melt",
+        "temperature_liquidus",
+        "temperature_solidus",
+        mode="before",
+    )
+    def parse_quantity(cls, v: QuantityDict | Quantity) -> Quantity:
+        if isinstance(v, dict):
+            # Strict check keys and types
+            expected_keys = {"magnitude", "units"}
+            if set(v.keys()) != expected_keys:
+                raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
+            if not isinstance(v["magnitude"], float):
+                raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
+            if not isinstance(v["units"], str):
+                raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
+            return cls._dict_to_quantity(v)
+        elif isinstance(v, Quantity):
+            return v
+        else:
+            raise ValidationError(f"Expected QuantityDict or Quantity, got {type(v)}")
+
+    @classmethod
+    def from_dict(cls, data: MaterialConfigDict) -> "MaterialConfig":
+        return cls(**data)
+
     def save(self, path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         _ = path.write_text(self.model_dump_json(indent=2))
         return path
+
+    @classmethod
+    def load(cls, path: Path) -> "MaterialConfig":
+        with path.open("r") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            return cls.from_dict(data)
+        else:
+            raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
 
 #################
 # Build Configs #
@@ -152,10 +205,51 @@ class BuildConfig(BaseModel):
             "temperature_preheat": self._quantity_to_dict(self.temperature_preheat),
         }
 
+    @staticmethod
+    def _dict_to_quantity(d: QuantityDict) -> Quantity:
+        # Create Quantity from magnitude and units string
+        return Quantity(d["magnitude"], d["units"])
+
+    @field_validator(
+        "beam_diameter",
+        "beam_power",
+        "scan_velocity",
+        "temperature_preheat",
+        mode="before",
+    )
+    def parse_quantity(cls, v: QuantityDict | Quantity) -> Quantity:
+        if isinstance(v, dict):
+            # Strict check keys and types
+            expected_keys = {"magnitude", "units"}
+            if set(v.keys()) != expected_keys:
+                raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
+            if not isinstance(v["magnitude"], float):
+                raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
+            if not isinstance(v["units"], str):
+                raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
+            return cls._dict_to_quantity(v)
+        elif isinstance(v, Quantity):
+            return v
+        else:
+            raise ValidationError(f"Expected QuantityDict or Quantity, got {type(v)}")
+
+    @classmethod
+    def from_dict(cls, data: BuildConfigDict) -> "BuildConfig":
+        return cls(**data)
+
     def save(self, path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         _ = path.write_text(self.model_dump_json(indent=2))
         return path
+
+    @classmethod
+    def load(cls, path: Path) -> "BuildConfig":
+        with path.open("r") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            return cls.from_dict(data)
+        else:
+            raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
 
 
 ################
@@ -254,10 +348,76 @@ class MeshConfig(BaseModel):
     def _quantity_to_dict(q: Quantity) -> QuantityDict:
         return {"magnitude": cast(float, q.magnitude), "units": str(q.units)}
 
+    @property
+    def x_start(self) -> Quantity:
+        return self.x_min - self.x_start_pad
+
+    @property
+    def x_end(self) -> Quantity:
+        return cast(Quantity, self.x_max + self.x_end_pad)
+
+    @property
+    def y_start(self) -> Quantity:
+        return self.y_min - self.y_start_pad
+
+    @property
+    def y_end(self) -> Quantity:
+        return cast(Quantity, self.y_max + self.y_end_pad)
+
+    @property
+    def z_start(self) -> Quantity:
+        return self.z_min - self.z_start_pad
+
+    @property
+    def z_end(self) -> Quantity:
+        return cast(Quantity, self.z_max + self.z_end_pad)
+
+    # @staticmethod
+    # def _dict_to_quantity(d: QuantityDict, ureg: UnitRegistry) -> Quantity:
+    #     # Create Quantity from magnitude and units string
+    #     return cast(Quantity, ureg.Quantity(d["magnitude"], d["units"]))
+    #
+    # @field_validator(
+    #     "x_step",
+    #     "y_step",
+    #     "z_step",
+    #     "x_min",
+    #     "x_max",
+    #     "y_min",
+    #     "y_max",
+    #     "z_min",
+    #     "z_max",
+    #     "x_initial",
+    #     "y_initial",
+    #     "z_initial",
+    #     "x_start_pad",
+    #     "y_start_pad",
+    #     "z_start_pad",
+    #     "x_end_pad",
+    #     "y_end_pad",
+    #     "z_end_pad",
+    #     mode="before"
+    # )
+    # def parse_quantity(cls, v: Quantity) -> Quantity:
+    #     # if isinstance(v, dict):
+    #     #     # Strict check keys and types
+    #     #     expected_keys = {"magnitude", "units"}
+    #     #     if set(v.keys()) != expected_keys:
+    #     #         raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
+    #     #     if not isinstance(v["magnitude"], float):
+    #     #         raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
+    #     #     if not isinstance(v["units"], str):
+    #     #         raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
+    #     #     return cls._dict_to_quantity(v, ureg)
+    #     if isinstance(v, Quantity):
+    #         return v
+    #     else:
+    #         raise ValidationError(f"Expected Quantity, got {type(v)}")
+
     @staticmethod
-    def _dict_to_quantity(d: QuantityDict, ureg: UnitRegistry) -> Quantity:
+    def _dict_to_quantity(d: QuantityDict) -> Quantity:
         # Create Quantity from magnitude and units string
-        return cast(Quantity, ureg.Quantity(d["magnitude"], d["units"]))
+        return Quantity(d["magnitude"], d["units"])
 
     @field_validator(
         "x_step",
@@ -280,21 +440,22 @@ class MeshConfig(BaseModel):
         "z_end_pad",
         mode="before"
     )
-    def parse_quantity(cls, v: Quantity) -> Quantity:
-        # if isinstance(v, dict):
-        #     # Strict check keys and types
-        #     expected_keys = {"magnitude", "units"}
-        #     if set(v.keys()) != expected_keys:
-        #         raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
-        #     if not isinstance(v["magnitude"], float):
-        #         raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
-        #     if not isinstance(v["units"], str):
-        #         raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
-        #     return cls._dict_to_quantity(v, ureg)
-        if isinstance(v, Quantity):
+    def parse_quantity(cls, v: QuantityDict | Quantity) -> Quantity:
+        if isinstance(v, dict):
+            # Strict check keys and types
+            expected_keys = {"magnitude", "units"}
+            if set(v.keys()) != expected_keys:
+                raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
+            if not isinstance(v["magnitude"], float):
+                raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
+            if not isinstance(v["units"], str):
+                raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
+            return cls._dict_to_quantity(v)
+        elif isinstance(v, Quantity):
             return v
         else:
-            raise ValidationError(f"Expected Quantity, got {type(v)}")
+            raise ValidationError(f"Expected QuantityDict or Quantity, got {type(v)}")
+
 
     def to_dict(self) -> MeshConfigDict:
         return {
@@ -332,10 +493,10 @@ class MeshConfig(BaseModel):
             
             # Boundaries
             x_min = cast(Quantity, ureg.Quantity(0.0, 'meter')),
-            x_max = cast(Quantity, ureg.Quantity(1e-2, 'meter')),
+            x_max = cast(Quantity, ureg.Quantity(1.0e-2, 'meter')),
             y_min = cast(Quantity, ureg.Quantity(0.0, 'meter')),
-            y_max = cast(Quantity, ureg.Quantity(1e-2, 'meter')),
-            z_min = cast(Quantity, ureg.Quantity(-8e-4, 'meter')),
+            y_max = cast(Quantity, ureg.Quantity(1.0e-2, 'meter')),
+            z_min = cast(Quantity, ureg.Quantity(-8.0e-4, 'meter')),
             z_max = cast(Quantity, ureg.Quantity(0.0, 'meter')),
             
             # Initial x, y, and z locations
@@ -344,12 +505,12 @@ class MeshConfig(BaseModel):
             z_initial = cast(Quantity, ureg.Quantity(0.0, 'meter')),
             
             # Padding
-            x_start_pad = cast(Quantity, ureg.Quantity(2e-4, 'meter')),
-            y_start_pad = cast(Quantity, ureg.Quantity(2e-4, 'meter')),
-            z_start_pad = cast(Quantity, ureg.Quantity(0, 'meter')),
-            x_end_pad = cast(Quantity, ureg.Quantity(2e-4, 'meter')),
-            y_end_pad = cast(Quantity, ureg.Quantity(2e-4, 'meter')),
-            z_end_pad = cast(Quantity, ureg.Quantity(1e-4, 'meter')),
+            x_start_pad = cast(Quantity, ureg.Quantity(2.0e-4, 'meter')),
+            y_start_pad = cast(Quantity, ureg.Quantity(2.0e-4, 'meter')),
+            z_start_pad = cast(Quantity, ureg.Quantity(0.0, 'meter')),
+            x_end_pad = cast(Quantity, ureg.Quantity(2.0e-4, 'meter')),
+            y_end_pad = cast(Quantity, ureg.Quantity(2.0e-4, 'meter')),
+            z_end_pad = cast(Quantity, ureg.Quantity(1.0e-4, 'meter')),
    
             # Boundary Condition Behavior
             boundary_condition = "temperature"
@@ -359,4 +520,14 @@ class MeshConfig(BaseModel):
         path.parent.mkdir(parents=True, exist_ok=True)
         _ = path.write_text(self.model_dump_json(indent=2))
         return path
+   
+    @classmethod
+    def load(cls, path: Path) -> "MeshConfig":
+        with path.open("r") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            return cls.from_dict(data)
+        else:
+            raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
+
 
