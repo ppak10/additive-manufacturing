@@ -54,6 +54,12 @@ def register_solver_run_layer(app: typer.Typer):
                 help="Run name used for saving to mesh folder"
             )
         ] = None,
+        visualize: Annotated[
+            bool, typer.Option(
+                "--visualize",
+                help="Save mesh visualizations"
+            )
+        ] = False,
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
@@ -84,7 +90,7 @@ def register_solver_run_layer(app: typer.Typer):
             material_config = MaterialConfig.load(solver_configs_path / "material" / material_config_filename)
             mesh_config = MeshConfig.load(solver_configs_path / "mesh" / mesh_config_filename)
 
-            solver.run_layer(segments, build_config, material_config, mesh_config, run_name)
+            solver.run_layer(segments, build_config, material_config, mesh_config, run_name, visualize)
             rprint(f"✅ Solver Running...")
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")

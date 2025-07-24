@@ -1,4 +1,9 @@
+import matplotlib.pyplot as plt
 import torch
+
+from matplotlib.collections import QuadMesh
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 
 from pathlib import Path
 from typing import Any, cast
@@ -74,6 +79,22 @@ class SolverMesh:
         torch.save(data, path)
         return path
 
+    def visualize_2D(
+        self,
+        cmap: str = "plasma",
+        vmin: float = 300,
+        vmax: float = 1923,
+        label: str = "Temperature (K)",
+    ) -> tuple[Figure, Axes, QuadMesh]:
+
+        fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+        X = self.x_range
+        Y = self.y_range
+        top_view = self.grid[:, :, -1].T
+        mesh = ax.pcolormesh(X, Y, top_view, cmap=cmap, vmin=vmin, vmax=vmax)
+        fig.colorbar(mesh, ax=ax, label=label)
+        return fig, ax, mesh
+
     @classmethod
     def load(cls, path: Path) -> "SolverMesh":
         data: dict[str, Any] = torch.load(path, map_location="cpu")
@@ -92,4 +113,5 @@ class SolverMesh:
 
         instance.grid = data["grid"]
         return instance
+
 

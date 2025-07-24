@@ -1,8 +1,8 @@
-import os
+import matplotlib.pyplot as plt
 
 from datetime import datetime
 from pathlib import Path
-from pint import Quantity, UnitRegistry
+from pint import UnitRegistry
 from rich import print as rprint
 from typing import cast, Literal
 from tqdm import tqdm
@@ -90,6 +90,7 @@ class Solver:
             mesh_config: MeshConfig,
             # model_name: Literal["eagar-tsai", "rosenthal", "surrogate"] | None = None,
             run_name: str | None = None,
+            visualize: bool = False,
         ):
         """
         2D layer solver, segments must be for a single layer.
@@ -105,7 +106,7 @@ class Solver:
             run_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
 
         cwd = Path.cwd()
-        run_out_path = cwd / "solver" / "runs"
+        run_out_path = cwd / "solver" / "runs" / run_name
         run_out_path.mkdir(exist_ok=True, parents=True)
 
         initial_temperature = cast(float, build_config.temperature_preheat.magnitude)
@@ -115,7 +116,8 @@ class Solver:
 
         zfill = len(f"{len(segments)}")
 
-        for segment_index, segment in tqdm(enumerate(segments[0:3])):
+        # for segment_index, segment in tqdm(enumerate(segments[0:3])):
+        for segment_index, segment in tqdm(enumerate(segments)):
 
             solver_mesh = self._forward(model, solver_mesh, segment)
 
@@ -123,7 +125,15 @@ class Solver:
             # write to disk as often.
             # Or maybe make this asynchronous.
             segment_index_string = f"{segment_index}".zfill(zfill)
-            _ = solver_mesh.save(run_out_path / run_name / f"{segment_index_string}.pt")
+            _ = solver_mesh.save(run_out_path / "meshes" / f"{segment_index_string}.pt")
+
+            if visualize:
+                images_path = run_out_path / "images"
+                images_path.mkdir(exist_ok=True, parents=True)
+                fig_path = images_path / f"{segment_index_string}.png"
+                fig, _, _ = solver_mesh.visualize_2D()
+                fig.savefig(fig_path, dpi=600, bbox_inches="tight")
+                plt.close(fig)
 
     def run(self) -> None:
         # TODO: Save for 3D implementation
