@@ -293,11 +293,3 @@ class SegmenterParse:
 
             return path
 
-    def load_segments(self, path: Path | str) -> list[Segment]:
-        path = Path(path)
-        with path.open("r") as f:
-            segments_data = cast(list[SegmentDict], json.load(f))
-
-        self.segments = [Segment.from_dict(seg_dict) for seg_dict in segments_data]
-        return self.segments
-

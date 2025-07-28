@@ -69,19 +69,6 @@ class Solver:
         mesh_config_path = config_path / "mesh" / "default.json"
         _ = mesh_config.save(mesh_config_path)
 
-    def _forward(
-            self,
-            model: EagarTsai,
-            solver_mesh: SolverMesh,
-            segment: Segment,
-    ) -> SolverMesh:
-        solver_mesh = model(solver_mesh, segment)
-
-        # self.temperatures = self.diffuse(dt)
-        # self.update_location(segment)
-        # self.temperatures = self.graft(theta)
-        return solver_mesh
-
     def run_layer(
             self,
             segments: list[Segment],
@@ -95,12 +82,6 @@ class Solver:
         """
         2D layer solver, segments must be for a single layer.
         """
-
-        model = EagarTsai(build_config, material_config)
-
-        # TODO
-        # if model_name is not None:
-        #     self.model = model
 
         if run_name is None:
             run_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
@@ -116,10 +97,27 @@ class Solver:
 
         zfill = len(f"{len(segments)}")
 
+        model = EagarTsai(build_config, material_config, solver_mesh)
+
+        # TODO
+        # if model_name is not None:
+        #     self.model = model
+
         # for segment_index, segment in tqdm(enumerate(segments[0:3])):
         for segment_index, segment in tqdm(enumerate(segments)):
 
-            solver_mesh = self._forward(model, solver_mesh, segment)
+            # solver_mesh = self._forward(model, solver_mesh, segment)
+            grid_offset = cast(float, build_config.temperature_preheat.to("K").magnitude)
+
+            theta = model(segment)
+
+            solver_mesh.diffuse(
+                delta_time = segment.distance_xy / build_config.scan_velocity,
+                diffusivity = material_config.thermal_diffusivity,
+                grid_offset = grid_offset,
+            )
+            solver_mesh.update_xy(segment)
+            solver_mesh.graft(theta, grid_offset)
 
             # TODO: Implement alternative saving functionalities that don't
             # write to disk as often.

@@ -29,7 +29,7 @@ def register_segmenter_initialize(app: typer.Typer):
 
         try:
             segmenter = Segmenter()
-            segmenter.create_segmenter(
+            segmenter.initialize(
                 segmenter_path = cwd / "segmenter",
                 include_examples = include_examples
             )

@@ -16,6 +16,7 @@ class EagarTsai:
             self,
             build_config: BuildConfig,
             material_config: MaterialConfig,
+            solver_mesh: SolverMesh,
             device: str = "cpu",
             **kwargs,
     ):
@@ -42,7 +43,7 @@ class EagarTsai:
         self.thermal_diffusivity: Quantity = cast(
             Quantity,
             self.material_config.thermal_diffusivity.to(
-                "meter ** 2 * watt / joule"
+                "meter ** 2 / second"
             )
         )
         self.density: Quantity = cast(
@@ -70,9 +71,21 @@ class EagarTsai:
             self.build_config.temperature_preheat.to("kelvin")
         )
 
-    def forward(self, solver_mesh: SolverMesh, segment: Segment) -> SolverMesh:
+        # Mesh Range
+        self.X: torch.Tensor = solver_mesh.x_range_centered[:, None, None, None]
+        self.Y: torch.Tensor = solver_mesh.y_range_centered[None, :, None, None]
+        self.Z: torch.Tensor = solver_mesh.z_range_centered[None, None, :, None]
+
+        self.theta_shape: tuple[int, int, int] = (
+            len(solver_mesh.x_range_centered),
+            len(solver_mesh.y_range_centered),
+            len(solver_mesh.z_range_centered)
+        )
+
+    def forward(self, segment: Segment) -> torch.Tensor:
         """
-        Provides next state for eagar tsai modeling
+        Provides Eagar-Tsai approximation of the melt pool centered and rotated
+        within the middle of the middle of the mesh.
         """
 
         phi = cast(float, segment.angle_xy.to("radian").magnitude)
@@ -101,18 +114,8 @@ class EagarTsai:
             # Turn power off when travel
             p = 0.0
     
-        X = solver_mesh.x_range_centered[:, None, None, None]
-        Y = solver_mesh.y_range_centered[None, :, None, None]
-        Z = solver_mesh.z_range_centered[None, None, :, None]
-    
-        theta_shape = (
-            len(solver_mesh.x_range_centered),
-            len(solver_mesh.y_range_centered),
-            len(solver_mesh.z_range_centered)
-        )
-    
         theta = torch.ones(
-            theta_shape,
+            self.theta_shape,
             device=self.device,
             dtype=self.dtype
         ) * t_0
@@ -127,13 +130,13 @@ class EagarTsai:
                 self.solve,
                 FLOOR,
                 dt,
-                args=(phi, D, sigma, v, c, X, Y, Z),
+                args=(phi, D, sigma, v, c),
                 n=num
             )
             result_tensor = torch.tensor(result)
-            solver_mesh.grid = theta + result_tensor
+            theta += result_tensor
    
-        return solver_mesh
+        return theta
 
     def solve(
             self,
@@ -143,10 +146,10 @@ class EagarTsai:
             sigma: float,
             v: float,
             c: float,
-            X: torch.Tensor,
-            Y: torch.Tensor,
-            Z: torch.Tensor,
         ) -> np.ndarray:
+        """
+        Free Template Solution
+        """
         x_travel = cast(np.ndarray, -v * tau * np.cos(phi))
         y_travel = cast(np.ndarray, -v * tau * np.sin(phi))
     
@@ -154,19 +157,23 @@ class EagarTsai:
         gamma = np.sqrt(2 * sigma**2 + lmbda**2)
         start = (4 * D * tau) ** (-3 / 2)
     
+        # Wolfer et al. Equation A.3
         termy = cast(np.ndarray, sigma * lmbda * np.sqrt(2 * np.pi) / (gamma ** 2))
-        yexp1 = np.exp(-1 * ((Y.cpu() - y_travel) ** 2) / gamma**2)
+        yexp1 = np.exp(-1 * ((self.Y.cpu() - y_travel) ** 2) / gamma**2)
         yintegral = termy * np.array(yexp1)
    
+        # Wolfer et al. Equation A.2
         termx = termy
-        xexp1 = np.exp(-1 * ((X.cpu() - x_travel) ** 2) / gamma**2)
+        xexp1 = np.exp(-1 * ((self.X.cpu() - x_travel) ** 2) / gamma**2)
         xintegral = termx * np.array(xexp1)
     
-        zintegral = np.array(2 * np.exp(-(Z.cpu() ** 2) / (4 * D * tau)))
+        # Wolfer et al. Equation 18
+        zintegral = np.array(2 * np.exp(-(self.Z.cpu() ** 2) / (4 * D * tau)))
     
+        # Wolfer et al. Equation 16
         result = c * start * xintegral * yintegral * zintegral
         return result
 
-    def __call__(self, solver_mesh: SolverMesh, segment: Segment) -> SolverMesh:
-        return self.forward(solver_mesh, segment)
+    def __call__(self, segment: Segment) -> torch.Tensor:
+        return self.forward(segment)
 
