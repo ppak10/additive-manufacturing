@@ -1,10 +1,12 @@
 import json
+import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 import os
 import shutil
 
 from datetime import datetime
 from importlib.resources import files
+from io import BytesIO
 from pathlib import Path
 from pint import Quantity, UnitRegistry
 from PIL import Image
@@ -90,8 +92,14 @@ class Segmenter:
     def visualize(
             self,
             visualize_name: str | None = None,
-            units: str = "mm"
-        ) -> Path:
+            color: str = "black",
+            frame_format: str = "png",
+            include_axis: bool = True,
+            linewidth: float = 2.0,
+            transparent: bool = False,
+            units: str = "mm",
+            verbose: bool = False,
+        ):
         """
         Provides visualization for loaded segments.
         """
@@ -110,6 +118,7 @@ class Segmenter:
 
         ax.set_xlim(self.x_min.to(units).magnitude, self.x_max.to(units).magnitude)
         ax.set_ylim(self.y_min.to(units).magnitude, self.y_max.to(units).magnitude)
+
         ax.set_xlabel(units)
         ax.set_ylabel(units)
 
@@ -119,29 +128,41 @@ class Segmenter:
         frames_out_path = visualize_out_path / "frames"
         frames_out_path.mkdir(exist_ok=True, parents=True)
 
-        images: list[Image.ImageFile.ImageFile] = []
-        for segment_index, segment in tqdm(enumerate(self.segments), desc="Generating plots"):
+        animation_out_path = visualize_out_path / "frames.gif"
+        writer = imageio.get_writer(animation_out_path, mode="I", duration=0.1)
+
+        if not include_axis:
+            ax.axis("off")
+
+        for segment_index, segment in tqdm(
+            enumerate(self.segments),
+            desc="Generating plots",
+            disable=not verbose,
+            total=len(self.segments)
+        ):
             segment_index_string = f"{segment_index}".zfill(zfill)
+
 
             # Display on non-travel segments
             # TODO: Add argument to also show travel segments.
             if not segment.travel:
                 ax.plot(
-                    (segment.x.to(units), segment.x_next.to(units)),
-                    (segment.y.to(units), segment.y_next.to(units)),
-                    color="black"
+                    (segment.x.to(units).magnitude, segment.x_next.to(units).magnitude),
+                    (segment.y.to(units).magnitude, segment.y_next.to(units).magnitude),
+                    color=color,
+                    linewidth=linewidth
                 )
 
-            frame_path = frames_out_path / f"{segment_index_string}.png"
-            fig.savefig(frame_path)
-            images.append(Image.open(frame_path))
+            frame_path = frames_out_path / f"{segment_index_string}.{frame_format}"
+            fig.savefig(frame_path, transparent=transparent)
 
-        # gif_path = os.path.join("segmenters", self.filename, "layers", f"{layer_string}.gif")
-        # images[0].save(gif_path, save_all=True, append_images=images[1:], duration=50, loop=0)
+            # Copy image to memory for later
+            buffer = BytesIO()
+            fig.savefig(buffer, format="png", transparent=transparent)
+            buffer.seek(0)
+            writer.append_data(imageio.imread(buffer))
 
-        # Optional: Clean up frame images
-        # import shutil; shutil.rmtree(output_dir) 
-
+        writer.close()
 
     def load_segments(self, path: Path | str) -> list[Segment]:
         self.segments: list[Segment] = []
