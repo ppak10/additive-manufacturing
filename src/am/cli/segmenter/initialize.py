@@ -5,7 +5,6 @@ from rich import print as rprint
 from typing_extensions import Annotated
 
 from am.cli.options import VerboseOption
-from am.segmenter import Segmenter
 
 def register_segmenter_initialize(app: typer.Typer):
     @app.command(name="initialize")
@@ -19,6 +18,7 @@ def register_segmenter_initialize(app: typer.Typer):
         ] = True,
     ) -> None:
         """Create folder for segmenter data inside workspace folder."""
+        from am.segmenter import Segmenter
 
         # Check for workspace config file in current directory
         cwd = Path.cwd()

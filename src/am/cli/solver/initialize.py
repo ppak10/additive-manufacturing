@@ -3,12 +3,11 @@ import typer
 from pathlib import Path
 from rich import print as rprint
 
-from am.solver import Solver
-
 def register_solver_initialize(app: typer.Typer):
     @app.command(name="initialize")
     def solver_initialize() -> None:
         """Create folder for solver data inside workspace folder."""
+        from am.solver import Solver
 
         # Check for workspace config file in current directory
         cwd = Path.cwd()

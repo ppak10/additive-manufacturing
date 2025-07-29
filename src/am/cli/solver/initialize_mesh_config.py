@@ -4,8 +4,6 @@ from pathlib import Path
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from am.solver import SolverConfig
-from am.solver.types import MeshConfig
 
 # TODO: Add in more customizability for generating mesh configs.
 def register_solver_initialize_mesh_config(app: typer.Typer):
@@ -15,6 +13,8 @@ def register_solver_initialize_mesh_config(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
+        from am.solver import SolverConfig
+        from am.solver.types import MeshConfig
 
         # Check for workspace config file in current directory
         cwd = Path.cwd()

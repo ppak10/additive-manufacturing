@@ -116,6 +116,7 @@ class Solver:
                 diffusivity = material_config.thermal_diffusivity,
                 grid_offset = grid_offset,
             )
+
             solver_mesh.update_xy(segment)
             solver_mesh.graft(theta, grid_offset)
 

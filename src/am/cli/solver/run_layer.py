@@ -4,9 +4,6 @@ import typer
 from pathlib import Path
 from rich import print as rprint
 
-from am.solver import Solver
-from am.solver.types import BuildConfig, MaterialConfig, MeshConfig
-from am.segmenter.types import Segment
 from am.cli.options import VerboseOption
 
 from typing_extensions import Annotated
@@ -63,6 +60,9 @@ def register_solver_run_layer(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
+        from am.solver import Solver
+        from am.solver.types import BuildConfig, MaterialConfig, MeshConfig
+        from am.segmenter.types import Segment
 
         # Check for workspace config file in current directory
         cwd = Path.cwd()

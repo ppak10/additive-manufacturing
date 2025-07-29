@@ -4,8 +4,6 @@ import typer
 from pathlib import Path
 from rich import print as rprint
 
-from am.segmenter import Segmenter
-from am.segmenter.types import Segment
 from am.cli.options import VerboseOption
 
 from typing_extensions import Annotated
@@ -56,6 +54,7 @@ def register_segmenter_visualize_layer(app: typer.Typer):
         verbose: VerboseOption = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
+        from am.segmenter import Segmenter
 
         # Check for workspace config file in current directory
         cwd = Path.cwd()
@@ -85,7 +84,7 @@ def register_segmenter_visualize_layer(app: typer.Typer):
             verbose = verbose,
         )
 
-        rprint(f"✅ Segmenter visualizing layer...")
+        rprint(f"✅ Successfully generated segment visualizations")
         # except Exception as e:
         #     rprint(f"⚠️  [yellow]Unable to complete visualizations: {e}[/yellow]")
         #     raise typer.Exit(code=1)

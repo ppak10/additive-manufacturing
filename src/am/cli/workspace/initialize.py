@@ -5,7 +5,6 @@ from rich import print as rprint
 from typing_extensions import Annotated
 
 from am.cli.options import VerboseOption
-from am.workspace import Workspace
 
 
 def register_workspace_initialize(app: typer.Typer):
@@ -19,6 +18,7 @@ def register_workspace_initialize(app: typer.Typer):
         ] = False,
     ) -> None:
         """Create a folder to store data related to a workspace."""
+        from am.workspace import Workspace
 
         try:
             workspace = Workspace(

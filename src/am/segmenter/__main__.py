@@ -9,14 +9,13 @@ from importlib.resources import files
 from io import BytesIO
 from pathlib import Path
 from pint import Quantity, UnitRegistry
-from PIL import Image
 from rich import print as rprint
 from tqdm import tqdm
 from typing import cast, Literal
 
 from am import data
 from .config import SegmenterConfig
-from .types import Command, Segment, SegmentDict
+from .types import Segment, SegmentDict
 
 
 class Segmenter:
@@ -39,10 +38,10 @@ class Segmenter:
 
         self.segments: list[Segment] = []
 
-        self.x_min: Quantity | None = None
-        self.x_max: Quantity | None = None
-        self.y_min: Quantity | None = None
-        self.y_max: Quantity | None = None
+        self.x_min: Quantity = cast(Quantity, Quantity(0.0, "m"))
+        self.x_max: Quantity = cast(Quantity, Quantity(0.0, "m"))
+        self.y_min: Quantity = cast(Quantity, Quantity(0.0, "m"))
+        self.y_max: Quantity = cast(Quantity, Quantity(0.0, "m"))
 
     @property
     def ureg(self):
@@ -132,7 +131,7 @@ class Segmenter:
         writer = imageio.get_writer(animation_out_path, mode="I", duration=0.1)
 
         if not include_axis:
-            ax.axis("off")
+            _ = ax.axis("off")
 
         for segment_index, segment in tqdm(
             enumerate(self.segments),
@@ -165,12 +164,12 @@ class Segmenter:
         writer.close()
 
     def load_segments(self, path: Path | str) -> list[Segment]:
-        self.segments: list[Segment] = []
+        self.segments = []
 
-        self.x_min: Quantity | None = None
-        self.x_max: Quantity | None = None
-        self.y_min: Quantity | None = None
-        self.y_max: Quantity | None = None
+        self.x_min = cast(Quantity, Quantity(0.0, "m"))
+        self.x_max = cast(Quantity, Quantity(0.0, "m"))
+        self.y_min = cast(Quantity, Quantity(0.0, "m"))
+        self.y_max = cast(Quantity, Quantity(0.0, "m"))
 
         path = Path(path)
         with path.open("r") as f:
