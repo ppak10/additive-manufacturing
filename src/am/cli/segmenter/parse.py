@@ -10,12 +10,18 @@ def register_segmenter_parse(app: typer.Typer):
     @app.command(name="parse")
     def segmenter_parse(
         filename: str,
+        distance_xy_max: Annotated[
+            float, typer.Option(
+                "--distance-xy-max",
+                help="Maximum xy distance for a single segment."
+            )
+        ] = 1.0,
         units: Annotated[
-            str | None, typer.Option(
+            str , typer.Option(
                 "--units",
                 help="Units that the GCode is defined in."
             )
-        ] = None,
+        ] = "mm",
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for segmenter data inside workspace folder."""
@@ -40,7 +46,11 @@ def register_segmenter_parse(app: typer.Typer):
             # Assumes file is in `workspace/segmenter/parts/`
             filepath = cwd / "segmenter" / "parts" / filename
             _ = segmenter_parse.gcode_to_commands(filepath, units, verbose=verbose)
-            _ = segmenter_parse.commands_to_segments(verbose=verbose)
+            _ = segmenter_parse.commands_to_segments(
+                distance_xy_max = distance_xy_max,
+                units = units,
+                verbose = verbose
+            )
 
             filename_no_ext = filename.split(".")[0]
             segments_path = cwd / "segmenter" / "segments" / f"{filename_no_ext}.json"

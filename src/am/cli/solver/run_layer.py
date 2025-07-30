@@ -71,30 +71,30 @@ def register_solver_run_layer(app: typer.Typer):
             rprint("❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]")
             raise typer.Exit(code=1)
 
-        try:
-            solver = Solver()
-            # Segments
-            segments_path = cwd / "segmenter" / "segments" / segments_filename
+        # try:
+        solver = Solver()
+        # Segments
+        segments_path = cwd / "segmenter" / "segments" / segments_filename
 
-            # Uses number of files in segments path as total layers for zfill.
-            total_layers = len(os.listdir(segments_path))
-            z_fill = len(f"{total_layers}")
-            layer_index_string = f"{layer_index}".zfill(z_fill)
-            segments_file_path = segments_path / f"{layer_index_string}.json"
+        # Uses number of files in segments path as total layers for zfill.
+        total_layers = len(os.listdir(segments_path))
+        z_fill = len(f"{total_layers}")
+        layer_index_string = f"{layer_index}".zfill(z_fill)
+        segments_file_path = segments_path / f"{layer_index_string}.json"
 
-            segments = Segment.load(segments_file_path)
+        segments = Segment.load(segments_file_path)
 
-            # Configs
-            solver_configs_path = cwd / "solver" / "config"
-            build_config = BuildConfig.load(solver_configs_path / "build" / build_config_filename)
-            material_config = MaterialConfig.load(solver_configs_path / "material" / material_config_filename)
-            mesh_config = MeshConfig.load(solver_configs_path / "mesh" / mesh_config_filename)
+        # Configs
+        solver_configs_path = cwd / "solver" / "config"
+        build_config = BuildConfig.load(solver_configs_path / "build" / build_config_filename)
+        material_config = MaterialConfig.load(solver_configs_path / "material" / material_config_filename)
+        mesh_config = MeshConfig.load(solver_configs_path / "mesh" / mesh_config_filename)
 
-            solver.run_layer(segments, build_config, material_config, mesh_config, run_name, visualize)
-            rprint(f"✅ Solver Running...")
-        except Exception as e:
-            rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
-            raise typer.Exit(code=1)
+        solver.run_layer(segments, build_config, material_config, mesh_config, run_name, visualize)
+        rprint(f"✅ Solver Finished")
+        # except Exception as e:
+        #     rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
+        #     raise typer.Exit(code=1)
 
     _ = app.command(name="run_layer")(solver_run_layer)
     return solver_run_layer

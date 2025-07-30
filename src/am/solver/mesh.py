@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -293,13 +294,35 @@ class SolverMesh:
         vmin: float = 300,
         vmax: float = 1923,
         label: str = "Temperature (K)",
+        transparent: bool = False,
+        units: str = "mm",
     ) -> tuple[Figure, Axes, QuadMesh]:
+
         fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-        X, Y = self.x_range, self.y_range
+
+        x_range = [Quantity(x, "m").to(units).magnitude for x in self.x_range]
+        y_range = [Quantity(y, "m").to(units).magnitude for y in self.y_range]
+
+        ax.set_xlim(x_range[0], x_range[-1])
+        ax.set_ylim(y_range[0], y_range[-1])
+
+        ax.set_xlabel(units)
+        ax.set_ylabel(units)
+
         top_view = self.grid[:, :, -1].T
-        import numpy as np
-        print(np.unique(top_view))
-        mesh = ax.pcolormesh(X, Y, top_view, cmap=cmap, vmin=vmin, vmax=vmax)
+
+        if transparent:
+            data = np.ma.masked_where(top_view <= vmin, top_view)
+        else:
+            data = top_view
+
+        mesh = ax.pcolormesh(x_range, y_range, data, cmap=cmap, vmin=vmin, vmax=vmax)
+
+        mesh.set_alpha(1.0)
+        if transparent:
+            mesh.set_array(data)
+            mesh.set_antialiased(False)
+
         fig.colorbar(mesh, ax=ax, label=label)
         return fig, ax, mesh
 

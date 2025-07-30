@@ -487,30 +487,30 @@ class MeshConfig(BaseModel):
     @classmethod
     def create_default(cls, ureg: UnitRegistry) -> "MeshConfig":
         return cls(
-            x_step = cast(Quantity, ureg.Quantity(1e-5, 'meter')),
-            y_step = cast(Quantity, ureg.Quantity(1e-5, 'meter')),
-            z_step = cast(Quantity, ureg.Quantity(1e-5, 'meter')),
+            x_step = cast(Quantity, ureg.Quantity(25, 'micrometer')),
+            y_step = cast(Quantity, ureg.Quantity(25, 'micrometer')),
+            z_step = cast(Quantity, ureg.Quantity(25, 'micrometer')),
             
             # Boundaries
-            x_min = cast(Quantity, ureg.Quantity(0.0, 'meter')),
-            x_max = cast(Quantity, ureg.Quantity(1.0e-2, 'meter')),
-            y_min = cast(Quantity, ureg.Quantity(0.0, 'meter')),
-            y_max = cast(Quantity, ureg.Quantity(1.0e-2, 'meter')),
-            z_min = cast(Quantity, ureg.Quantity(-8.0e-4, 'meter')),
-            z_max = cast(Quantity, ureg.Quantity(0.0, 'meter')),
+            x_min = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
+            x_max = cast(Quantity, ureg.Quantity(10.0, 'millimeter')),
+            y_min = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
+            y_max = cast(Quantity, ureg.Quantity(10.0, 'millimeter')),
+            z_min = cast(Quantity, ureg.Quantity(-0.8, 'millimeter')),
+            z_max = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
             
             # Initial x, y, and z locations
-            x_initial = cast(Quantity, ureg.Quantity(0.0, 'meter')),
-            y_initial = cast(Quantity, ureg.Quantity(0.0, 'meter')),
-            z_initial = cast(Quantity, ureg.Quantity(0.0, 'meter')),
+            x_initial = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
+            y_initial = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
+            z_initial = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
             
             # Padding
-            x_start_pad = cast(Quantity, ureg.Quantity(2.0e-4, 'meter')),
-            y_start_pad = cast(Quantity, ureg.Quantity(2.0e-4, 'meter')),
-            z_start_pad = cast(Quantity, ureg.Quantity(0.0, 'meter')),
-            x_end_pad = cast(Quantity, ureg.Quantity(2.0e-4, 'meter')),
-            y_end_pad = cast(Quantity, ureg.Quantity(2.0e-4, 'meter')),
-            z_end_pad = cast(Quantity, ureg.Quantity(1.0e-4, 'meter')),
+            x_start_pad = cast(Quantity, ureg.Quantity(0.2, 'millimeter')),
+            y_start_pad = cast(Quantity, ureg.Quantity(0.2, 'millimeter')),
+            z_start_pad = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
+            x_end_pad = cast(Quantity, ureg.Quantity(0.2, 'millimeter')),
+            y_end_pad = cast(Quantity, ureg.Quantity(0.2, 'millimeter')),
+            z_end_pad = cast(Quantity, ureg.Quantity(0.1, 'millimeter')),
    
             # Boundary Condition Behavior
             boundary_condition = "temperature"

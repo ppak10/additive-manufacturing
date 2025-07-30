@@ -99,6 +99,10 @@ class EagarTsai:
         sigma = cast(float, self.beam_diameter.magnitude)
 
         p = cast(float, self.beam_power.magnitude)
+        if segment.travel:
+            # Turn power off when travel
+            p = 0.0
+    
         v = cast(float, self.scan_velocity.magnitude)
 
         t_0 = cast(float, self.temperature_preheat.magnitude)
@@ -110,10 +114,6 @@ class EagarTsai:
 
         dt = distance_xy / v
 
-        if segment.travel:
-            # Turn power off when travel
-            p = 0.0
-    
         theta = torch.ones(
             self.theta_shape,
             device=self.device,

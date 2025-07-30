@@ -3,12 +3,12 @@ import json
 
 from pathlib import Path
 from pygcode import Line, words2dict, GCodeLinearMove, GCode
-from pint import Quantity
+from pint import Quantity, Unit
 from typing import cast
 from tqdm import tqdm
 
 from .config import SegmenterConfig
-from .types import Command, Segment, SegmentDict
+from .types import Command, Segment
 
 class SegmenterParse:
     """
@@ -24,7 +24,12 @@ class SegmenterParse:
         self.commands_layer_change_indexes: list[int] = []
         self.segments_layer_change_indexes: list[int] = []
     
-    def gcode_to_commands(self, path: Path, unit: str | None = None, verbose: bool | None = False):
+    def gcode_to_commands(
+        self,
+        path: Path,
+        unit: str = "mm",
+        verbose: bool | None = False
+    ):
         """
         Load and parse linear move values within GCode file into commands.
 
@@ -40,19 +45,7 @@ class SegmenterParse:
             ...
         ],
         """
-        
-        ureg = self.config.ureg
-
-        # Parse the unit string using the registry if provided
-        if unit is None:
-            if ureg.default_system == "mks":
-                unit = "m"
-            if ureg.default_system == "cgs":
-                unit = "cm"
-            else:
-                raise Exception("Unsupported ureg.default_system")
-
-        _unit = ureg.parse_units(unit)
+        _unit = Unit(unit)
 
         # Initial starting command that gets mutated.
         current_command: Command  = {
@@ -68,7 +61,11 @@ class SegmenterParse:
         with open(path, "r") as f:
 
             # Open gcode file to begin parsing linear moves line by line.
-            for line_text in tqdm(f.readlines(), desc=f"Parsing GCode file", disable=not verbose):
+            for line_text in tqdm(
+                f.readlines(),
+                desc=f"Parsing GCode file",
+                disable=not verbose
+            ):
                 line = Line(line_text)  # Parses raw gcode text to line instance.
                 block = line.block
 
@@ -120,23 +117,21 @@ class SegmenterParse:
     def commands_to_segments(
             self,
             commands: list[Command] | None = None,
-            max_segment_length: float = 1.0,
+            distance_xy_max: float = 1.0,
+            units: str = "mm",
             verbose: bool | None = False,
         ):
         """
         Converts commands to segments
         """
-        ureg = self.config.ureg
 
         if commands is None:
             commands = self.commands
-        
+
         self.segments = []
 
         # Range of gcode commands allowing for indexing of next command.
         commands_range = range(len(commands) - 2)
-
-        # max_segment_length_quantity = max_segment_length
 
         for command_index in tqdm(commands_range, desc="Converting to segments", disable=not verbose):
 
@@ -154,18 +149,17 @@ class SegmenterParse:
             dxdy = cast(Quantity, dx**2 + dy**2)
             distance_xy = dxdy ** 0.5
 
-            units = distance_xy.units
-            max_segment_length_quantity = ureg.Quantity(max_segment_length, units)
+            max_segment_length = cast(Quantity, Quantity(distance_xy_max, units))
 
             # Divides `distance_xy` into segments split by `max_segment_length`
-            quotient, remainder = divmod(distance_xy, max_segment_length_quantity)
+            quotient, remainder = divmod(distance_xy, max_segment_length)
             num_segments = int(quotient)
-            segment_distances = [max_segment_length_quantity] * num_segments
+            segment_distances = [max_segment_length] * num_segments
 
             # Adds one more segment to account for remainder.
             if remainder > 0:
                 num_segments += 1
-                segment_distances.append(remainder)
+                segment_distances.append(cast(Quantity, remainder))
 
             # Sets current command to previous command
             prev_x: Quantity = current_command["x"]
@@ -184,7 +178,7 @@ class SegmenterParse:
 
             # Handle no distance cases.
             if len(segment_distances) == 0:
-                segment_distances = [ureg.Quantity(0.0, units)]
+                segment_distances = [Quantity(0.0, units)]
 
             for segment_index, segment_distance in enumerate(segment_distances):
 
