@@ -105,7 +105,7 @@ class Solver:
         #     self.model = model
 
         # for segment_index, segment in tqdm(enumerate(segments[0:3])):
-        for segment_index, segment in tqdm(enumerate(segments)):
+        for segment_index, segment in tqdm(enumerate(segments), total=len(segments)):
 
             # solver_mesh = self._forward(model, solver_mesh, segment)
             grid_offset = cast(float, build_config.temperature_preheat.to("K").magnitude)
@@ -117,6 +117,8 @@ class Solver:
                 diffusivity = material_config.thermal_diffusivity,
                 grid_offset = grid_offset,
             )
+
+            # print(f"theta.unique: {theta.unique()}")
 
             solver_mesh.update_xy(segment)
             solver_mesh.graft(theta, grid_offset)
@@ -133,10 +135,11 @@ class Solver:
     def visualize_2D(
             run_path: Path,
             cmap: str = "plasma",
+            frame_format: str = "png",
             include_axis: bool = True,
             label: str = "Temperature (K)",
             vmin: float = 300,
-            vmax: float | None = None,
+            vmax: float | None = 1000,
             transparent: bool = False,
             units: str = "mm",
             verbose: bool = False,
@@ -155,7 +158,7 @@ class Solver:
         mesh_files = sorted([f.name for f in mesh_folder.iterdir() if f.is_file()])
 
         animation_out_path = visualizations_path / "frames.gif"
-        writer = imageio.get_writer(animation_out_path, mode="I", duration=0.1)
+        writer = imageio.get_writer(animation_out_path, mode="I", duration=0.1, loop=0)
 
         for mesh_file in tqdm(mesh_files):
             mesh_index_string = Path(mesh_file).stem
@@ -175,7 +178,7 @@ class Solver:
 
             # Copy image to memory for later
             buffer = BytesIO()
-            fig.savefig(buffer, format="png", transparent=transparent)
+            fig.savefig(buffer, format=frame_format, transparent=transparent)
             buffer.seek(0)
             writer.append_data(imageio.imread(buffer))
 

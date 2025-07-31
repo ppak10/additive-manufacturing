@@ -150,28 +150,29 @@ class EagarTsai:
         """
         Free Template Solution
         """
-        x_travel = cast(np.ndarray, -v * tau * np.cos(phi))
-        y_travel = cast(np.ndarray, -v * tau * np.sin(phi))
+        x_travel = -v * tau * np.cos(phi)
+        y_travel = -v * tau * np.sin(phi)
     
-        lmbda = (4 * D * tau) ** 0.5
+        lmbda = np.sqrt(4 * D * tau)
         gamma = np.sqrt(2 * sigma**2 + lmbda**2)
         start = (4 * D * tau) ** (-3 / 2)
     
         # Wolfer et al. Equation A.3
-        termy = cast(np.ndarray, sigma * lmbda * np.sqrt(2 * np.pi) / (gamma ** 2))
-        yexp1 = np.exp(-1 * ((self.Y.cpu() - y_travel) ** 2) / gamma**2)
-        yintegral = termy * np.array(yexp1)
+        termy = sigma * lmbda * np.sqrt(2 * np.pi) / (gamma)
+        yexp1 = np.exp(-1 * ((self.Y.cpu().numpy() - y_travel) ** 2) / (gamma**2))
+        yintegral = termy * yexp1
    
         # Wolfer et al. Equation A.2
         termx = termy
-        xexp1 = np.exp(-1 * ((self.X.cpu() - x_travel) ** 2) / gamma**2)
-        xintegral = termx * np.array(xexp1)
+        xexp1 = np.exp(-1 * ((self.X.cpu().numpy() - x_travel) ** 2) / (gamma**2))
+        xintegral = termx * xexp1
     
         # Wolfer et al. Equation 18
-        zintegral = np.array(2 * np.exp(-(self.Z.cpu() ** 2) / (4 * D * tau)))
+        zintegral = 2 * np.exp(-(self.Z.cpu().numpy() ** 2) / (4 * D * tau))
+
     
         # Wolfer et al. Equation 16
-        result = c * start * xintegral * yintegral * zintegral
+        result = c * start * yintegral * xintegral * zintegral
         return result
 
     def __call__(self, segment: Segment) -> torch.Tensor:

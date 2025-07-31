@@ -297,9 +297,6 @@ class SolverMesh:
         ax.set_xlim(x_range[0], x_range[-1])
         ax.set_ylim(y_range[0], y_range[-1])
 
-        ax.set_xlabel(units)
-        ax.set_ylabel(units)
-
         top_view = self.grid[:, :, -1].T
 
         if transparent:
@@ -310,14 +307,17 @@ class SolverMesh:
         mesh = ax.pcolormesh(x_range, y_range, data, cmap=cmap, vmin=vmin, vmax=vmax)
         mesh.set_alpha(1.0)
 
-        if not include_axis:
-            _ = ax.axis("off")
-
         if transparent:
             mesh.set_array(data)
             mesh.set_antialiased(False)
 
-        fig.colorbar(mesh, ax=ax, label=label)
+        if not include_axis:
+            _ = ax.axis("off")
+        else:
+            ax.set_xlabel(units)
+            ax.set_ylabel(units)
+            fig.colorbar(mesh, ax=ax, label=label)
+
         return fig, ax, mesh
 
     @classmethod

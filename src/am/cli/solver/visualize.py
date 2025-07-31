@@ -17,6 +17,26 @@ def register_solver_visualize(app: typer.Typer):
                 help="Run name used for saving to mesh folder"
             )
         ] = None,
+        frame_format: Annotated[
+            str, typer.Option(
+                help="File extension to save frames in"
+            )
+        ] = "png",
+        include_axis: Annotated[
+            bool, typer.Option(
+                help="Toggle for including labels, ticks, and spines"
+            )
+        ] = True,
+        transparent: Annotated[
+            bool, typer.Option(
+                help="Toggle for transparent background"
+            )
+        ] = False,
+        units: Annotated[
+            str, typer.Option(
+                help="Units for plotting segments"
+            )
+        ] = "mm",
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
@@ -46,7 +66,13 @@ def register_solver_visualize(app: typer.Typer):
         run_folder = runs_folder / run_name
 
         # try:
-        Solver.visualize_2D(run_folder)
+        Solver.visualize_2D(
+            run_folder,
+            frame_format=frame_format,
+            include_axis=include_axis,
+            transparent=transparent,
+            units=units
+        )
         rprint(f"✅ Finished visualizing")
         # except Exception as e:
         #     rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
