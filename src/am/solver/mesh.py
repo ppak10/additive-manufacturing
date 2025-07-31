@@ -7,6 +7,7 @@ from matplotlib.collections import QuadMesh
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 
+from datetime import datetime
 from pathlib import Path
 from pint import Quantity
 from scipy.ndimage import gaussian_filter
@@ -98,7 +99,6 @@ class SolverMesh:
         Primarily intended for temperature based values.
         """
 
-        print(self.grid)
 
         device = "cpu"
 
@@ -116,8 +116,6 @@ class SolverMesh:
         z_step = cast(float, self.mesh_config.z_step.to("m").magnitude)
 
         # Wolfer et al. Section 2.2
-        print(f"D: {D}")
-        print(f"dt: {dt}")
         diffuse_sigma =cast(float, (2 * D * dt)**0.5)
 
 
@@ -165,8 +163,6 @@ class SolverMesh:
 
         # Apply Gaussian smoothing
         sigma = diffuse_sigma / z_step
-        print(f"diffuse_sigma: {diffuse_sigma}")
-        print(f"z_step: {z_step}")
 
         match mode:
             case "gaussian_filter":
@@ -195,20 +191,14 @@ class SolverMesh:
                     torch.arange(kernel_size, dtype=torch.float32, device=device)
                     - (kernel_size - 1) / 2
                 )
-                print(f"grid_padded: {grid_padded}")
-                print(f"sigma: {sigma}")
-                print(f"x: {x}")
                 g = torch.exp(-(x**2) / (2 * sigma**2))
                 g /= g.sum()
-                print(f"g: {g}")
                 kernel_3d = torch.einsum("i,j,k->ijk", g, g, g).to(grid_padded.dtype)
                 kernel = kernel_3d.unsqueeze(0).unsqueeze(0)
 
                 grid_filtered = F.conv3d(
                     grid_padded.unsqueeze(0), kernel, padding=0
                 ).squeeze(0)
-
-                print(f"grid_filtered: {grid_filtered}")
 
                 # Crop the padded area
                 grid_cropped = grid_filtered
@@ -217,8 +207,6 @@ class SolverMesh:
 
         # Re-add in the preheat temperature values
         self.grid = torch.Tensor(grid_cropped) + grid_offset
-
-        print(f"self.grid: {self.grid}")
 
     def update_xy(self, segment: Segment, mode: str = "absolute") -> None:
         """
@@ -260,14 +248,12 @@ class SolverMesh:
         # Calculate roll amounts
         x_roll = round(-x_offset + self.x_index)
         y_roll = round(-y_offset + self.y_index)
-        print(f"theta: {theta}")
 
         # Update prev_theta using torch.roll and subtract background temperature
         roll = (
             torch.roll(theta, shifts=(x_roll, y_roll, 0), dims=(0, 1, 2))
             - grid_offset
         )
-        print(f"roll {roll}")
         self.grid += roll
 
     def save(self, path: Path) -> Path:
@@ -291,15 +277,20 @@ class SolverMesh:
     def visualize_2D(
         self,
         cmap: str = "plasma",
-        vmin: float = 300,
-        vmax: float = 1923,
+        include_axis: bool = True,
         label: str = "Temperature (K)",
+        vmin: float = 300,
+        vmax: float | None = None,
         transparent: bool = False,
         units: str = "mm",
     ) -> tuple[Figure, Axes, QuadMesh]:
-
+        """
+        2D Rendering methods mesh using matplotlib.
+        """
         fig, ax = plt.subplots(1, 1, figsize=(10, 5))
 
+        # x_range and y_range are computed this way to avoid incorrect list
+        # length issues during unit conversion.
         x_range = [Quantity(x, "m").to(units).magnitude for x in self.x_range]
         y_range = [Quantity(y, "m").to(units).magnitude for y in self.y_range]
 
@@ -317,8 +308,11 @@ class SolverMesh:
             data = top_view
 
         mesh = ax.pcolormesh(x_range, y_range, data, cmap=cmap, vmin=vmin, vmax=vmax)
-
         mesh.set_alpha(1.0)
+
+        if not include_axis:
+            _ = ax.axis("off")
+
         if transparent:
             mesh.set_array(data)
             mesh.set_antialiased(False)

@@ -1,6 +1,8 @@
+import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from pint import UnitRegistry
 from rich import print as rprint
@@ -77,8 +79,7 @@ class Solver:
             mesh_config: MeshConfig,
             # model_name: Literal["eagar-tsai", "rosenthal", "surrogate"] | None = None,
             run_name: str | None = None,
-            visualize: bool = False,
-        ):
+        ) -> Path:
         """
         2D layer solver, segments must be for a single layer.
         """
@@ -126,13 +127,61 @@ class Solver:
             segment_index_string = f"{segment_index}".zfill(zfill)
             _ = solver_mesh.save(run_out_path / "meshes" / f"{segment_index_string}.pt")
 
-            if visualize:
-                images_path = run_out_path / "images"
-                images_path.mkdir(exist_ok=True, parents=True)
-                fig_path = images_path / f"{segment_index_string}.png"
-                fig, _, _ = solver_mesh.visualize_2D()
-                fig.savefig(fig_path, dpi=600, bbox_inches="tight")
-                plt.close(fig)
+        return run_out_path
+
+    @staticmethod
+    def visualize_2D(
+            run_path: Path,
+            cmap: str = "plasma",
+            include_axis: bool = True,
+            label: str = "Temperature (K)",
+            vmin: float = 300,
+            vmax: float | None = None,
+            transparent: bool = False,
+            units: str = "mm",
+            verbose: bool = False,
+        ):
+        """
+        Visualizes meshes in given run folder.
+        """
+
+        visualizations_path = run_path / "visualizations"
+        visualizations_path.mkdir(exist_ok=True, parents=True)
+
+        frames_path = visualizations_path / "frames"
+        frames_path.mkdir(exist_ok=True, parents=True)
+
+        mesh_folder = run_path / "meshes"
+        mesh_files = sorted([f.name for f in mesh_folder.iterdir() if f.is_file()])
+
+        animation_out_path = visualizations_path / "frames.gif"
+        writer = imageio.get_writer(animation_out_path, mode="I", duration=0.1)
+
+        for mesh_file in tqdm(mesh_files):
+            mesh_index_string = Path(mesh_file).stem
+            solver_mesh = SolverMesh.load(mesh_folder / mesh_file)
+            fig_path = frames_path /  f"{mesh_index_string}.png"
+            fig, _, _ = solver_mesh.visualize_2D(
+                cmap = cmap,
+                include_axis = include_axis,
+                label = label,
+                vmin = vmin,
+                vmax = vmax,
+                transparent = transparent,
+                units = units,
+            )
+            fig.savefig(fig_path, dpi=600, bbox_inches="tight")
+            plt.close(fig)
+
+            # Copy image to memory for later
+            buffer = BytesIO()
+            fig.savefig(buffer, format="png", transparent=transparent)
+            buffer.seek(0)
+            writer.append_data(imageio.imread(buffer))
+
+            plt.close(fig)
+
+        writer.close()
 
     def run(self) -> None:
         # TODO: Save for 3D implementation
