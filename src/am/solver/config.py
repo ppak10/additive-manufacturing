@@ -3,17 +3,17 @@ from pathlib import Path
 from pydantic import BaseModel, model_validator, PrivateAttr
 from typing import Literal
 
+
 class SolverConfig(BaseModel):
     # Subset of units systems from `dir(ureg.sys)`
-    ureg_default_system: Literal['cgs', 'mks'] = "cgs"
+    ureg_default_system: Literal["cgs", "mks"] = "cgs"
     solver_path: Path | None = None
 
-    _ureg: UnitRegistry = PrivateAttr() 
+    _ureg: UnitRegistry = PrivateAttr()
 
     @property
     def ureg(self) -> UnitRegistry:
         return self._ureg
-
 
     @model_validator(mode="after")
     def initialize(self) -> "SolverConfig":
@@ -39,4 +39,3 @@ class SolverConfig(BaseModel):
             raise FileNotFoundError(f"Config file not found at {path}")
 
         return cls.model_validate_json(path.read_text())
-

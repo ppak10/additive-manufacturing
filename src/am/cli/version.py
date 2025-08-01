@@ -16,5 +16,5 @@ def register_version(app: typer.Typer):
                 "⚠️  [yellow]additive-manufacturing version unknown (package not installed)[/yellow]"
             )
             raise typer.Exit()
-    return version
 
+    return version

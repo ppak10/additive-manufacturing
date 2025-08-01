@@ -6,4 +6,3 @@ from .workspace import Workspace
 from .segmenter import Segmenter
 
 __all__ = ["Workspace", "Segmenter"]
-

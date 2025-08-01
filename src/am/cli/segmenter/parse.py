@@ -6,21 +6,19 @@ from typing_extensions import Annotated
 
 from am.cli.options import VerboseOption
 
+
 def register_segmenter_parse(app: typer.Typer):
     @app.command(name="parse")
     def segmenter_parse(
         filename: str,
         distance_xy_max: Annotated[
-            float, typer.Option(
-                "--distance-xy-max",
-                help="Maximum xy distance for a single segment."
-            )
+            float,
+            typer.Option(
+                "--distance-xy-max", help="Maximum xy distance for a single segment."
+            ),
         ] = 1.0,
         units: Annotated[
-            str , typer.Option(
-                "--units",
-                help="Units that the GCode is defined in."
-            )
+            str, typer.Option("--units", help="Units that the GCode is defined in.")
         ] = "mm",
         verbose: VerboseOption | None = False,
     ) -> None:
@@ -31,13 +29,17 @@ def register_segmenter_parse(app: typer.Typer):
         cwd = Path.cwd()
         workspace_config_file = cwd / "config.json"
         if not workspace_config_file.exists():
-            rprint("❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]")
+            rprint(
+                "❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]"
+            )
             raise typer.Exit(code=1)
 
         segmenter_config_file = cwd / "segmenter" / "config.json"
 
         if not segmenter_config_file.exists():
-            rprint("❌ [red]Segmenter not initialized. `segmenter/config.json` not found.[/red]")
+            rprint(
+                "❌ [red]Segmenter not initialized. `segmenter/config.json` not found.[/red]"
+            )
 
         try:
             segmenter_config = SegmenterConfig.load(segmenter_config_file)
@@ -47,9 +49,7 @@ def register_segmenter_parse(app: typer.Typer):
             filepath = cwd / "segmenter" / "parts" / filename
             _ = segmenter_parse.gcode_to_commands(filepath, units, verbose=verbose)
             _ = segmenter_parse.commands_to_segments(
-                distance_xy_max = distance_xy_max,
-                units = units,
-                verbose = verbose
+                distance_xy_max=distance_xy_max, units=units, verbose=verbose
             )
 
             filename_no_ext = filename.split(".")[0]
@@ -61,4 +61,3 @@ def register_segmenter_parse(app: typer.Typer):
             raise typer.Exit(code=1)
 
     return segmenter_parse
-

@@ -8,4 +8,3 @@ _ = register_segmenter_parse(segmenter_app)
 _ = register_segmenter_visualize_layer(segmenter_app)
 
 __all__ = ["segmenter_app"]
-

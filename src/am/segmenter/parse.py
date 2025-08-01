@@ -10,6 +10,7 @@ from tqdm import tqdm
 from .config import SegmenterConfig
 from .types import Command, Segment
 
+
 class SegmenterParse:
     """
     Parses files (`.gcode`) into commands and then into segments.
@@ -23,12 +24,9 @@ class SegmenterParse:
         # List of indexes for `self.commands` where layer change occurs.
         self.commands_layer_change_indexes: list[int] = []
         self.segments_layer_change_indexes: list[int] = []
-    
+
     def gcode_to_commands(
-        self,
-        path: Path,
-        unit: str = "mm",
-        verbose: bool | None = False
+        self, path: Path, unit: str = "mm", verbose: bool | None = False
     ):
         """
         Load and parse linear move values within GCode file into commands.
@@ -48,7 +46,7 @@ class SegmenterParse:
         _unit = Unit(unit)
 
         # Initial starting command that gets mutated.
-        current_command: Command  = {
+        current_command: Command = {
             "x": 0.0 * _unit,
             "y": 0.0 * _unit,
             "z": 0.0 * _unit,
@@ -62,9 +60,7 @@ class SegmenterParse:
 
             # Open gcode file to begin parsing linear moves line by line.
             for line_text in tqdm(
-                f.readlines(),
-                desc=f"Parsing GCode file",
-                disable=not verbose
+                f.readlines(), desc=f"Parsing GCode file", disable=not verbose
             ):
                 line = Line(line_text)  # Parses raw gcode text to line instance.
                 block = line.block
@@ -73,7 +69,6 @@ class SegmenterParse:
                     # GCode objects within line text.
                     gcodes = cast(list[GCode], block.gcodes)
 
-
                     # Only considers Linear Move GCode actions for now.
                     if len(gcodes) and isinstance(gcodes[0], GCodeLinearMove):
 
@@ -81,7 +76,9 @@ class SegmenterParse:
                         # `{"Z": 5.0}` or `{"X": 1.0, "Y": 1.0}` or `{}`
                         # Sometimes `{"X": 1.0, "Y": 1.0, "Z": 5.0}` as well.
                         # TODO: Make type stub for `.get_param_dict()` pygcode or fork package.
-                        coordinates_dict = cast(dict[str, float], gcodes[0].get_param_dict())
+                        coordinates_dict = cast(
+                            dict[str, float], gcodes[0].get_param_dict()
+                        )
 
                         # Indexes z coordinate commands as layer changes.
                         # Only count explicit Z layer changes (dict length of 1).
@@ -93,18 +90,22 @@ class SegmenterParse:
                         # `{"E": 2.10293}` or `{}` if no extrusion.
                         modal_params = cast(object, block.modal_params)
 
-                        extrusion_dict = cast(dict[str, float], words2dict(modal_params))
+                        extrusion_dict = cast(
+                            dict[str, float], words2dict(modal_params)
+                        )
 
                         # Updates extrusion value explicity to 0.0.
                         if "E" not in extrusion_dict:
-                            extrusion_dict: dict[str, float] = { "E": 0.0 }
+                            extrusion_dict: dict[str, float] = {"E": 0.0}
 
                         # Overwrites the current command with commands gcode line.
                         # Update with coordinates_dict values if present
                         for k in ["x", "y", "z"]:
                             if k.capitalize() in coordinates_dict:
-                                current_command[k] = coordinates_dict[k.capitalize()] * _unit
-                        
+                                current_command[k] = (
+                                    coordinates_dict[k.capitalize()] * _unit
+                                )
+
                         # Update extrusion 'E'
                         if "E" in extrusion_dict:
                             current_command["e"] = extrusion_dict["E"] * _unit
@@ -115,12 +116,12 @@ class SegmenterParse:
         return self.commands
 
     def commands_to_segments(
-            self,
-            commands: list[Command] | None = None,
-            distance_xy_max: float = 1.0,
-            units: str = "mm",
-            verbose: bool | None = False,
-        ):
+        self,
+        commands: list[Command] | None = None,
+        distance_xy_max: float = 1.0,
+        units: str = "mm",
+        verbose: bool | None = False,
+    ):
         """
         Converts commands to segments
         """
@@ -133,10 +134,12 @@ class SegmenterParse:
         # Range of gcode commands allowing for indexing of next command.
         commands_range = range(len(commands) - 2)
 
-        for command_index in tqdm(commands_range, desc="Converting to segments", disable=not verbose):
+        for command_index in tqdm(
+            commands_range, desc="Converting to segments", disable=not verbose
+        ):
 
             if command_index in self.commands_layer_change_indexes:
-                # Adds current length of segments if command is marked as a 
+                # Adds current length of segments if command is marked as a
                 # layer change.
                 self.segments_layer_change_indexes.append(len(self.segments))
 
@@ -147,7 +150,7 @@ class SegmenterParse:
             dx = next_command["x"] - current_command["x"]
             dy = next_command["y"] - current_command["y"]
             dxdy = cast(Quantity, dx**2 + dy**2)
-            distance_xy = dxdy ** 0.5
+            distance_xy = dxdy**0.5
 
             max_segment_length = cast(Quantity, Quantity(distance_xy_max, units))
 
@@ -182,8 +185,12 @@ class SegmenterParse:
 
             for segment_index, segment_distance in enumerate(segment_distances):
 
-                next_x = cast(Quantity, prev_x + segment_distance * np.cos(prev_angle_xy))
-                next_y = cast(Quantity, prev_y + segment_distance * np.sin(prev_angle_xy))
+                next_x = cast(
+                    Quantity, prev_x + segment_distance * np.cos(prev_angle_xy)
+                )
+                next_y = cast(
+                    Quantity, prev_y + segment_distance * np.sin(prev_angle_xy)
+                )
 
                 # Determines angle to reach given is translated to origin.
                 translated_x = next_x - prev_x
@@ -210,7 +217,6 @@ class SegmenterParse:
                     y_next=next_y,
                     z_next=next_z,
                     e_next=next_e,
-
                     # TODO: Investigate a better way to assign type here.
                     angle_xy=cast(Quantity, cast(object, next_angle_xy)),
                     distance_xy=cast(Quantity, segment_distance),
@@ -226,12 +232,12 @@ class SegmenterParse:
         return self.segments
 
     def save_segments(
-            self,
-            path: Path,
-            segments: list[Segment] | None = None,
-            verbose: bool | None = False,
-            split_by_layer_index: bool | None = True,
-        ) -> Path:
+        self,
+        path: Path,
+        segments: list[Segment] | None = None,
+        verbose: bool | None = False,
+        split_by_layer_index: bool | None = True,
+    ) -> Path:
 
         path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -239,10 +245,9 @@ class SegmenterParse:
             segments = self.segments
 
         segments_data = [
-            segment.to_dict() for segment in tqdm(
-                segments,
-                desc="Serializing segments",
-                disable=not verbose
+            segment.to_dict()
+            for segment in tqdm(
+                segments, desc="Serializing segments", disable=not verbose
             )
         ]
 
@@ -253,10 +258,10 @@ class SegmenterParse:
 
             prev = 0
             for layer_change_index, current in tqdm(
-                    enumerate(self.segments_layer_change_indexes),
-                    desc="Writing segments",
-                    disable=not verbose,
-                    total=layer_changes,
+                enumerate(self.segments_layer_change_indexes),
+                desc="Writing segments",
+                disable=not verbose,
+                total=layer_changes,
             ):
                 z_fill = len(f"{layer_changes}")
                 layer_index_string = f"{layer_change_index}".zfill(z_fill)
@@ -275,9 +280,13 @@ class SegmenterParse:
         else:
             with path.open("w") as f:
                 _ = f.write("[\n")
-                for i, segment_dict in enumerate(tqdm(segments_data, desc="Writing segments", disable=not verbose)):
+                for i, segment_dict in enumerate(
+                    tqdm(segments_data, desc="Writing segments", disable=not verbose)
+                ):
                     json_str = json.dumps(segment_dict, indent=2)
-                    indented_str = "  " + json_str.replace("\n", "\n ")  # 2-space indent after [
+                    indented_str = "  " + json_str.replace(
+                        "\n", "\n "
+                    )  # 2-space indent after [
                     _ = f.write(indented_str)
                     if i < len(segments_data) - 1:
                         _ = f.write(",\n")
@@ -286,4 +295,3 @@ class SegmenterParse:
                 _ = f.write("]\n")
 
             return path
-

@@ -11,14 +11,15 @@ from am.segmenter.types import Segment
 
 FLOOR = 10**-7  # Float32
 
+
 class EagarTsai:
     def __init__(
-            self,
-            build_config: BuildConfig,
-            material_config: MaterialConfig,
-            solver_mesh: SolverMesh,
-            device: str = "cpu",
-            **kwargs,
+        self,
+        build_config: BuildConfig,
+        material_config: MaterialConfig,
+        solver_mesh: SolverMesh,
+        device: str = "cpu",
+        **kwargs,
     ):
         self.build_config: BuildConfig = build_config
         self.material_config: MaterialConfig = material_config
@@ -29,46 +30,33 @@ class EagarTsai:
         # Material Properties
         # Converted into SI units before passing to solver.
         self.absorptivity: Quantity = cast(
-            Quantity,
-            self.material_config.absorptivity.to(
-                "dimensionless"
-            )
+            Quantity, self.material_config.absorptivity.to("dimensionless")
         )
         self.specific_heat_capacity: Quantity = cast(
             Quantity,
             self.material_config.specific_heat_capacity.to(
                 "joule / (kelvin * kilogram)"
-            )
+            ),
         )
         self.thermal_diffusivity: Quantity = cast(
-            Quantity,
-            self.material_config.thermal_diffusivity.to(
-                "meter ** 2 / second"
-            )
+            Quantity, self.material_config.thermal_diffusivity.to("meter ** 2 / second")
         )
         self.density: Quantity = cast(
-            Quantity,
-            self.material_config.density.to(
-                "kilogram / meter ** 3"
-            )
+            Quantity, self.material_config.density.to("kilogram / meter ** 3")
         )
 
         # Build Parameters
         self.beam_diameter: Quantity = cast(
-            Quantity,
-            self.build_config.beam_diameter.to("meter") / 4
+            Quantity, self.build_config.beam_diameter.to("meter") / 4
         )
         self.beam_power: Quantity = cast(
-            Quantity,
-            self.build_config.beam_power.to("watts")
+            Quantity, self.build_config.beam_power.to("watts")
         )
         self.scan_velocity: Quantity = cast(
-            Quantity,
-            self.build_config.scan_velocity.to("meter / second")
+            Quantity, self.build_config.scan_velocity.to("meter / second")
         )
         self.temperature_preheat: Quantity = cast(
-            Quantity,
-            self.build_config.temperature_preheat.to("kelvin")
+            Quantity, self.build_config.temperature_preheat.to("kelvin")
         )
 
         # Mesh Range
@@ -79,7 +67,7 @@ class EagarTsai:
         self.theta_shape: tuple[int, int, int] = (
             len(solver_mesh.x_range_centered),
             len(solver_mesh.y_range_centered),
-            len(solver_mesh.z_range_centered)
+            len(solver_mesh.z_range_centered),
         )
 
     def forward(self, segment: Segment) -> torch.Tensor:
@@ -102,7 +90,7 @@ class EagarTsai:
         if segment.travel:
             # Turn power off when travel
             p = 0.0
-    
+
         v = cast(float, self.scan_velocity.magnitude)
 
         t_0 = cast(float, self.temperature_preheat.magnitude)
@@ -114,67 +102,56 @@ class EagarTsai:
 
         dt = distance_xy / v
 
-        theta = torch.ones(
-            self.theta_shape,
-            device=self.device,
-            dtype=self.dtype
-        ) * t_0
-    
-    
+        theta = torch.ones(self.theta_shape, device=self.device, dtype=self.dtype) * t_0
+
         num = self.num
         if num is None:
             num = max(1, int(dt // 1e-4))
-   
+
         if dt > 0:
             result, _ = integrate.fixed_quad(
-                self.solve,
-                FLOOR,
-                dt,
-                args=(phi, D, sigma, v, c),
-                n=num
+                self.solve, FLOOR, dt, args=(phi, D, sigma, v, c), n=num
             )
             result_tensor = torch.tensor(result)
             theta += result_tensor
-   
+
         return theta
 
     def solve(
-            self,
-            tau: np.ndarray,
-            phi: float,
-            D: float,
-            sigma: float,
-            v: float,
-            c: float,
-        ) -> np.ndarray:
+        self,
+        tau: np.ndarray,
+        phi: float,
+        D: float,
+        sigma: float,
+        v: float,
+        c: float,
+    ) -> np.ndarray:
         """
         Free Template Solution
         """
         x_travel = -v * tau * np.cos(phi)
         y_travel = -v * tau * np.sin(phi)
-    
+
         lmbda = np.sqrt(4 * D * tau)
         gamma = np.sqrt(2 * sigma**2 + lmbda**2)
         start = (4 * D * tau) ** (-3 / 2)
-    
+
         # Wolfer et al. Equation A.3
         termy = sigma * lmbda * np.sqrt(2 * np.pi) / (gamma)
         yexp1 = np.exp(-1 * ((self.Y.cpu().numpy() - y_travel) ** 2) / (gamma**2))
         yintegral = termy * yexp1
-   
+
         # Wolfer et al. Equation A.2
         termx = termy
         xexp1 = np.exp(-1 * ((self.X.cpu().numpy() - x_travel) ** 2) / (gamma**2))
         xintegral = termx * xexp1
-    
+
         # Wolfer et al. Equation 18
         zintegral = 2 * np.exp(-(self.Z.cpu().numpy() ** 2) / (4 * D * tau))
 
-    
         # Wolfer et al. Equation 16
         result = c * start * yintegral * xintegral * zintegral
         return result
 
     def __call__(self, segment: Segment) -> torch.Tensor:
         return self.forward(segment)
-

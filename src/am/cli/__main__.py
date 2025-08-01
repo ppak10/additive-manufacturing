@@ -11,6 +11,7 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+
 def _rich_exception_handler(exc_type, exc_value, exc_traceback):
     """Handle exceptions with rich formatting."""
     if exc_type is KeyboardInterrupt:

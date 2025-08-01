@@ -8,36 +8,22 @@ from am.cli.options import VerboseOption
 
 from typing_extensions import Annotated
 
+
 def register_solver_run_layer(app: typer.Typer):
     @app.command(name="run_layer")
     def solver_run_layer(
-        segments_filename: Annotated[
-            str, typer.Argument(
-                help="Segments filename"
-            )
-        ],
+        segments_filename: Annotated[str, typer.Argument(help="Segments filename")],
         layer_index: Annotated[
-            int, typer.Argument(
-                help="Use segments within specified layer index"
-            )
+            int, typer.Argument(help="Use segments within specified layer index")
         ],
         build_config_filename: Annotated[
-            str, typer.Option(
-                "--build_config",
-                help="Build config filename"
-            )
+            str, typer.Option("--build_config", help="Build config filename")
         ] = "default.json",
         material_config_filename: Annotated[
-            str, typer.Option(
-                "--material_config",
-                help="Material config filename"
-            )
+            str, typer.Option("--material_config", help="Material config filename")
         ] = "default.json",
         mesh_config_filename: Annotated[
-            str, typer.Option(
-                "--mesh_config",
-                help="Mesh config filename"
-            )
+            str, typer.Option("--mesh_config", help="Mesh config filename")
         ] = "default.json",
         # model_name: Annotated[
         #     str, typer.Option(
@@ -46,10 +32,8 @@ def register_solver_run_layer(app: typer.Typer):
         #     )
         # ] = "eagar-tsai",
         run_name: Annotated[
-            str | None, typer.Option(
-                "--run_name",
-                help="Run name used for saving to mesh folder"
-            )
+            str | None,
+            typer.Option("--run_name", help="Run name used for saving to mesh folder"),
         ] = None,
         verbose: VerboseOption | None = False,
     ) -> None:
@@ -62,7 +46,9 @@ def register_solver_run_layer(app: typer.Typer):
         cwd = Path.cwd()
         config_file = cwd / "config.json"
         if not config_file.exists():
-            rprint("❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]")
+            rprint(
+                "❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]"
+            )
             raise typer.Exit(code=1)
 
         # try:
@@ -80,9 +66,15 @@ def register_solver_run_layer(app: typer.Typer):
 
         # Configs
         solver_configs_path = cwd / "solver" / "config"
-        build_config = BuildConfig.load(solver_configs_path / "build" / build_config_filename)
-        material_config = MaterialConfig.load(solver_configs_path / "material" / material_config_filename)
-        mesh_config = MeshConfig.load(solver_configs_path / "mesh" / mesh_config_filename)
+        build_config = BuildConfig.load(
+            solver_configs_path / "build" / build_config_filename
+        )
+        material_config = MaterialConfig.load(
+            solver_configs_path / "material" / material_config_filename
+        )
+        mesh_config = MeshConfig.load(
+            solver_configs_path / "mesh" / mesh_config_filename
+        )
 
         solver.run_layer(segments, build_config, material_config, mesh_config, run_name)
         rprint(f"✅ Solver Finished")
@@ -92,4 +84,3 @@ def register_solver_run_layer(app: typer.Typer):
 
     _ = app.command(name="run_layer")(solver_run_layer)
     return solver_run_layer
-

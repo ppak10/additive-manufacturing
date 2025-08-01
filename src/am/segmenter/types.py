@@ -5,16 +5,19 @@ from pint import Quantity
 from pathlib import Path
 from typing import Any, ClassVar, TypedDict
 
+
 class Command(TypedDict):
     x: Quantity
     y: Quantity
     z: Quantity
     e: Quantity
 
+
 # TypedDict for Quantity serialized as dict
 class QuantityDict(TypedDict):
     magnitude: float
     units: str
+
 
 # SegmentDict with QuantityDict for quantities and bool for travel
 class SegmentDict(TypedDict):
@@ -30,8 +33,9 @@ class SegmentDict(TypedDict):
     distance_xy: QuantityDict
     travel: bool
 
+
 class Segment(BaseModel):
-    model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True) 
+    model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
     x: Quantity
     y: Quantity
     z: Quantity
@@ -44,7 +48,6 @@ class Segment(BaseModel):
     distance_xy: Quantity
     travel: bool
 
-
     @staticmethod
     def _quantity_to_dict(q: Quantity) -> QuantityDict:
         return {"magnitude": q.magnitude, "units": str(q.units)}
@@ -55,21 +58,34 @@ class Segment(BaseModel):
         return Quantity(d["magnitude"], d["units"])
 
     @field_validator(
-        "x", "y", "z", "e",
-        "x_next", "y_next", "z_next", "e_next",
-        "angle_xy", "distance_xy",
-        mode="before"
+        "x",
+        "y",
+        "z",
+        "e",
+        "x_next",
+        "y_next",
+        "z_next",
+        "e_next",
+        "angle_xy",
+        "distance_xy",
+        mode="before",
     )
     def parse_quantity(cls, v: QuantityDict | Quantity) -> Quantity:
         if isinstance(v, dict):
             # Strict check keys and types
             expected_keys = {"magnitude", "units"}
             if set(v.keys()) != expected_keys:
-                raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
+                raise ValidationError(
+                    f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}"
+                )
             if not isinstance(v["magnitude"], float):
-                raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
+                raise ValidationError(
+                    f"QuantityDict magnitude must be float, got {type(v['magnitude'])}"
+                )
             if not isinstance(v["units"], str):
-                raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
+                raise ValidationError(
+                    f"QuantityDict units must be str, got {type(v['units'])}"
+                )
             return cls._dict_to_quantity(v)
         elif isinstance(v, Quantity):
             return v
@@ -105,5 +121,6 @@ class Segment(BaseModel):
         elif isinstance(data, dict):
             return [cls.from_dict(data)]
         else:
-            raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
-
+            raise ValueError(
+                f"Unexpected JSON structure in {path}: expected dict or list of dicts"
+            )

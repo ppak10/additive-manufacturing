@@ -20,6 +20,7 @@ from am.segmenter.types import Segment
 from .config import SolverConfig
 from .types import MeshConfig
 
+
 class SolverMesh:
     def __init__(self, config: SolverConfig, mesh_config: MeshConfig):
         self.config: SolverConfig = config
@@ -33,9 +34,9 @@ class SolverMesh:
         self.y_index: int
         self.z_index: int
 
-        self.x_range: Tensor = torch.Tensor() 
-        self.y_range: Tensor = torch.Tensor() 
-        self.z_range: Tensor = torch.Tensor() 
+        self.x_range: Tensor = torch.Tensor()
+        self.y_range: Tensor = torch.Tensor()
+        self.z_range: Tensor = torch.Tensor()
 
         self.x_range_centered: Tensor = torch.Tensor()
         self.y_range_centered: Tensor = torch.Tensor()
@@ -43,7 +44,9 @@ class SolverMesh:
 
         self.grid: Tensor = torch.Tensor()
 
-    def initialize_grid(self, fill_value: Number, device: str = "cpu", dtype = torch.float32) -> Tensor:
+    def initialize_grid(
+        self, fill_value: Number, device: str = "cpu", dtype=torch.float32
+    ) -> Tensor:
 
         x_start = cast(float, self.mesh_config.x_start.to("meter").magnitude)
         x_step = cast(float, self.mesh_config.x_step.to("meter").magnitude)
@@ -92,13 +95,12 @@ class SolverMesh:
         delta_time: Quantity,
         diffusivity: Quantity,
         grid_offset: float,
-        mode: str = "gaussian_convolution"
+        mode: str = "gaussian_convolution",
     ) -> None:
         """
         Performs diffusion on `self.grid` over time delta.
         Primarily intended for temperature based values.
         """
-
 
         device = "cpu"
 
@@ -116,8 +118,7 @@ class SolverMesh:
         z_step = cast(float, self.mesh_config.z_step.to("m").magnitude)
 
         # Wolfer et al. Section 2.2
-        diffuse_sigma =cast(float, (2 * D * dt)**0.5)
-
+        diffuse_sigma = cast(float, (2 * D * dt) ** 0.5)
 
         # Compute padding values
         pad_x = max(int((4 * diffuse_sigma) // (x_step * 2)), 1)
@@ -251,8 +252,7 @@ class SolverMesh:
 
         # Update prev_theta using torch.roll and subtract background temperature
         roll = (
-            torch.roll(theta, shifts=(x_roll, y_roll, 0), dims=(0, 1, 2))
-            - grid_offset
+            torch.roll(theta, shifts=(x_roll, y_roll, 0), dims=(0, 1, 2)) - grid_offset
         )
         self.grid += roll
 
@@ -338,5 +338,3 @@ class SolverMesh:
 
         instance.grid = data["grid"]
         return instance
-
-

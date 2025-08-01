@@ -24,16 +24,16 @@ class Segmenter:
     """
 
     def __init__(
-            self,
-            ureg_default_system: Literal['cgs', 'mks'] = "cgs",
-            ureg: UnitRegistry | None = None,
-            segmenter_path: Path | None = None,
-            verbose: bool | None = False,
-        ):
+        self,
+        ureg_default_system: Literal["cgs", "mks"] = "cgs",
+        ureg: UnitRegistry | None = None,
+        segmenter_path: Path | None = None,
+        verbose: bool | None = False,
+    ):
         self.config: SegmenterConfig = SegmenterConfig(
             ureg_default_system=ureg_default_system,
             segmenter_path=segmenter_path,
-            verbose=verbose
+            verbose=verbose,
         )
 
         self.segments: list[Segment] = []
@@ -63,7 +63,7 @@ class Segmenter:
         parts_resource_dir = files(data) / "segmenter" / "parts"
         parts_dest_dir = segmenter_path / "parts"
         parts_dest_dir.mkdir(parents=True, exist_ok=True)
-    
+
         for entry in parts_resource_dir.iterdir():
             if entry.is_file():
                 dest_file = parts_dest_dir / entry.name
@@ -71,10 +71,10 @@ class Segmenter:
                     shutil.copyfileobj(src, dst)
 
     def initialize(
-            self,
-            segmenter_path: Path,
-            include_examples: bool | None = True,
-        ):
+        self,
+        segmenter_path: Path,
+        include_examples: bool | None = True,
+    ):
         # Create `segmenter` folder
         segmenter_path.mkdir(exist_ok=True)
         self.config.segmenter_path = segmenter_path
@@ -89,16 +89,16 @@ class Segmenter:
             self.copy_example_parts(segmenter_path)
 
     def visualize(
-            self,
-            visualize_name: str | None = None,
-            color: str = "black",
-            frame_format: str = "png",
-            include_axis: bool = True,
-            linewidth: float = 2.0,
-            transparent: bool = False,
-            units: str = "mm",
-            verbose: bool = False,
-        ):
+        self,
+        visualize_name: str | None = None,
+        color: str = "black",
+        frame_format: str = "png",
+        include_axis: bool = True,
+        linewidth: float = 2.0,
+        transparent: bool = False,
+        units: str = "mm",
+        verbose: bool = False,
+    ):
         """
         Provides visualization for loaded segments.
         """
@@ -137,10 +137,9 @@ class Segmenter:
             enumerate(self.segments),
             desc="Generating plots",
             disable=not verbose,
-            total=len(self.segments)
+            total=len(self.segments),
         ):
             segment_index_string = f"{segment_index}".zfill(zfill)
-
 
             # Display on non-travel segments
             # TODO: Add argument to also show travel segments.
@@ -149,7 +148,7 @@ class Segmenter:
                     (segment.x.to(units).magnitude, segment.x_next.to(units).magnitude),
                     (segment.y.to(units).magnitude, segment.y_next.to(units).magnitude),
                     color=color,
-                    linewidth=linewidth
+                    linewidth=linewidth,
                 )
 
             frame_path = frames_out_path / f"{segment_index_string}.{frame_format}"
@@ -176,7 +175,7 @@ class Segmenter:
             segments_data = cast(list[SegmentDict], json.load(f))
 
         for seg_dict in tqdm(segments_data, desc="Loading segments"):
-            segment = Segment.from_dict(seg_dict) 
+            segment = Segment.from_dict(seg_dict)
             self.segments.append(segment)
 
             # Determine x_min, x_max, y_min, y_max

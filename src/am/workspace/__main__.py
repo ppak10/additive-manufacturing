@@ -16,17 +16,14 @@ class Workspace:
     """
 
     def __init__(
-            self,
-            name: str,
-            out_path: Path | None = None,
-            workspace_path: Path | None = None,
-            verbose: bool | None = False,
-        ):
+        self,
+        name: str,
+        out_path: Path | None = None,
+        workspace_path: Path | None = None,
+        verbose: bool | None = False,
+    ):
         self.config: WorkspaceConfig = WorkspaceConfig(
-            name=name,
-            out_path=out_path,
-            workspace_path=workspace_path,
-            verbose=verbose
+            name=name, out_path=out_path, workspace_path=workspace_path, verbose=verbose
         )
 
     @property

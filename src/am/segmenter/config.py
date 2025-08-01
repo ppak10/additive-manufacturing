@@ -6,11 +6,11 @@ from typing import Literal
 
 class SegmenterConfig(BaseModel):
     # Subset of units systems from `dir(ureg.sys)`
-    ureg_default_system: Literal['cgs', 'mks'] = "cgs"
+    ureg_default_system: Literal["cgs", "mks"] = "cgs"
     segmenter_path: Path | None = None
     verbose: bool | None = False
 
-    _ureg: UnitRegistry = PrivateAttr() 
+    _ureg: UnitRegistry = PrivateAttr()
 
     @model_validator(mode="after")
     def init_ureg(self) -> "SegmenterConfig":
@@ -37,11 +37,9 @@ class SegmenterConfig(BaseModel):
 
         return path
 
-
     @classmethod
     def load(cls: type["SegmenterConfig"], path: Path) -> "SegmenterConfig":
         if not path.exists():
             raise FileNotFoundError(f"Config file not found at {path}")
 
         return cls.model_validate_json(path.read_text())
-

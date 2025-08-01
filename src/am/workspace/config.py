@@ -4,6 +4,7 @@ import re
 from pydantic import BaseModel, field_validator, model_validator
 from pathlib import Path
 
+
 class WorkspaceConfig(BaseModel):
     name: str
     out_path: Path | None = None
@@ -39,7 +40,6 @@ class WorkspaceConfig(BaseModel):
 
         return self
 
-    
     def save(self, path: Path | None = None) -> Path:
         """
         Save the configuration to a YAML file.
@@ -47,7 +47,9 @@ class WorkspaceConfig(BaseModel):
         """
         if path is None:
             if not self.workspace_path:
-                raise ValueError("workspace_path must be set to determine save location.")
+                raise ValueError(
+                    "workspace_path must be set to determine save location."
+                )
             path = self.workspace_path / "config.json"
 
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,14 +57,9 @@ class WorkspaceConfig(BaseModel):
 
         return path
 
-
     @classmethod
     def load(cls: type["WorkspaceConfig"], path: Path) -> "WorkspaceConfig":
         if not path.exists():
             raise FileNotFoundError(f"Config file not found at {path}")
 
         return cls.model_validate_json(path.read_text())
-
-
-
-

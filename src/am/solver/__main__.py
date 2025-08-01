@@ -16,18 +16,19 @@ from am.solver.types import BuildConfig, MaterialConfig, MeshConfig
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai
 
+
 class Solver:
     """
     Base solver methods.
     """
 
     def __init__(
-            self,
-            ureg_default_system: Literal['cgs', 'mks'] = "cgs",
-            ureg: UnitRegistry | None = None,
-            solver_path: Path | None = None,
-            verbose: bool | None = False,
-        ):
+        self,
+        ureg_default_system: Literal["cgs", "mks"] = "cgs",
+        ureg: UnitRegistry | None = None,
+        solver_path: Path | None = None,
+        verbose: bool | None = False,
+    ):
         self.config: SolverConfig = SolverConfig(
             ureg_default_system=ureg_default_system,
             solver_path=solver_path,
@@ -52,7 +53,7 @@ class Solver:
         solver_config_file = self.config.save()
         rprint(f"Solver config file saved at: {solver_config_file}")
 
-    def create_default_configs(self, config_path:  Path | None = None):
+    def create_default_configs(self, config_path: Path | None = None):
         if config_path is None:
             if self.config.solver_path:
                 config_path = self.config.solver_path / "config"
@@ -72,14 +73,14 @@ class Solver:
         _ = mesh_config.save(mesh_config_path)
 
     def run_layer(
-            self,
-            segments: list[Segment],
-            build_config: BuildConfig,
-            material_config: MaterialConfig,
-            mesh_config: MeshConfig,
-            # model_name: Literal["eagar-tsai", "rosenthal", "surrogate"] | None = None,
-            run_name: str | None = None,
-        ) -> Path:
+        self,
+        segments: list[Segment],
+        build_config: BuildConfig,
+        material_config: MaterialConfig,
+        mesh_config: MeshConfig,
+        # model_name: Literal["eagar-tsai", "rosenthal", "surrogate"] | None = None,
+        run_name: str | None = None,
+    ) -> Path:
         """
         2D layer solver, segments must be for a single layer.
         """
@@ -108,14 +109,16 @@ class Solver:
         for segment_index, segment in tqdm(enumerate(segments), total=len(segments)):
 
             # solver_mesh = self._forward(model, solver_mesh, segment)
-            grid_offset = cast(float, build_config.temperature_preheat.to("K").magnitude)
+            grid_offset = cast(
+                float, build_config.temperature_preheat.to("K").magnitude
+            )
 
             theta = model(segment)
 
             solver_mesh.diffuse(
-                delta_time = segment.distance_xy / build_config.scan_velocity,
-                diffusivity = material_config.thermal_diffusivity,
-                grid_offset = grid_offset,
+                delta_time=segment.distance_xy / build_config.scan_velocity,
+                diffusivity=material_config.thermal_diffusivity,
+                grid_offset=grid_offset,
             )
 
             # print(f"theta.unique: {theta.unique()}")
@@ -133,17 +136,17 @@ class Solver:
 
     @staticmethod
     def visualize_2D(
-            run_path: Path,
-            cmap: str = "plasma",
-            frame_format: str = "png",
-            include_axis: bool = True,
-            label: str = "Temperature (K)",
-            vmin: float = 300,
-            vmax: float | None = 1000,
-            transparent: bool = False,
-            units: str = "mm",
-            verbose: bool = False,
-        ):
+        run_path: Path,
+        cmap: str = "plasma",
+        frame_format: str = "png",
+        include_axis: bool = True,
+        label: str = "Temperature (K)",
+        vmin: float = 300,
+        vmax: float | None = 1000,
+        transparent: bool = False,
+        units: str = "mm",
+        verbose: bool = False,
+    ):
         """
         Visualizes meshes in given run folder.
         """
@@ -163,15 +166,15 @@ class Solver:
         for mesh_file in tqdm(mesh_files):
             mesh_index_string = Path(mesh_file).stem
             solver_mesh = SolverMesh.load(mesh_folder / mesh_file)
-            fig_path = frames_path /  f"{mesh_index_string}.png"
+            fig_path = frames_path / f"{mesh_index_string}.png"
             fig, _, _ = solver_mesh.visualize_2D(
-                cmap = cmap,
-                include_axis = include_axis,
-                label = label,
-                vmin = vmin,
-                vmax = vmax,
-                transparent = transparent,
-                units = units,
+                cmap=cmap,
+                include_axis=include_axis,
+                label=label,
+                vmin=vmin,
+                vmax=vmax,
+                transparent=transparent,
+                units=units,
             )
             fig.savefig(fig_path, dpi=600, bbox_inches="tight")
             plt.close(fig)
@@ -189,4 +192,3 @@ class Solver:
     def run(self) -> None:
         # TODO: Save for 3D implementation
         raise NotImplementedError("Not yet implemented")
-

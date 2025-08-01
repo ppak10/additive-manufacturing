@@ -2,10 +2,17 @@ import json
 
 from pathlib import Path
 from pint import Quantity, UnitRegistry
-from pydantic import BaseModel, ConfigDict, field_validator, field_serializer, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_validator,
+    field_serializer,
+    ValidationError,
+)
 from typing import cast, ClassVar, Literal, TypedDict
 
-#TODO: Make a class for handling quantity for these configs to inherit from.
+# TODO: Make a class for handling quantity for these configs to inherit from.
+
 
 # TypedDict for Quantity serialized as dict
 class QuantityDict(TypedDict):
@@ -17,29 +24,31 @@ class QuantityDict(TypedDict):
 # Material Configs #
 ####################
 
+
 class MaterialConfigDict(TypedDict):
     name: str
     # Specific Heat Capacity at Constant Pressure (J ⋅ kg^-1 ⋅ K^-1)
     specific_heat_capacity: QuantityDict
-    
+
     # Absorptivity (Unitless)
     absorptivity: QuantityDict
-    
+
     # Thermal Conductivity (W / (m ⋅ K))
     thermal_conductivity: QuantityDict
-    
+
     # # Density (kg / m^3)
     density: QuantityDict
-    
+
     # Melting Temperature (K)
     temperature_melt: QuantityDict
-    
+
     # https://www.researchgate.net/figure/Liquidus-and-solidus-temperatures-of-316L-SS-and-304-SS_tbl3_353416408
     # Liquidus Temperature (K)
     temperature_liquidus: QuantityDict
-    
+
     # Solidus Temperature (K)
     temperature_solidus: QuantityDict
+
 
 class MaterialConfig(BaseModel):
     model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
@@ -75,19 +84,25 @@ class MaterialConfig(BaseModel):
     def create_default(cls, ureg: UnitRegistry) -> "MaterialConfig":
         return cls(
             name="Stainless Steel 316L",
-            specific_heat_capacity = cast(Quantity, ureg.Quantity(455, 'joules / (kilogram * kelvin)')),
-            absorptivity = cast(Quantity, ureg.Quantity(1.0, 'dimensionless')),
-            thermal_conductivity = cast(Quantity, ureg.Quantity(8.9, 'watts / (meter * kelvin)')),
-            density = cast(Quantity, ureg.Quantity(7910, 'kilogram / (meter) ** 3')),
-            temperature_melt = cast(Quantity, ureg.Quantity(1673, 'kelvin')),
-            temperature_liquidus = cast(Quantity, ureg.Quantity(1710.26, 'kelvin')),
-            temperature_solidus = cast(Quantity, ureg.Quantity(1683.68, 'kelvin')),
+            specific_heat_capacity=cast(
+                Quantity, ureg.Quantity(455, "joules / (kilogram * kelvin)")
+            ),
+            absorptivity=cast(Quantity, ureg.Quantity(1.0, "dimensionless")),
+            thermal_conductivity=cast(
+                Quantity, ureg.Quantity(8.9, "watts / (meter * kelvin)")
+            ),
+            density=cast(Quantity, ureg.Quantity(7910, "kilogram / (meter) ** 3")),
+            temperature_melt=cast(Quantity, ureg.Quantity(1673, "kelvin")),
+            temperature_liquidus=cast(Quantity, ureg.Quantity(1710.26, "kelvin")),
+            temperature_solidus=cast(Quantity, ureg.Quantity(1683.68, "kelvin")),
         )
 
     def to_dict(self) -> MaterialConfigDict:
         return {
             "name": self.name,
-            "specific_heat_capacity": self._quantity_to_dict(self.specific_heat_capacity),
+            "specific_heat_capacity": self._quantity_to_dict(
+                self.specific_heat_capacity
+            ),
             "absorptivity": self._quantity_to_dict(self.absorptivity),
             "thermal_conductivity": self._quantity_to_dict(self.thermal_conductivity),
             "density": self._quantity_to_dict(self.density),
@@ -99,9 +114,7 @@ class MaterialConfig(BaseModel):
     @property
     def thermal_diffusivity(self) -> Quantity:
         # Thermal Diffusivity (Wolfer et al. Equation 1)
-        return self.thermal_conductivity / (
-            self.density * self.specific_heat_capacity
-        )
+        return self.thermal_conductivity / (self.density * self.specific_heat_capacity)
 
     @staticmethod
     def _dict_to_quantity(d: QuantityDict) -> Quantity:
@@ -123,11 +136,17 @@ class MaterialConfig(BaseModel):
             # Strict check keys and types
             expected_keys = {"magnitude", "units"}
             if set(v.keys()) != expected_keys:
-                raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
+                raise ValidationError(
+                    f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}"
+                )
             if not isinstance(v["magnitude"], float):
-                raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
+                raise ValidationError(
+                    f"QuantityDict magnitude must be float, got {type(v['magnitude'])}"
+                )
             if not isinstance(v["units"], str):
-                raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
+                raise ValidationError(
+                    f"QuantityDict units must be str, got {type(v['units'])}"
+                )
             return cls._dict_to_quantity(v)
         elif isinstance(v, Quantity):
             return v
@@ -150,17 +169,22 @@ class MaterialConfig(BaseModel):
         if isinstance(data, dict):
             return cls.from_dict(data)
         else:
-            raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
+            raise ValueError(
+                f"Unexpected JSON structure in {path}: expected dict or list of dicts"
+            )
+
 
 #################
 # Build Configs #
 #################
+
 
 class BuildConfigDict(TypedDict):
     beam_diameter: QuantityDict
     beam_power: QuantityDict
     scan_velocity: QuantityDict
     temperature_preheat: QuantityDict
+
 
 class BuildConfig(BaseModel):
     model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
@@ -191,10 +215,10 @@ class BuildConfig(BaseModel):
     @classmethod
     def create_default(cls, ureg: UnitRegistry) -> "BuildConfig":
         return cls(
-            beam_diameter = cast(Quantity, ureg.Quantity(5e-5, 'meter')),
-            beam_power = cast(Quantity, ureg.Quantity(200, 'watts')),
-            scan_velocity = cast(Quantity, ureg.Quantity(0.8, 'meter / second')),
-            temperature_preheat = cast(Quantity, ureg.Quantity(300, 'kelvin')),
+            beam_diameter=cast(Quantity, ureg.Quantity(5e-5, "meter")),
+            beam_power=cast(Quantity, ureg.Quantity(200, "watts")),
+            scan_velocity=cast(Quantity, ureg.Quantity(0.8, "meter / second")),
+            temperature_preheat=cast(Quantity, ureg.Quantity(300, "kelvin")),
         )
 
     def to_dict(self) -> BuildConfigDict:
@@ -222,11 +246,17 @@ class BuildConfig(BaseModel):
             # Strict check keys and types
             expected_keys = {"magnitude", "units"}
             if set(v.keys()) != expected_keys:
-                raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
+                raise ValidationError(
+                    f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}"
+                )
             if not isinstance(v["magnitude"], float):
-                raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
+                raise ValidationError(
+                    f"QuantityDict magnitude must be float, got {type(v['magnitude'])}"
+                )
             if not isinstance(v["units"], str):
-                raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
+                raise ValidationError(
+                    f"QuantityDict units must be str, got {type(v['units'])}"
+                )
             return cls._dict_to_quantity(v)
         elif isinstance(v, Quantity):
             return v
@@ -249,18 +279,21 @@ class BuildConfig(BaseModel):
         if isinstance(data, dict):
             return cls.from_dict(data)
         else:
-            raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
+            raise ValueError(
+                f"Unexpected JSON structure in {path}: expected dict or list of dicts"
+            )
 
 
 ################
 # Mesh Configs #
 ################
 
+
 class MeshConfigDict(TypedDict):
     x_step: QuantityDict
-    y_step: QuantityDict 
-    z_step: QuantityDict 
-    
+    y_step: QuantityDict
+    z_step: QuantityDict
+
     # Boundaries
     x_min: QuantityDict
     x_max: QuantityDict
@@ -268,12 +301,12 @@ class MeshConfigDict(TypedDict):
     y_max: QuantityDict
     z_min: QuantityDict
     z_max: QuantityDict
-    
+
     # Initial x, y, and z locations
     x_initial: QuantityDict
     y_initial: QuantityDict
     z_initial: QuantityDict
-    
+
     # Padding
     x_start_pad: QuantityDict
     y_start_pad: QuantityDict
@@ -285,13 +318,14 @@ class MeshConfigDict(TypedDict):
     # Boundary Condition Behavior
     boundary_condition: Literal["flux", "temperature"]
 
+
 class MeshConfig(BaseModel):
-    model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True) 
+    model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
     # Dimensional Step Size
     x_step: Quantity
-    y_step: Quantity 
-    z_step: Quantity 
-    
+    y_step: Quantity
+    z_step: Quantity
+
     # Boundaries
     x_min: Quantity
     x_max: Quantity
@@ -299,12 +333,12 @@ class MeshConfig(BaseModel):
     y_max: Quantity
     z_min: Quantity
     z_max: Quantity
-    
+
     # Initial x, y, and z locations
     x_initial: Quantity
     y_initial: Quantity
     z_initial: Quantity
-    
+
     # Padding
     x_start_pad: Quantity
     y_start_pad: Quantity
@@ -312,7 +346,7 @@ class MeshConfig(BaseModel):
     x_end_pad: Quantity
     y_end_pad: Quantity
     z_end_pad: Quantity
-   
+
     # Boundary Condition Behavior
     boundary_condition: Literal["flux", "temperature"]
 
@@ -438,24 +472,29 @@ class MeshConfig(BaseModel):
         "x_end_pad",
         "y_end_pad",
         "z_end_pad",
-        mode="before"
+        mode="before",
     )
     def parse_quantity(cls, v: QuantityDict | Quantity) -> Quantity:
         if isinstance(v, dict):
             # Strict check keys and types
             expected_keys = {"magnitude", "units"}
             if set(v.keys()) != expected_keys:
-                raise ValidationError(f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}")
+                raise ValidationError(
+                    f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}"
+                )
             if not isinstance(v["magnitude"], float):
-                raise ValidationError(f"QuantityDict magnitude must be float, got {type(v['magnitude'])}")
+                raise ValidationError(
+                    f"QuantityDict magnitude must be float, got {type(v['magnitude'])}"
+                )
             if not isinstance(v["units"], str):
-                raise ValidationError(f"QuantityDict units must be str, got {type(v['units'])}")
+                raise ValidationError(
+                    f"QuantityDict units must be str, got {type(v['units'])}"
+                )
             return cls._dict_to_quantity(v)
         elif isinstance(v, Quantity):
             return v
         else:
             raise ValidationError(f"Expected QuantityDict or Quantity, got {type(v)}")
-
 
     def to_dict(self) -> MeshConfigDict:
         return {
@@ -487,40 +526,36 @@ class MeshConfig(BaseModel):
     @classmethod
     def create_default(cls, ureg: UnitRegistry) -> "MeshConfig":
         return cls(
-            x_step = cast(Quantity, ureg.Quantity(25, 'micrometer')),
-            y_step = cast(Quantity, ureg.Quantity(25, 'micrometer')),
-            z_step = cast(Quantity, ureg.Quantity(25, 'micrometer')),
-            
+            x_step=cast(Quantity, ureg.Quantity(25, "micrometer")),
+            y_step=cast(Quantity, ureg.Quantity(25, "micrometer")),
+            z_step=cast(Quantity, ureg.Quantity(25, "micrometer")),
             # Boundaries
-            x_min = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
-            x_max = cast(Quantity, ureg.Quantity(10.0, 'millimeter')),
-            y_min = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
-            y_max = cast(Quantity, ureg.Quantity(10.0, 'millimeter')),
-            z_min = cast(Quantity, ureg.Quantity(-0.8, 'millimeter')),
-            z_max = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
-            
+            x_min=cast(Quantity, ureg.Quantity(0.0, "millimeter")),
+            x_max=cast(Quantity, ureg.Quantity(10.0, "millimeter")),
+            y_min=cast(Quantity, ureg.Quantity(0.0, "millimeter")),
+            y_max=cast(Quantity, ureg.Quantity(10.0, "millimeter")),
+            z_min=cast(Quantity, ureg.Quantity(-0.8, "millimeter")),
+            z_max=cast(Quantity, ureg.Quantity(0.0, "millimeter")),
             # Initial x, y, and z locations
-            x_initial = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
-            y_initial = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
-            z_initial = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
-            
+            x_initial=cast(Quantity, ureg.Quantity(0.0, "millimeter")),
+            y_initial=cast(Quantity, ureg.Quantity(0.0, "millimeter")),
+            z_initial=cast(Quantity, ureg.Quantity(0.0, "millimeter")),
             # Padding
-            x_start_pad = cast(Quantity, ureg.Quantity(0.2, 'millimeter')),
-            y_start_pad = cast(Quantity, ureg.Quantity(0.2, 'millimeter')),
-            z_start_pad = cast(Quantity, ureg.Quantity(0.0, 'millimeter')),
-            x_end_pad = cast(Quantity, ureg.Quantity(0.2, 'millimeter')),
-            y_end_pad = cast(Quantity, ureg.Quantity(0.2, 'millimeter')),
-            z_end_pad = cast(Quantity, ureg.Quantity(0.1, 'millimeter')),
-   
+            x_start_pad=cast(Quantity, ureg.Quantity(0.2, "millimeter")),
+            y_start_pad=cast(Quantity, ureg.Quantity(0.2, "millimeter")),
+            z_start_pad=cast(Quantity, ureg.Quantity(0.0, "millimeter")),
+            x_end_pad=cast(Quantity, ureg.Quantity(0.2, "millimeter")),
+            y_end_pad=cast(Quantity, ureg.Quantity(0.2, "millimeter")),
+            z_end_pad=cast(Quantity, ureg.Quantity(0.1, "millimeter")),
             # Boundary Condition Behavior
-            boundary_condition = "temperature"
+            boundary_condition="temperature",
         )
 
     def save(self, path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         _ = path.write_text(self.model_dump_json(indent=2))
         return path
-   
+
     @classmethod
     def load(cls, path: Path) -> "MeshConfig":
         with path.open("r") as f:
@@ -528,6 +563,6 @@ class MeshConfig(BaseModel):
         if isinstance(data, dict):
             return cls.from_dict(data)
         else:
-            raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
-
-
+            raise ValueError(
+                f"Unexpected JSON structure in {path}: expected dict or list of dicts"
+            )

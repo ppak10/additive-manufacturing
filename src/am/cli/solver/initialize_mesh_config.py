@@ -5,6 +5,7 @@ from rich import print as rprint
 
 from am.cli.options import VerboseOption
 
+
 # TODO: Add in more customizability for generating mesh configs.
 def register_solver_initialize_mesh_config(app: typer.Typer):
     @app.command(name="initialize_mesh_config")
@@ -20,13 +21,17 @@ def register_solver_initialize_mesh_config(app: typer.Typer):
         cwd = Path.cwd()
         config_file = cwd / "config.json"
         if not config_file.exists():
-            rprint("❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]")
+            rprint(
+                "❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]"
+            )
             raise typer.Exit(code=1)
 
         solver_config_file = cwd / "solver" / "config.json"
 
         if not solver_config_file.exists():
-            rprint("❌ [red]Segmenter not initialized. `segmenter/config.json` not found.[/red]")
+            rprint(
+                "❌ [red]Segmenter not initialized. `segmenter/config.json` not found.[/red]"
+            )
         # try:
         solver_config = SolverConfig.load(solver_config_file)
         mesh_config = MeshConfig.create_default(solver_config.ureg)
@@ -39,4 +44,3 @@ def register_solver_initialize_mesh_config(app: typer.Typer):
 
     _ = app.command(name="init_mesh_config")(solver_initialize_mesh_config)
     return solver_initialize_mesh_config
-
