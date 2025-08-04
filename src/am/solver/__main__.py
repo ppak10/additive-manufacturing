@@ -14,7 +14,7 @@ from .config import SolverConfig
 from am.segmenter.types import Segment
 from am.solver.types import BuildConfig, MaterialConfig, MeshConfig
 from am.solver.mesh import SolverMesh
-from am.solver.model import EagarTsai
+from am.solver.model import EagarTsai, Rosenthal
 
 
 class Solver:
@@ -78,7 +78,7 @@ class Solver:
         build_config: BuildConfig,
         material_config: MaterialConfig,
         mesh_config: MeshConfig,
-        # model_name: Literal["eagar-tsai", "rosenthal", "surrogate"] | None = None,
+        model_name: str = "eagar-tsai",
         run_name: str | None = None,
     ) -> Path:
         """
@@ -99,11 +99,13 @@ class Solver:
 
         zfill = len(f"{len(segments)}")
 
-        model = EagarTsai(build_config, material_config, solver_mesh)
-
-        # TODO
-        # if model_name is not None:
-        #     self.model = model
+        match model_name:
+            case "eagar-tsai":
+                model = EagarTsai(build_config, material_config, solver_mesh)
+            case "rosenthal":
+                model = Rosenthal(build_config, material_config, solver_mesh)
+            case _:
+                raise Exception("Invalid `model_name`")
 
         # for segment_index, segment in tqdm(enumerate(segments[0:3])):
         for segment_index, segment in tqdm(enumerate(segments), total=len(segments)):

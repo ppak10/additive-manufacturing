@@ -25,12 +25,12 @@ def register_solver_run_layer(app: typer.Typer):
         mesh_config_filename: Annotated[
             str, typer.Option("--mesh_config", help="Mesh config filename")
         ] = "default.json",
-        # model_name: Annotated[
-        #     str, typer.Option(
-        #         "--model_name",
-        #         help="One of either 'eagar-tsai', 'rosenthal', 'surrogate'"
-        #     )
-        # ] = "eagar-tsai",
+        model_name: Annotated[
+            str, typer.Option(
+                "--model_name",
+                help="One of either 'eagar-tsai', 'rosenthal', 'surrogate'"
+            )
+        ] = "eagar-tsai",
         run_name: Annotated[
             str | None,
             typer.Option("--run_name", help="Run name used for saving to mesh folder"),
@@ -76,7 +76,7 @@ def register_solver_run_layer(app: typer.Typer):
             solver_configs_path / "mesh" / mesh_config_filename
         )
 
-        solver.run_layer(segments, build_config, material_config, mesh_config, run_name)
+        solver.run_layer(segments, build_config, material_config, mesh_config, model_name, run_name)
         rprint(f"✅ Solver Finished")
         # except Exception as e:
         #     rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
