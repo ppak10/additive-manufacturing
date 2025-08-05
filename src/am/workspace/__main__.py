@@ -44,7 +44,7 @@ class Workspace:
 
     def create_workspace(
         self, out_path: Path | None = None, force: bool | None = False
-    ):
+    ) -> WorkspaceConfig:
         # Use the out_path if provided, otherwise default to package out_path.
         if out_path is None:
             out_path = self.config.out_path
@@ -60,11 +60,12 @@ class Workspace:
                 f"⚠️  [yellow]Configuration already exists at {workspace_path}[/yellow]"
             )
             rprint("Use [cyan]--force[/cyan] to overwrite, or edit the existing file.")
-            raise Exception("Workspace already exists")
+            raise FileExistsError("Workspace already exists")
 
         self.config.workspace_path = workspace_path
         workspace_config_file = self.config.save()
         rprint(f"Workspace config file saved at: {workspace_config_file}")
+        return self.config
 
         # Copy manage.py
         # resource_path = os.path.join("workspace", "manage.py")

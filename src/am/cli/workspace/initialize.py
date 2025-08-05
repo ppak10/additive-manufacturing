@@ -26,8 +26,8 @@ def register_workspace_initialize(app: typer.Typer):
                 verbose=verbose,
                 out_path=out_path,
             )
-            workspace_path = workspace.create_workspace(out_path, force)
-            rprint(f"✅ Workspace initialized at: {workspace_path}")
+            workspace_config = workspace.create_workspace(out_path, force)
+            rprint(f"✅ Workspace initialized at: {workspace_config.workspace_path}")
         except:
             rprint("⚠️  [yellow]Unable to create workspace directory[/yellow]")
             _ = typer.Exit()

@@ -35,6 +35,9 @@ solver = [
     "scipy-stubs>=1.15.3.0",
     "torch>=2.7.1",
 ]
+mcp = [
+    "mcp>=1.12.3",
+]
 
 [project.scripts]
 am = "am.cli:app"
