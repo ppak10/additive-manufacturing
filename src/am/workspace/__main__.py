@@ -1,14 +1,7 @@
-import os
-
-# import shutil
-
-# from importlib.resources import files
 from pathlib import Path
 from rich import print as rprint
 
-# from am import data
 from am.workspace.config import WorkspaceConfig
-
 
 class Workspace:
     """
@@ -67,19 +60,3 @@ class Workspace:
         rprint(f"Workspace config file saved at: {workspace_config_file}")
         return self.config
 
-        # Copy manage.py
-        # resource_path = os.path.join("workspace", "manage.py")
-        # manage_py_resource_path = files(data).joinpath(resource_path)
-        # manage_py_workspace_path = os.path.join(self.workspace_path, "manage.py")
-        # shutil.copy(manage_py_resource_path, manage_py_workspace_path)
-
-        # Create parts directory
-        # workspace_parts_path = os.path.join(self.config.workspace_path, "parts")
-        # os.makedirs(workspace_parts_path, exist_ok=True)
-
-        # resource_path = os.path.join("workspace", "parts", "README.md")
-        # README_md_resource_path = files(data).joinpath(resource_path)
-        # README_md_workspace_path = os.path.join(self.workspace_path, "parts", "README.md")
-        # shutil.copy(README_md_resource_path, README_md_workspace_path)
-
-        return self.config.workspace_path

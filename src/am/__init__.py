@@ -2,7 +2,8 @@ __version__ = "0.0.0"
 __author__ = "Peter Pak"
 __email__ = "ppak10@gmail.com"
 
-from .workspace import Workspace
 from .segmenter import Segmenter
+from .solver import Solver
+from .workspace import Workspace
 
-__all__ = ["Workspace", "Segmenter"]
+__all__ = ["Segmenter", "Solver", "Workspace"]
