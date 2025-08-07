@@ -17,7 +17,11 @@ def register_mcp_install(app: typer.Typer):
         if project_path: 
             am_path = Path(project_path)
         else:
-            am_path = Path(am.__file__).parent
+            # Path(am.__file__) Should be something like this when installed
+            # "/mnt/am/GitHub/additive-manufacturing-agent/.venv/lib/python3.13/site-packages/am"
+            # Path(am.__file__).parents[4] should be the project root
+            # "/mnt/am/GitHub/additive-manufacturing-agent/"
+            am_path = Path(am.__file__).parents[4]
 
         rprint(f"[bold green]Using `additive-manufacturing` packaged under project path:[/bold green] {am_path}")
 

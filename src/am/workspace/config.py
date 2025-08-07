@@ -18,13 +18,15 @@ class WorkspaceConfig(BaseModel):
         return v[:255]
 
     @classmethod
-    def get_project_root_from_package(cls) -> Path:
+    def get_project_root_from_package(cls, parents_index: int = 4) -> Path:
         """Find project root based on package installation location."""
         try:
             spec = importlib.util.find_spec("am")
             if spec and spec.origin:
                 package_path = Path(spec.origin).parent
-                return package_path.parent.parent
+                # package_path: /.../additive-manufacturing-agent/.venv/lib/python3.13/site-packages/am
+                # package_path.parents[parents_index]: /.../additive-manufacturing-agent
+                return package_path.parents[parents_index]
         except ImportError:
             pass
         return Path.cwd()

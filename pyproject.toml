@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-dynamic = ["version"]
+version = "0.0.1"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
