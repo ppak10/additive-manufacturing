@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
@@ -29,6 +29,9 @@ Issues = "https://github.com/ppak10/additive-manufacturing/issues"
 
 [project.scripts]
 am = "am.cli:app"
+
+[tool.setuptools.package-data]
+"am.data" = ["**/*.gcode", "**/*.STL", "**/*.ini", "**/*.pkl"]
 
 [tool.black]
 line-length = 88
