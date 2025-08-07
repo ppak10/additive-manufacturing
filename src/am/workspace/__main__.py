@@ -13,10 +13,9 @@ class Workspace:
         name: str,
         out_path: Path | None = None,
         workspace_path: Path | None = None,
-        verbose: bool | None = False,
     ):
         self.config: WorkspaceConfig = WorkspaceConfig(
-            name=name, out_path=out_path, workspace_path=workspace_path, verbose=verbose
+            name=name, out_path=out_path, workspace_path=workspace_path
         )
 
     @property
@@ -31,12 +30,28 @@ class Workspace:
     def workspace_path(self, value: Path):
         self.config.workspace_path = value
 
-    @property
-    def verbose(self):
-        return self.config.verbose
+    @classmethod
+    def list(cls, out_path: Path | None = None) -> list[str] | None:
+        """
+        Lists workspace directories within out_path
+        """
+        if out_path is None:
+            project_root = WorkspaceConfig.get_project_root_from_package()
+            out_path = project_root / "out"
+
+        if not out_path.exists() or not out_path.is_dir():
+            return None
+
+        return [
+            workspace_dir.name
+            for workspace_dir in out_path.iterdir()
+            if workspace_dir.is_dir()
+        ]
 
     def create_workspace(
-        self, out_path: Path | None = None, force: bool | None = False
+        self,
+        out_path: Path | None = None,
+        force: bool | None = False
     ) -> WorkspaceConfig:
         # Use the out_path if provided, otherwise default to package out_path.
         if out_path is None:
@@ -59,4 +74,5 @@ class Workspace:
         workspace_config_file = self.config.save()
         rprint(f"Workspace config file saved at: {workspace_config_file}")
         return self.config
+
 

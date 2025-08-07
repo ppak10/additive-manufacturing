@@ -4,14 +4,11 @@ from pathlib import Path
 from rich import print as rprint
 from typing_extensions import Annotated
 
-from am.cli.options import VerboseOption
-
 
 def register_workspace_initialize(app: typer.Typer):
     @app.command(name="initialize")
     def workspace_initialize(
         workspace_name: str,
-        verbose: VerboseOption | None = False,
         out_path: Path | None = None,
         force: Annotated[
             bool, typer.Option("--force", help="Overwrite existing workspace")
@@ -23,7 +20,6 @@ def register_workspace_initialize(app: typer.Typer):
         try:
             workspace = Workspace(
                 name=workspace_name,
-                verbose=verbose,
                 out_path=out_path,
             )
             workspace_config = workspace.create_workspace(out_path, force)

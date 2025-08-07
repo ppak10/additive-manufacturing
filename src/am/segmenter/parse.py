@@ -1,6 +1,7 @@
 import numpy as np
 import json
 
+from mcp.server.fastmcp import Context
 from pathlib import Path
 from pygcode import Line, words2dict, GCodeLinearMove, GCode
 from pint import Quantity, Unit
@@ -25,8 +26,8 @@ class SegmenterParse:
         self.commands_layer_change_indexes: list[int] = []
         self.segments_layer_change_indexes: list[int] = []
 
-    def gcode_to_commands(
-        self, path: Path, unit: str = "mm", verbose: bool | None = False
+    async def gcode_to_commands(
+            self, path: Path, unit: str = "mm", verbose: bool | None = False, context: Context | None = None
     ):
         """
         Load and parse linear move values within GCode file into commands.
@@ -58,69 +59,80 @@ class SegmenterParse:
 
         with open(path, "r") as f:
 
-            # Open gcode file to begin parsing linear moves line by line.
-            for line_text in tqdm(
-                f.readlines(), desc=f"Parsing GCode file", disable=not verbose
-            ):
-                line = Line(line_text)  # Parses raw gcode text to line instance.
-                block = line.block
+            lines = f.readlines()
 
-                if block is not None:
-                    # GCode objects within line text.
-                    gcodes = cast(list[GCode], block.gcodes)
+        # Open gcode file to begin parsing linear moves line by line.
+        for line_index, line_text in tqdm(
+            enumerate(lines), desc=f"Parsing GCode file", disable=not verbose
+        ):
+            if context is not None:
+                await context.report_progress(
+                    progress = line_index + 1,
+                    total = len(lines),
+                    message = f"Parsing lines in GCode file {line_index + 1}/{len(lines)}"
+                )
 
-                    # Only considers Linear Move GCode actions for now.
-                    if len(gcodes) and isinstance(gcodes[0], GCodeLinearMove):
+            line = Line(line_text)  # Parses raw gcode text to line instance.
+            block = line.block
 
-                        # Retrieves the coordinate values of the linear move.
-                        # `{"Z": 5.0}` or `{"X": 1.0, "Y": 1.0}` or `{}`
-                        # Sometimes `{"X": 1.0, "Y": 1.0, "Z": 5.0}` as well.
-                        # TODO: Make type stub for `.get_param_dict()` pygcode or fork package.
-                        coordinates_dict = cast(
-                            dict[str, float], gcodes[0].get_param_dict()
-                        )
 
-                        # Indexes z coordinate commands as layer changes.
-                        # Only count explicit Z layer changes (dict length of 1).
-                        if len(coordinates_dict) == 1 and "Z" in coordinates_dict:
-                            command_index = len(self.commands)
-                            self.commands_layer_change_indexes.append(command_index)
+            if block is not None:
+                # GCode objects within line text.
+                gcodes = cast(list[GCode], block.gcodes)
 
-                        # Retrieves the corresponding extrusion value
-                        # `{"E": 2.10293}` or `{}` if no extrusion.
-                        modal_params = cast(object, block.modal_params)
+                # Only considers Linear Move GCode actions for now.
+                if len(gcodes) and isinstance(gcodes[0], GCodeLinearMove):
 
-                        extrusion_dict = cast(
-                            dict[str, float], words2dict(modal_params)
-                        )
+                    # Retrieves the coordinate values of the linear move.
+                    # `{"Z": 5.0}` or `{"X": 1.0, "Y": 1.0}` or `{}`
+                    # Sometimes `{"X": 1.0, "Y": 1.0, "Z": 5.0}` as well.
+                    # TODO: Make type stub for `.get_param_dict()` pygcode or fork package.
+                    coordinates_dict = cast(
+                        dict[str, float], gcodes[0].get_param_dict()
+                    )
 
-                        # Updates extrusion value explicity to 0.0.
-                        if "E" not in extrusion_dict:
-                            extrusion_dict: dict[str, float] = {"E": 0.0}
+                    # Indexes z coordinate commands as layer changes.
+                    # Only count explicit Z layer changes (dict length of 1).
+                    if len(coordinates_dict) == 1 and "Z" in coordinates_dict:
+                        command_index = len(self.commands)
+                        self.commands_layer_change_indexes.append(command_index)
 
-                        # Overwrites the current command with commands gcode line.
-                        # Update with coordinates_dict values if present
-                        for k in ["x", "y", "z"]:
-                            if k.capitalize() in coordinates_dict:
-                                current_command[k] = (
-                                    coordinates_dict[k.capitalize()] * _unit
-                                )
+                    # Retrieves the corresponding extrusion value
+                    # `{"E": 2.10293}` or `{}` if no extrusion.
+                    modal_params = cast(object, block.modal_params)
 
-                        # Update extrusion 'E'
-                        if "E" in extrusion_dict:
-                            current_command["e"] = extrusion_dict["E"] * _unit
+                    extrusion_dict = cast(
+                        dict[str, float], words2dict(modal_params)
+                    )
 
-                        # .copy() is necessary otherwise current_command is all the same
-                        self.commands.append(current_command.copy())
+                    # Updates extrusion value explicity to 0.0.
+                    if "E" not in extrusion_dict:
+                        extrusion_dict: dict[str, float] = {"E": 0.0}
+
+                    # Overwrites the current command with commands gcode line.
+                    # Update with coordinates_dict values if present
+                    for k in ["x", "y", "z"]:
+                        if k.capitalize() in coordinates_dict:
+                            current_command[k] = (
+                                coordinates_dict[k.capitalize()] * _unit
+                            )
+
+                    # Update extrusion 'E'
+                    if "E" in extrusion_dict:
+                        current_command["e"] = extrusion_dict["E"] * _unit
+
+                    # .copy() is necessary otherwise current_command is all the same
+                    self.commands.append(current_command.copy())
 
         return self.commands
 
-    def commands_to_segments(
+    async def commands_to_segments(
         self,
         commands: list[Command] | None = None,
         distance_xy_max: float = 1.0,
         units: str = "mm",
         verbose: bool | None = False,
+        context: Context | None = None,
     ):
         """
         Converts commands to segments
@@ -137,6 +149,12 @@ class SegmenterParse:
         for command_index in tqdm(
             commands_range, desc="Converting to segments", disable=not verbose
         ):
+            if context is not None:
+                await context.report_progress(
+                    progress = command_index + 1,
+                    total = len(commands_range),
+                    message = f"Converting commands to segments {command_index + 1}/{len(commands_range)}"
+                )
 
             if command_index in self.commands_layer_change_indexes:
                 # Adds current length of segments if command is marked as a

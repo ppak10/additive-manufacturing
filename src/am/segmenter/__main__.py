@@ -14,6 +14,7 @@ from tqdm import tqdm
 from typing import cast, Literal
 
 from am import data
+from am.workspace.config import WorkspaceConfig
 from .config import SegmenterConfig
 from .types import Segment, SegmentDict
 
@@ -74,7 +75,7 @@ class Segmenter:
         self,
         segmenter_path: Path,
         include_examples: bool | None = True,
-    ):
+    ) -> SegmenterConfig:
         # Create `segmenter` folder
         segmenter_path.mkdir(exist_ok=True)
         self.config.segmenter_path = segmenter_path
@@ -87,6 +88,8 @@ class Segmenter:
 
         if include_examples:
             self.copy_example_parts(segmenter_path)
+
+        return self.config 
 
     def visualize(
         self,
@@ -161,6 +164,26 @@ class Segmenter:
             writer.append_data(imageio.imread(buffer))
 
         writer.close()
+
+    @classmethod
+    def list_parts(cls, workspace: str, out_path: Path | None = None) -> list[str] | None:
+        """
+        Lists workspace directories within out_path
+        """
+        if out_path is None:
+            project_root = WorkspaceConfig.get_project_root_from_package()
+            out_path = project_root / "out"
+
+        if not out_path.exists() or not out_path.is_dir():
+            return None
+
+        segmenter_parts_path = out_path / workspace / "segmenter" / "parts"
+
+        return [
+            partfile.name
+            for partfile in segmenter_parts_path.iterdir()
+            if partfile.is_file() and partfile.suffix == ".gcode"
+        ]
 
     def load_segments(self, path: Path | str) -> list[Segment]:
         self.segments = []

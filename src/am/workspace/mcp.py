@@ -1,12 +1,10 @@
 from mcp.server import FastMCP
 
-from am.mcp.types import ToolSuccess, ToolError
-from am.mcp.utils import tool_success, tool_error
-
 from typing import Union
 
-# Example usage in your workspace function
 def register_workspace(app: FastMCP):
+    from am.mcp.types import ToolSuccess, ToolError
+    from am.mcp.utils import tool_success, tool_error
     from am.workspace.config import WorkspaceConfig
     
     @app.tool(
@@ -32,7 +30,6 @@ def register_workspace(app: FastMCP):
                 "PERMISSION_DENIED",
                 workspace_name=workspace_name,
                 exception_type=type(e).__name__,
-                exception_message=str(e)
             )
             
         except FileExistsError as e:
@@ -52,5 +49,10 @@ def register_workspace(app: FastMCP):
                 exception_type=type(e).__name__,
                 exception_message=str(e)
             )
+
+    @app.resource("workspace://")
+    def workspace_list() -> list[str] | None:
+        from am.workspace import Workspace
+        return Workspace.list()
+
     
-    return workspace_initialize

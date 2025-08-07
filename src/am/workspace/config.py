@@ -9,7 +9,6 @@ class WorkspaceConfig(BaseModel):
     name: str
     out_path: Path | None = None
     workspace_path: Path | None = None
-    verbose: bool | None = False
 
     @field_validator("name", mode="before")
     @classmethod
