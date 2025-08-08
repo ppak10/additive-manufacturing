@@ -23,4 +23,6 @@ am mcp install
 ```bash
 claude mcp remove am
 ```
+#### Example
+An example implementation can be found [here](https://github.com/ppak10/additive-manufacturing-agent)
 
