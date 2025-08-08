@@ -100,7 +100,7 @@ def register_segmenter(app: FastMCP):
             segmenter_parse = SegmenterParse(segmenter_config)
 
             # Assumes file is in `workspace/segmenter/parts/`
-            filepath = segmenter_dir / "parts" / filename
+            filepath = workspace_dir / "parts" / filename
 
             await ctx.info(f"Beginning parse of {filename}")
             _ = await segmenter_parse.gcode_to_commands(filepath, units, context=ctx, verbose=verbose)

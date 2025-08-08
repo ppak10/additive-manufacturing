@@ -50,10 +50,33 @@ def register_workspace(app: FastMCP):
                 exception_message=str(e)
             )
 
+    
+    @app.tool(
+        title="List Workspaces",
+        description="Provides a list of created workspaces.",
+        structured_output=True,
+    )
+    def workspaces() -> list[str] | None:
+        from am.workspace import Workspace
+        return Workspace.list_workspaces()
+
     @app.resource("workspace://")
     def workspace_list() -> list[str] | None:
         from am.workspace import Workspace
         return Workspace.list_workspaces()
+
+    @app.tool(
+        title="List Workspace Parts",
+        description="Provides a list of parts within specified workspace",
+        structured_output=True,
+    )
+    def workspace_parts(workspace: str) -> list[str] | None:
+        """
+        Lists available parts within workspace
+        """
+        from am.workspace import Workspace
+        print(f"parts: {Workspace.list_workspace_parts(workspace)}")
+        return Workspace.list_workspace_parts(workspace)
 
     @app.resource("workspace://{workspace}/part")
     def workspace_part_list(workspace: str) -> list[str] | None:
@@ -64,5 +87,5 @@ def register_workspace(app: FastMCP):
         print(f"parts: {Workspace.list_workspace_parts(workspace)}")
         return Workspace.list_workspace_parts(workspace)
 
-    _ = (workspace_initialize, workspace_list, workspace_part_list)
+    _ = (workspace_initialize, workspaces, workspace_parts, workspace_list, workspace_part_list)
 
