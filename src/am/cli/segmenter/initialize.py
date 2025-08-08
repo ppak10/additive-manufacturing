@@ -12,10 +12,6 @@ def register_segmenter_initialize(app: typer.Typer):
     def segmenter_initialize(
         verbose: VerboseOption | None = False,
         workspace: WorkspaceOption | None = None,
-        include_examples: Annotated[
-            bool,
-            typer.Option("--include_examples", help="Copy over examples from package"),
-        ] = True,
     ) -> None:
         """Create folder for segmenter data inside workspace folder."""
         from am.segmenter import Segmenter
@@ -40,9 +36,7 @@ def register_segmenter_initialize(app: typer.Typer):
 
         try:
             segmenter = Segmenter()
-            segmenter.initialize(
-                segmenter_path=workspace_dir / "segmenter", include_examples=include_examples
-            )
+            segmenter.initialize(segmenter_path=workspace_dir / "segmenter")
             rprint(f"✅ Segmenter initialized")
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to initialize segmenter: {e}[/yellow]")

@@ -15,7 +15,6 @@ def register_segmenter(app: FastMCP):
     )
     def segmenter_initialize(
         workspace_name: str,
-        include_examples: bool = True,
     ) -> Union[ToolSuccess[SegmenterConfig], ToolError]:
         """Create a folder to perform and store segmenter operations"""
         from am.segmenter import Segmenter
@@ -36,7 +35,7 @@ def register_segmenter(app: FastMCP):
 
             segmenter = Segmenter()
             segmenter_config = segmenter.initialize(
-                segmenter_path=workspace_dir / "segmenter", include_examples=include_examples
+                segmenter_path=workspace_dir / "segmenter"
             )
             return tool_success(segmenter_config)
             
@@ -59,7 +58,7 @@ def register_segmenter(app: FastMCP):
 
     @app.tool(
         title="Segmenter Parse", 
-        description="Uses segmenter to parse a specified file",
+        description="Uses segmenter to parse a specified part file under @am:workspace://{workspace_name}/part",
         structured_output=True,
     )
     async def segmenter_parse(
@@ -75,7 +74,7 @@ def register_segmenter(app: FastMCP):
         Args:
             ctx: Context for long running task
             workspace_name: Folder name of existing workspace
-            filename: Filename desired file to parse with extension (i.e. overhang.gcode)
+            filename: Filename of `.gcode` part to parse (Parts under @am:workspace://{workspace_name}/part)
             distance_xy_max: Maximum segment length when parsing (defaults to 1.0 mm).
             units: Defined units of gcode file.
         """
@@ -132,12 +131,5 @@ def register_segmenter(app: FastMCP):
                 exception_message=str(e)
             )
 
-    # TODO: Move parts under workspace/parts and decouple from segmenter.
-    @app.resource("workspace://{workspace}/parts")
-    def parts_list(workspace: str) -> list[str] | None:
-        """
-        Lists available parts within workspace
-        """
-        from am.segmenter import Segmenter
-        return Segmenter.list_parts(workspace)
+    _ = (segmenter_parse, segmenter_initialize)
 

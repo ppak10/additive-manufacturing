@@ -10,6 +10,10 @@ def register_workspace_initialize(app: typer.Typer):
     def workspace_initialize(
         workspace_name: str,
         out_path: Path | None = None,
+        include_example_parts: Annotated[
+            bool,
+            typer.Option("--include_example_parts", help="Copy over example parts"),
+        ] = True,
         force: Annotated[
             bool, typer.Option("--force", help="Overwrite existing workspace")
         ] = False,
@@ -22,7 +26,11 @@ def register_workspace_initialize(app: typer.Typer):
                 name=workspace_name,
                 out_path=out_path,
             )
-            workspace_config = workspace.create_workspace(out_path, force)
+            workspace_config = workspace.create_workspace(
+                    out_path,
+                    include_example_parts,
+                    force,
+            )
             rprint(f"✅ Workspace initialized at: {workspace_config.workspace_path}")
         except:
             rprint("⚠️  [yellow]Unable to create workspace directory[/yellow]")

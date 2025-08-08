@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.3"
+version = "0.0.4"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
@@ -16,7 +16,6 @@ dependencies = [
     "pygcode>=0.2.1",
     "rich>=14.0.0",
     "scipy>=1.15.3",
-    "scipy-stubs>=1.16.0.2",
     "torch>=2.7.1",
     "torchvision>=0.22.1",
     "tqdm>=4.67.1",

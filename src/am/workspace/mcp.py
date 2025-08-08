@@ -53,6 +53,16 @@ def register_workspace(app: FastMCP):
     @app.resource("workspace://")
     def workspace_list() -> list[str] | None:
         from am.workspace import Workspace
-        return Workspace.list()
+        return Workspace.list_workspaces()
 
-    
+    @app.resource("workspace://{workspace}/part")
+    def workspace_part_list(workspace: str) -> list[str] | None:
+        """
+        Lists available parts within workspace
+        """
+        from am.workspace import Workspace
+        print(f"parts: {Workspace.list_workspace_parts(workspace)}")
+        return Workspace.list_workspace_parts(workspace)
+
+    _ = (workspace_initialize, workspace_list, workspace_part_list)
+

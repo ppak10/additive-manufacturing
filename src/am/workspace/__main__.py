@@ -1,6 +1,10 @@
+import shutil
+
+from importlib.resources import files
 from pathlib import Path
 from rich import print as rprint
 
+from am import data
 from am.workspace.config import WorkspaceConfig
 
 class Workspace:
@@ -31,7 +35,7 @@ class Workspace:
         self.config.workspace_path = value
 
     @classmethod
-    def list(cls, out_path: Path | None = None) -> list[str] | None:
+    def list_workspaces(cls, out_path: Path | None = None) -> list[str] | None:
         """
         Lists workspace directories within out_path
         """
@@ -48,9 +52,49 @@ class Workspace:
             if workspace_dir.is_dir()
         ]
 
+    @classmethod
+    def list_workspace_parts(
+            cls,
+            workspace: str,
+            out_path: Path | None = None,
+            suffix: str = ".gcode",
+    ) -> list[str] | None:
+        """
+        Lists workspace directories within out_path
+        """
+        if out_path is None:
+            project_root = WorkspaceConfig.get_project_root_from_package()
+            out_path = project_root / "out"
+
+        if not out_path.exists() or not out_path.is_dir():
+            return None
+
+        parts_path = out_path / workspace / "parts"
+
+        return [
+            partfile.name
+            for partfile in parts_path.iterdir()
+            if partfile.is_file() and partfile.suffix == suffix
+        ]
+
+
+    def copy_example_parts(self, path: Path):
+        parts_resource_dir = files(data) / "parts"
+        parts_dest_dir = path / "parts"
+        parts_dest_dir.mkdir(parents=True, exist_ok=True)
+
+        for entry in parts_resource_dir.iterdir():
+            if entry.is_file():
+                dest_file = parts_dest_dir / entry.name
+                with entry.open("rb") as src, open(dest_file, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+
+        rprint(f"Copied example part files to: {parts_dest_dir}")
+
     def create_workspace(
         self,
         out_path: Path | None = None,
+        include_example_parts: bool = True,
         force: bool | None = False
     ) -> WorkspaceConfig:
         # Use the out_path if provided, otherwise default to package out_path.
@@ -63,6 +107,8 @@ class Workspace:
 
         workspace_path = out_path / self.config.name
 
+        print(workspace_path)
+
         if workspace_path.exists() and not force:
             rprint(
                 f"⚠️  [yellow]Configuration already exists at {workspace_path}[/yellow]"
@@ -70,9 +116,14 @@ class Workspace:
             rprint("Use [cyan]--force[/cyan] to overwrite, or edit the existing file.")
             raise FileExistsError("Workspace already exists")
 
+        if include_example_parts:
+            self.copy_example_parts(workspace_path)
+
         self.config.workspace_path = workspace_path
         workspace_config_file = self.config.save()
+
         rprint(f"Workspace config file saved at: {workspace_config_file}")
+
         return self.config
 
 

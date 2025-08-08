@@ -24,9 +24,17 @@ class WorkspaceConfig(BaseModel):
             spec = importlib.util.find_spec("am")
             if spec and spec.origin:
                 package_path = Path(spec.origin).parent
-                # package_path: /.../additive-manufacturing-agent/.venv/lib/python3.13/site-packages/am
-                # package_path.parents[parents_index]: /.../additive-manufacturing-agent
-                return package_path.parents[parents_index]
+                parent_folder = package_path.parent.name
+                if parent_folder == "src":
+                    # Local Development
+                    # package_path: /.../additive-manufacturing/src/am
+                    # package_path.parent.parent: /.../additive-manufacturing
+                    return package_path.parent.parent
+                else:
+                    # PyPI Install
+                    # package_path: /.../additive-manufacturing-agent/.venv/lib/python3.13/site-packages/am
+                    # package_path.parents[parents_index]: /.../additive-manufacturing-agent
+                    return package_path.parents[parents_index]
         except ImportError:
             pass
         return Path.cwd()

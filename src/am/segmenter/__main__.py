@@ -2,10 +2,8 @@ import json
 import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 import os
-import shutil
 
 from datetime import datetime
-from importlib.resources import files
 from io import BytesIO
 from pathlib import Path
 from pint import Quantity, UnitRegistry
@@ -13,8 +11,6 @@ from rich import print as rprint
 from tqdm import tqdm
 from typing import cast, Literal
 
-from am import data
-from am.workspace.config import WorkspaceConfig
 from .config import SegmenterConfig
 from .types import Segment, SegmentDict
 
@@ -60,21 +56,9 @@ class Segmenter:
     def verbose(self):
         return self.config.verbose
 
-    def copy_example_parts(self, segmenter_path: Path):
-        parts_resource_dir = files(data) / "segmenter" / "parts"
-        parts_dest_dir = segmenter_path / "parts"
-        parts_dest_dir.mkdir(parents=True, exist_ok=True)
-
-        for entry in parts_resource_dir.iterdir():
-            if entry.is_file():
-                dest_file = parts_dest_dir / entry.name
-                with entry.open("rb") as src, open(dest_file, "wb") as dst:
-                    shutil.copyfileobj(src, dst)
-
     def initialize(
         self,
         segmenter_path: Path,
-        include_examples: bool | None = True,
     ) -> SegmenterConfig:
         # Create `segmenter` folder
         segmenter_path.mkdir(exist_ok=True)
@@ -85,9 +69,6 @@ class Segmenter:
         # Create `segmenter/parts` directory
         segmenter_parts_path = self.config.segmenter_path / "parts"
         os.makedirs(segmenter_parts_path, exist_ok=True)
-
-        if include_examples:
-            self.copy_example_parts(segmenter_path)
 
         return self.config 
 
@@ -164,26 +145,6 @@ class Segmenter:
             writer.append_data(imageio.imread(buffer))
 
         writer.close()
-
-    @classmethod
-    def list_parts(cls, workspace: str, out_path: Path | None = None) -> list[str] | None:
-        """
-        Lists workspace directories within out_path
-        """
-        if out_path is None:
-            project_root = WorkspaceConfig.get_project_root_from_package()
-            out_path = project_root / "out"
-
-        if not out_path.exists() or not out_path.is_dir():
-            return None
-
-        segmenter_parts_path = out_path / workspace / "segmenter" / "parts"
-
-        return [
-            partfile.name
-            for partfile in segmenter_parts_path.iterdir()
-            if partfile.is_file() and partfile.suffix == ".gcode"
-        ]
 
     def load_segments(self, path: Path | str) -> list[Segment]:
         self.segments = []
