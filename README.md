@@ -14,8 +14,13 @@ am --help
 
 ### Agent
 #### Claude Code
-1. Install mcp server
+1. Install MCP tools and Agent
+- Defaults to claude code
 ```bash
-am mcp install /path/to/your/project --claude-code
+am mcp install
+```
+- If updating, you will need to remove the previously existing mcp tools
+```bash
+claude mcp remove am
 ```
 

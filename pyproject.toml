@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
@@ -31,16 +31,11 @@ Issues = "https://github.com/ppak10/additive-manufacturing/issues"
 am = "am.cli:app"
 
 [tool.setuptools.package-data]
-"am.data" = ["**/*.gcode", "**/*.STL", "**/*.ini", "**/*.pkl"]
+"am.data" = ["**/*.gcode", "**/*.STL", "**/*.md"]
 
 [tool.black]
 line-length = 88
 target-version = ["py310"]
-
-[tool.uv.workspace]
-members = [
-    "examples/agent",
-]
 
 [dependency-groups]
 dev = [
