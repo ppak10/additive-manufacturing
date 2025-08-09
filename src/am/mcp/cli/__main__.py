@@ -1,6 +1,6 @@
 import typer
 
-mcp_app = typer.Typer(
+app = typer.Typer(
     name = "mcp",
     help = "Model Context Protocol (MCP) Managment",
     add_completion = False,

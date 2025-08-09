@@ -77,19 +77,22 @@ class Workspace:
             if partfile.is_file() and partfile.suffix == suffix
         ]
 
+    def create_workspace_folders(self, workspace_path: Path):
+        """
+        Creates folders inputs and outputs within workspace.
+        """
+        folders = ["segments", "parts"]
+        for folder in folders:
+            resource_dir = files(data) / folder
+            dest_dir = workspace_path / folder
+            dest_dir.mkdir(parents=True, exist_ok=True)
 
-    def copy_example_parts(self, path: Path):
-        parts_resource_dir = files(data) / "parts"
-        parts_dest_dir = path / "parts"
-        parts_dest_dir.mkdir(parents=True, exist_ok=True)
-
-        for entry in parts_resource_dir.iterdir():
-            if entry.is_file():
-                dest_file = parts_dest_dir / entry.name
-                with entry.open("rb") as src, open(dest_file, "wb") as dst:
-                    shutil.copyfileobj(src, dst)
-
-        rprint(f"Copied example part files to: {parts_dest_dir}")
+            # Copies over package resources to specific folder in workspace.
+            for entry in resource_dir.iterdir():
+                if entry.is_file():
+                    dest_file = dest_dir / entry.name
+                    with entry.open("rb") as src, open(dest_file, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
 
     def create_workspace(
         self,
@@ -107,17 +110,14 @@ class Workspace:
 
         workspace_path = out_path / self.config.name
 
-        print(workspace_path)
-
         if workspace_path.exists() and not force:
             rprint(
                 f"⚠️  [yellow]Configuration already exists at {workspace_path}[/yellow]"
             )
             rprint("Use [cyan]--force[/cyan] to overwrite, or edit the existing file.")
             raise FileExistsError("Workspace already exists")
-
-        if include_example_parts:
-            self.copy_example_parts(workspace_path)
+        
+        self.create_workspace_folders(workspace_path)
 
         self.config.workspace_path = workspace_path
         workspace_config_file = self.config.save()

@@ -14,6 +14,5 @@ def main():
     """Entry point for the direct execution server."""
     app.run()
 
-
 if __name__ == "__main__":
     main()

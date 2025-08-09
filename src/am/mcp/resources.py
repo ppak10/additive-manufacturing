@@ -7,7 +7,7 @@ def register_resources(app: FastMCP):
         Exposes endpoints for resource templates since it seems that they
         are not automatically detected by clients like claude code
         """
-        return [ "workspace://{workspace}/parts" ]
+        return [ "workspace://{workspace}/part" ]
 
     return resource_templates
 

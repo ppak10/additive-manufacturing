@@ -1,5 +1,5 @@
-from .__main__ import Segmenter
-from .config import SegmenterConfig
 from .parse import SegmenterParse
+from .visualize import SegmenterVisualize
 
-__all__ = ["Segmenter", "SegmenterConfig", "SegmenterParse"]
+__all__ = ["SegmenterParse", "SegmenterVisualize"]
+

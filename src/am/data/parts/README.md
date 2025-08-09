@@ -1,3 +1,3 @@
-# Segmenter Parts
-Place your files here.
+# Parts
+Place your files here (`.stl`, `.gcode`, .etc).
 

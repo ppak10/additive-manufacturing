@@ -11,28 +11,15 @@ from rich import print as rprint
 from tqdm import tqdm
 from typing import cast, Literal
 
-from .config import SegmenterConfig
 from .types import Segment, SegmentDict
 
 
-class Segmenter:
+class SegmenterVisualize:
     """
     Base segmenter methods.
     """
 
-    def __init__(
-        self,
-        ureg_default_system: Literal["cgs", "mks"] = "cgs",
-        ureg: UnitRegistry | None = None,
-        segmenter_path: Path | None = None,
-        verbose: bool | None = False,
-    ):
-        self.config: SegmenterConfig = SegmenterConfig(
-            ureg_default_system=ureg_default_system,
-            segmenter_path=segmenter_path,
-            verbose=verbose,
-        )
-
+    def __init__(self):
         self.segments: list[Segment] = []
 
         self.x_min: Quantity = cast(Quantity, Quantity(0.0, "m"))
@@ -40,41 +27,10 @@ class Segmenter:
         self.y_min: Quantity = cast(Quantity, Quantity(0.0, "m"))
         self.y_max: Quantity = cast(Quantity, Quantity(0.0, "m"))
 
-    @property
-    def ureg(self):
-        return self.config.ureg
-
-    @property
-    def segmenter_path(self):
-        return self.config.segmenter_path
-
-    @segmenter_path.setter
-    def segmenter_path(self, value: Path):
-        self.config.segmenter_path = value
-
-    @property
-    def verbose(self):
-        return self.config.verbose
-
-    def initialize(
-        self,
-        segmenter_path: Path,
-    ) -> SegmenterConfig:
-        # Create `segmenter` folder
-        segmenter_path.mkdir(exist_ok=True)
-        self.config.segmenter_path = segmenter_path
-        segmenter_config_file = self.config.save()
-        rprint(f"Segmenter config file saved at: {segmenter_config_file}")
-
-        # Create `segmenter/parts` directory
-        segmenter_parts_path = self.config.segmenter_path / "parts"
-        os.makedirs(segmenter_parts_path, exist_ok=True)
-
-        return self.config 
-
     def visualize(
         self,
-        visualize_name: str | None = None,
+        segments_path: Path,
+        visualization_name: str | None = None,
         color: str = "black",
         frame_format: str = "png",
         include_axis: bool = True,
@@ -87,12 +43,12 @@ class Segmenter:
         Provides visualization for loaded segments.
         """
 
-        if visualize_name is None:
-            visualize_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
+        if visualization_name is None:
+            visualization_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
 
         cwd = Path.cwd()
-        visualize_out_path = cwd / "segmenter" / "visualizations" / visualize_name
-        visualize_out_path.mkdir(exist_ok=True, parents=True)
+        visualization_path = segments_path / "visualizations" / visualization_name
+        visualization_path.mkdir(exist_ok=True, parents=True)
 
         if len(self.segments) < 1:
             raise Exception(f"layer_index: {0} has no gcode_segments.")
@@ -108,10 +64,10 @@ class Segmenter:
         zfill = len(f"{len(self.segments)}")
 
         # Save current frame
-        frames_out_path = visualize_out_path / "frames"
+        frames_out_path = visualization_path / "frames"
         frames_out_path.mkdir(exist_ok=True, parents=True)
 
-        animation_out_path = visualize_out_path / "frames.gif"
+        animation_out_path = visualization_path / "frames.gif"
         writer = imageio.get_writer(animation_out_path, mode="I", duration=0.1)
 
         if not include_axis:
@@ -123,7 +79,7 @@ class Segmenter:
             disable=not verbose,
             total=len(self.segments),
         ):
-            segment_index_string = f"{segment_index}".zfill(zfill)
+            segment_number_string = f"{segment_index + 1}".zfill(zfill)
 
             # Display on non-travel segments
             # TODO: Add argument to also show travel segments.
@@ -135,7 +91,7 @@ class Segmenter:
                     linewidth=linewidth,
                 )
 
-            frame_path = frames_out_path / f"{segment_index_string}.{frame_format}"
+            frame_path = frames_out_path / f"{segment_number_string}.{frame_format}"
             fig.savefig(frame_path, transparent=transparent)
 
             # Copy image to memory for later
@@ -144,6 +100,8 @@ class Segmenter:
             buffer.seek(0)
             writer.append_data(imageio.imread(buffer))
 
+        if verbose:
+            print("Writing frames to `.gif`")
         writer.close()
 
     def load_segments(self, path: Path | str) -> list[Segment]:

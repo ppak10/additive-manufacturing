@@ -8,7 +8,6 @@ from pint import Quantity, Unit
 from typing import cast
 from tqdm import tqdm
 
-from .config import SegmenterConfig
 from .types import Command, Segment
 
 
@@ -17,8 +16,7 @@ class SegmenterParse:
     Parses files (`.gcode`) into commands and then into segments.
     """
 
-    def __init__(self, config: SegmenterConfig):
-        self.config: SegmenterConfig = config
+    def __init__(self):
         self.commands: list[Command] = []
         self.segments: list[Segment] = []
 
@@ -254,7 +252,7 @@ class SegmenterParse:
         path: Path,
         segments: list[Segment] | None = None,
         verbose: bool | None = False,
-        split_by_layer_index: bool | None = True,
+        split_by_layer: bool | None = True,
     ) -> Path:
 
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -269,10 +267,12 @@ class SegmenterParse:
             )
         ]
 
-        if split_by_layer_index:
+        if split_by_layer:
+            # Saves start at 001.
             layer_changes = len(self.segments_layer_change_indexes)
-            segments_dir = path.with_suffix("")
-            segments_dir.mkdir(parents=True, exist_ok=True)
+            segments_name = path.with_suffix("")
+            segments_layers_dir = segments_name / "layers"
+            segments_layers_dir.mkdir(parents=True, exist_ok=True)
 
             prev = 0
             for layer_change_index, current in tqdm(
@@ -282,20 +282,22 @@ class SegmenterParse:
                 total=layer_changes,
             ):
                 z_fill = len(f"{layer_changes}")
-                layer_index_string = f"{layer_change_index}".zfill(z_fill)
-                layer_path = segments_dir / f"{layer_index_string}.json"
+                layer_number_string = f"{layer_change_index + 1}".zfill(z_fill)
+                layer_path = segments_layers_dir / f"{layer_number_string}.json"
                 layer_segments = segments_data[prev:current]
                 with layer_path.open("w") as f:
                     json.dump(layer_segments, f, indent=2)
                 prev = current
 
             last_layer_index = len(self.segments_layer_change_indexes)
-            last_layer_path = segments_dir / f"{last_layer_index}.json"
+            last_layer_path = segments_layers_dir / f"{last_layer_index + 1}.json"
             with last_layer_path.open("w") as f:
                 json.dump(segments_data[prev::], f, indent=2)
 
-            return path
+            return segments_layers_dir
         else:
+            # Saving segments as one giant file is not really practical so 
+            # it's not toggled off by default.
             with path.open("w") as f:
                 _ = f.write("[\n")
                 for i, segment_dict in enumerate(

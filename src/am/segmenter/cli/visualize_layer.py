@@ -4,17 +4,17 @@ import typer
 from pathlib import Path
 from rich import print as rprint
 
-from am.cli.options import VerboseOption
+from am.cli.options import VerboseOption, WorkspaceOption
 
 from typing_extensions import Annotated
 
 
 def register_segmenter_visualize_layer(app: typer.Typer):
-    @app.command(name="visualize_layer")
+    @app.command(name="visualize-layer")
     def segmenter_visualize_layer(
-        segments_filename: Annotated[str, typer.Argument(help="Segments filename")],
-        layer_index: Annotated[
-            int, typer.Argument(help="Use segments within specified layer index")
+        segments_name: Annotated[str, typer.Argument(help="Segments name")],
+        layer_number: Annotated[
+            int, typer.Argument(help="Layer number of segment to visualize")
         ],
         color: Annotated[
             str, typer.Option(help="Color for plotted segments")
@@ -32,32 +32,40 @@ def register_segmenter_visualize_layer(app: typer.Typer):
             bool, typer.Option(help="Toggle for transparent background")
         ] = False,
         units: Annotated[str, typer.Option(help="Units for plotting segments")] = "mm",
+        workspace: WorkspaceOption | None = None,
         verbose: VerboseOption = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
-        from am.segmenter import Segmenter
+        from am.segmenter.visualize import SegmenterVisualize
 
-        # Check for workspace config file in current directory
-        cwd = Path.cwd()
-        config_file = cwd / "config.json"
-        if not config_file.exists():
-            rprint(
-                "❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]"
-            )
+        if workspace is not None:
+            from am.workspace import WorkspaceConfig
+            project_root = WorkspaceConfig.get_project_root_from_package()
+            workspace_dir = project_root / "out" / workspace
+        else:
+            workspace_dir = Path.cwd()
+
+        workspace_config_file = workspace_dir / "config.json"
+        if not workspace_config_file.exists():
+            rprint("❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]")
             raise typer.Exit(code=1)
 
         # try:
         # Segments
-        segments_path = cwd / "segmenter" / "segments" / segments_filename
+        segments_path = workspace_dir / "segments" / segments_name
         # Uses number of files in segments path as total layers for zfill.
-        total_layers = len(os.listdir(segments_path))
+        segment_layers_path = segments_path / "layers"
+        total_layers = len(os.listdir(segment_layers_path))
         z_fill = len(f"{total_layers}")
-        layer_index_string = f"{layer_index}".zfill(z_fill)
-        segments_file_path = segments_path / f"{layer_index_string}.json"
-        segmenter = Segmenter()
-        _ = segmenter.load_segments(segments_file_path)
+        layer_number_string = f"{layer_number}".zfill(z_fill)
+        segment_layer_file_path = segment_layers_path / f"{layer_number_string}.json"
+
+        segmenter = SegmenterVisualize()
+        _ = segmenter.load_segments(segment_layer_file_path)
+
         segmenter.visualize(
-            visualize_name=segments_filename,
+            segments_path = segments_path,
+            visualization_name = f"layer_{layer_number_string}",
             color=color,
             frame_format=frame_format,
             include_axis=include_axis,
@@ -72,5 +80,4 @@ def register_segmenter_visualize_layer(app: typer.Typer):
         #     rprint(f"⚠️  [yellow]Unable to complete visualizations: {e}[/yellow]")
         #     raise typer.Exit(code=1)
 
-    _ = app.command(name="visualize_layer")(segmenter_visualize_layer)
     return segmenter_visualize_layer

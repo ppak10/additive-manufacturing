@@ -1,8 +1,7 @@
 import importlib.metadata
-
-from rich import print as rprint
 import typer
 
+from rich import print as rprint
 
 def register_version(app: typer.Typer):
     @app.command()
@@ -18,3 +17,4 @@ def register_version(app: typer.Typer):
             raise typer.Exit()
 
     return version
+

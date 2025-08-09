@@ -13,6 +13,9 @@ def register_segmenter_parse(app: typer.Typer):
         workspace: WorkspaceOption | None = None,
         verbose: VerboseOption | None = False,
     ) -> None:
+        """
+        Parses `.gcode` file within workspace parts folder into segments.
+        """
         import asyncio
         asyncio.run(_segmenter_parse_async(filename, distance_xy_max, units, workspace, verbose))
 
@@ -28,7 +31,7 @@ async def _segmenter_parse_async(
 ) -> None:
     from pathlib import Path
     from rich import print as rprint
-    from am.segmenter import SegmenterConfig, SegmenterParse
+    from am.segmenter import SegmenterParse
 
     if workspace is not None:
         from am.workspace import WorkspaceConfig
@@ -42,24 +45,19 @@ async def _segmenter_parse_async(
         rprint("❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]")
         raise typer.Exit(code=1)
 
-    segmenter_config_file = workspace_dir / "segmenter" / "config.json"
-    if not segmenter_config_file.exists():
-        rprint("❌ [red]Segmenter not initialized. `segmenter/config.json` not found.[/red]")
-
     try:
-        segmenter_config = SegmenterConfig.load(segmenter_config_file)
-        segmenter_parse = SegmenterParse(segmenter_config)
+        segmenter_parse = SegmenterParse()
         filepath = workspace_dir / "parts" / filename
 
         await segmenter_parse.gcode_to_commands(filepath, units, verbose=verbose)
         await segmenter_parse.commands_to_segments(distance_xy_max=distance_xy_max, units=units, verbose=verbose)
 
         filename_no_ext = filename.split(".")[0]
-        segments_path = workspace_dir / "segmenter" / "segments" / f"{filename_no_ext}.json"
+        segments_path = workspace_dir / "segments" / f"{filename_no_ext}.json"
         output_path = segmenter_parse.save_segments(segments_path, verbose=verbose)
         rprint(f"✅Parsed segments `{filename}` saved at `{output_path}`")
     except Exception as e:
-        rprint(f"⚠️  [yellow]Unable to initialize segmenter: {e}[/yellow]")
+        rprint(f"⚠️  [yellow]Unable to segment {filename}: {e}[/yellow]")
         raise typer.Exit(code=1)
 
 

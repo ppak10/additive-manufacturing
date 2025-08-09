@@ -1,6 +1,6 @@
 import typer
 
-workspace_app = typer.Typer(
+app = typer.Typer(
     name="workspace",
     help="Workspace management",
     add_completion=False,

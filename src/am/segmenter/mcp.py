@@ -6,55 +6,6 @@ from typing import Union
 def register_segmenter(app: FastMCP):
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
-    from am.segmenter.config import SegmenterConfig
-    
-    @app.tool(
-        title="Segmenter Initialization",
-        description="Initializes segmenter within workspace folder.",
-        structured_output=True,
-    )
-    def segmenter_initialize(
-        workspace_name: str,
-    ) -> Union[ToolSuccess[SegmenterConfig], ToolError]:
-        """Create a folder to perform and store segmenter operations"""
-        from am.segmenter import Segmenter
-        from am.workspace import WorkspaceConfig
-
-        
-        try:
-            project_root = WorkspaceConfig.get_project_root_from_package()
-            workspace_dir = project_root / "out" / workspace_name
-            config_file = workspace_dir / "config.json"
-
-            if not config_file.exists():
-                return tool_error(
-                    "Workspace `config.json` does not exist",
-                    "WORKSPACE_NOT_FOUND", 
-                    workspace_name=workspace_name,
-                )
-
-            segmenter = Segmenter()
-            segmenter_config = segmenter.initialize(
-                segmenter_path=workspace_dir / "segmenter"
-            )
-            return tool_success(segmenter_config)
-            
-        except PermissionError as e:
-            return tool_error(
-                "Permission denied when initializing segmenter",
-                "PERMISSION_DENIED",
-                workspace_name=workspace_name,
-                exception_type=type(e).__name__,
-            )
-            
-        except Exception as e:
-            return tool_error(
-                "Failed to create segmenter",
-                "SEGMENTER_CREATE_FAILED",
-                workspace_name=workspace_name,
-                exception_type=type(e).__name__,
-                exception_message=str(e)
-            )
 
     @app.tool(
         title="Segmenter Parse", 
@@ -79,7 +30,7 @@ def register_segmenter(app: FastMCP):
             units: Defined units of gcode file.
         """
 
-        from am.segmenter import SegmenterConfig, SegmenterParse
+        from am.segmenter import SegmenterParse
         from am.workspace import WorkspaceConfig
         
         try:
@@ -94,12 +45,8 @@ def register_segmenter(app: FastMCP):
                     workspace_name=workspace_name,
                 )
 
-            segmenter_dir = workspace_dir / "segmenter"
+            segmenter_parse = SegmenterParse()
 
-            segmenter_config = SegmenterConfig.load(segmenter_dir / "config.json")
-            segmenter_parse = SegmenterParse(segmenter_config)
-
-            # Assumes file is in `workspace/segmenter/parts/`
             filepath = workspace_dir / "parts" / filename
 
             await ctx.info(f"Beginning parse of {filename}")
@@ -109,7 +56,7 @@ def register_segmenter(app: FastMCP):
             )
 
             filename_no_ext = filename.split(".")[0]
-            segments_path = segmenter_dir / "segments" / f"{filename_no_ext}.json"
+            segments_path = workspace_dir / "segments" / f"{filename_no_ext}.json"
             output_path = segmenter_parse.save_segments(segments_path)
 
             return tool_success(output_path)
@@ -131,5 +78,5 @@ def register_segmenter(app: FastMCP):
                 exception_message=str(e)
             )
 
-    _ = (segmenter_parse, segmenter_initialize)
+    _ = (segmenter_parse)
 
