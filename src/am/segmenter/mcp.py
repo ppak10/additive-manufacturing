@@ -1,3 +1,5 @@
+import os
+
 from mcp.server.fastmcp import FastMCP, Context
 
 from pathlib import Path
@@ -21,11 +23,11 @@ def register_segmenter(app: FastMCP):
         verbose: bool = False,
     ) -> Union[ToolSuccess[Path], ToolError]:
         """
-        Parses a specified file within the `segmenter/parts` folder.
+        Parses a specified file within the `{workspace}/parts` folder.
         Args:
             ctx: Context for long running task
             workspace_name: Folder name of existing workspace
-            filename: Filename of `.gcode` part to parse (Parts under @am:workspace://{workspace_name}/part)
+            filename: Filename of `.gcode` part to parse (Parts under @am:workspace://{workspace}/part)
             distance_xy_max: Maximum segment length when parsing (defaults to 1.0 mm).
             units: Defined units of gcode file.
         """
@@ -78,5 +80,66 @@ def register_segmenter(app: FastMCP):
                 exception_message=str(e)
             )
 
-    _ = (segmenter_parse)
+    @app.tool(
+        title="Segmenter Visualize Layer", 
+        description="Uses segmenter to visualize a layer of parsed segments under @am:workspace://{workspace}/segments",
+        structured_output=True,
+    )
+    async def segmenter_visualize_layer(
+        segments: str,
+        workspace: str,
+        layer_number: int,
+    ) -> Union[ToolSuccess[Path], ToolError]:
+        """
+        Visualizes a specified layer within the `{wokspace}/segments/layers` folder.
+        Args:
+            ctx: Context for long running task
+            workspace_name: Folder name of existing workspace
+            filename: Filename of `.gcode` part to parse (Parts under @am:workspace://{workspace_name}/part)
+            distance_xy_max: Maximum segment length when parsing (defaults to 1.0 mm).
+            units: Defined units of gcode file.
+        """
+
+        from am.segmenter.visualize import SegmenterVisualize
+        from am.cli.utils import get_workspace_path
+        
+        try:
+            workspace_path = get_workspace_path(workspace)
+
+            # Segments
+            segments_path = workspace_path / "segments" / segments
+
+            # Uses number of files in segments path as total layers for zfill.
+            segment_layers_path = segments_path / "layers"
+            total_layers = len(os.listdir(segment_layers_path))
+            z_fill = len(f"{total_layers}")
+            layer_number_string = f"{layer_number}".zfill(z_fill)
+            segment_layer_file_path = segment_layers_path / f"{layer_number_string}.json"
+
+            segmenter = SegmenterVisualize()
+            _ = segmenter.load_segments(segment_layer_file_path)
+
+            animation_out_path = segmenter.visualize(
+                segments_path = segments_path,
+                visualization_name = f"layer_{layer_number_string}",
+            )
+            return tool_success(animation_out_path)
+            
+        except PermissionError as e:
+            return tool_error(
+                "Permission denied when visualizing segments",
+                "PERMISSION_DENIED",
+                workspace_name=workspace,
+                exception_type=type(e).__name__,
+            )
+            
+        except Exception as e:
+            return tool_error(
+                "Failed to parse visualize segments",
+                "SEGMENTER_PARSE_FAILED",
+                workspace_name=workspace,
+                exception_type=type(e).__name__,
+                exception_message=str(e)
+            )
+    _ = (segmenter_parse, segmenter_visualize_layer)
 

@@ -78,6 +78,9 @@ class Solver:
         build_config: BuildConfig,
         material_config: MaterialConfig,
         mesh_config: MeshConfig,
+
+        # TODO: Include as part of mesh_config
+        meshes_path: Path,
         model_name: str = "eagar-tsai",
         run_name: str | None = None,
     ) -> Path:
@@ -86,10 +89,9 @@ class Solver:
         """
 
         if run_name is None:
-            run_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
+            run_name = datetime.now().strftime("solver_%Y%m%d_%H%M%S")
 
-        cwd = Path.cwd()
-        run_out_path = cwd / "solver" / "runs" / run_name
+        run_out_path = meshes_path / run_name
         run_out_path.mkdir(exist_ok=True, parents=True)
 
         initial_temperature = cast(float, build_config.temperature_preheat.magnitude)
@@ -132,7 +134,7 @@ class Solver:
             # write to disk as often.
             # Or maybe make this asynchronous.
             segment_index_string = f"{segment_index}".zfill(zfill)
-            _ = solver_mesh.save(run_out_path / "meshes" / f"{segment_index_string}.pt")
+            _ = solver_mesh.save(run_out_path / "timesteps" / f"{segment_index_string}.pt")
 
         return run_out_path
 
@@ -159,7 +161,7 @@ class Solver:
         frames_path = visualizations_path / "frames"
         frames_path.mkdir(exist_ok=True, parents=True)
 
-        mesh_folder = run_path / "meshes"
+        mesh_folder = run_path / "timesteps"
         mesh_files = sorted([f.name for f in mesh_folder.iterdir() if f.is_file()])
 
         animation_out_path = visualizations_path / "frames.gif"

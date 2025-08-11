@@ -34,54 +34,11 @@ class Workspace:
     def workspace_path(self, value: Path):
         self.config.workspace_path = value
 
-    @classmethod
-    def list_workspaces(cls, out_path: Path | None = None) -> list[str] | None:
-        """
-        Lists workspace directories within out_path
-        """
-        if out_path is None:
-            project_root = WorkspaceConfig.get_project_root_from_package()
-            out_path = project_root / "out"
-
-        if not out_path.exists() or not out_path.is_dir():
-            return None
-
-        return [
-            workspace_dir.name
-            for workspace_dir in out_path.iterdir()
-            if workspace_dir.is_dir()
-        ]
-
-    @classmethod
-    def list_workspace_parts(
-            cls,
-            workspace: str,
-            out_path: Path | None = None,
-            suffix: str = ".gcode",
-    ) -> list[str] | None:
-        """
-        Lists workspace directories within out_path
-        """
-        if out_path is None:
-            project_root = WorkspaceConfig.get_project_root_from_package()
-            out_path = project_root / "out"
-
-        if not out_path.exists() or not out_path.is_dir():
-            return None
-
-        parts_path = out_path / workspace / "parts"
-
-        return [
-            partfile.name
-            for partfile in parts_path.iterdir()
-            if partfile.is_file() and partfile.suffix == suffix
-        ]
-
     def create_workspace_folders(self, workspace_path: Path):
         """
         Creates folders inputs and outputs within workspace.
         """
-        folders = ["segments", "parts"]
+        folders = ["meshes", "parts", "segments"]
         for folder in folders:
             resource_dir = files(data) / folder
             dest_dir = workspace_path / folder

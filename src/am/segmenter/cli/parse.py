@@ -10,8 +10,8 @@ def register_segmenter_parse(app: typer.Typer):
         filename: str,
         distance_xy_max: Annotated[float, typer.Option("--distance-xy-max")] = 1.0,
         units: Annotated[str, typer.Option("--units")] = "mm",
-        workspace: WorkspaceOption | None = None,
-        verbose: VerboseOption | None = False,
+        workspace: WorkspaceOption = None,
+        verbose: VerboseOption = False,
     ) -> None:
         """
         Parses `.gcode` file within workspace parts folder into segments.
@@ -26,8 +26,8 @@ async def _segmenter_parse_async(
     filename: str,
     distance_xy_max: float,
     units: str,
-    workspace: WorkspaceOption | None,
-    verbose: VerboseOption | None,
+    workspace: WorkspaceOption = None,
+    verbose: VerboseOption = False,
 ) -> None:
     from pathlib import Path
     from rich import print as rprint

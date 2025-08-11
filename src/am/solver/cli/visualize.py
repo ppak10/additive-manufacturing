@@ -4,7 +4,7 @@ import typer
 from pathlib import Path
 from rich import print as rprint
 
-from am.cli.options import VerboseOption
+from am.cli.options import VerboseOption, WorkspaceOption
 
 from typing_extensions import Annotated
 
@@ -26,21 +26,16 @@ def register_solver_visualize(app: typer.Typer):
             bool, typer.Option(help="Toggle for transparent background")
         ] = False,
         units: Annotated[str, typer.Option(help="Units for plotting segments")] = "mm",
+        workspace: WorkspaceOption = None,
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
+        from am.cli.utils import get_workspace_path
         from am.solver import Solver
 
-        # Check for workspace config file in current directory
-        cwd = Path.cwd()
-        config_file = cwd / "config.json"
-        if not config_file.exists():
-            rprint(
-                "❌ [red]This is not a valid workspace folder. `config.json` not found.[/red]"
-            )
-            raise typer.Exit(code=1)
+        workspace_path = get_workspace_path(workspace)
 
-        runs_folder = cwd / "solver" / "runs"
+        runs_folder = workspace_path / "meshes"
         if run_name is None:
             # Get list of subdirectories sorted by modification time (newest first)
             run_dirs = sorted(
@@ -58,18 +53,18 @@ def register_solver_visualize(app: typer.Typer):
             )
         run_folder = runs_folder / run_name
 
-        # try:
-        Solver.visualize_2D(
-            run_folder,
-            frame_format=frame_format,
-            include_axis=include_axis,
-            transparent=transparent,
-            units=units,
-        )
-        rprint(f"✅ Finished visualizing")
-        # except Exception as e:
-        #     rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
-        #     raise typer.Exit(code=1)
+        try:
+            Solver.visualize_2D(
+                run_folder,
+                frame_format=frame_format,
+                include_axis=include_axis,
+                transparent=transparent,
+                units=units,
+            )
+            rprint(f"✅ Finished visualizing")
+        except Exception as e:
+            rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
+            raise typer.Exit(code=1)
 
     _ = app.command(name="visualize")(solver_run_layer)
     return solver_run_layer

@@ -1,15 +1,13 @@
 import json
 import imageio.v2 as imageio
 import matplotlib.pyplot as plt
-import os
 
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from pint import Quantity, UnitRegistry
-from rich import print as rprint
+from pint import Quantity
 from tqdm import tqdm
-from typing import cast, Literal
+from typing import cast
 
 from .types import Segment, SegmentDict
 
@@ -38,7 +36,7 @@ class SegmenterVisualize:
         transparent: bool = False,
         units: str = "mm",
         verbose: bool = False,
-    ):
+    ) -> Path:
         """
         Provides visualization for loaded segments.
         """
@@ -103,6 +101,7 @@ class SegmenterVisualize:
         if verbose:
             print("Writing frames to `.gif`")
         writer.close()
+        return animation_out_path
 
     def load_segments(self, path: Path | str) -> list[Segment]:
         self.segments = []
