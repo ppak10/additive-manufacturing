@@ -164,21 +164,17 @@ def register_solver(app: FastMCP):
                     raise FileNotFoundError(f"❌ No run directories found in {runs_folder}")
 
                 run_name = run_dirs[0].name
-                rprint(
-                    f"ℹ️  [bold]`run_name` not provided[/bold], using latest run: [green]{run_name}[/green]"
-                )
 
             run_folder = runs_folder / run_name
-            Solver.visualize_2D(
+            animation_out_path = Solver.visualize_2D(
                 run_folder,
                 frame_format=frame_format,
                 include_axis=include_axis,
                 transparent=transparent,
                 units=units,
             )
-            rprint(f"✅ Finished visualizing")
 
-            return tool_success(run_out_path)
+            return tool_success(animation_out_path)
             
         except PermissionError as e:
             return tool_error(

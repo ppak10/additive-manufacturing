@@ -150,7 +150,7 @@ class Solver:
         transparent: bool = False,
         units: str = "mm",
         verbose: bool = False,
-    ):
+    ) -> Path:
         """
         Visualizes meshes in given run folder.
         """
@@ -192,6 +192,8 @@ class Solver:
             plt.close(fig)
 
         writer.close()
+
+        return animation_out_path
 
     def run(self) -> None:
         # TODO: Save for 3D implementation

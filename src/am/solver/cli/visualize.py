@@ -11,7 +11,7 @@ from typing_extensions import Annotated
 
 def register_solver_visualize(app: typer.Typer):
     @app.command(name="visualize")
-    def solver_run_layer(
+    def solver_visualize(
         run_name: Annotated[
             str | None,
             typer.Option("--run_name", help="Run name used for saving to mesh folder"),
@@ -66,5 +66,4 @@ def register_solver_visualize(app: typer.Typer):
             rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
             raise typer.Exit(code=1)
 
-    _ = app.command(name="visualize")(solver_run_layer)
-    return solver_run_layer
+    return solver_visualize
