@@ -1,9 +1,9 @@
 import json
 
-from pydantic import BaseModel, ConfigDict, field_validator, ValidationError
+from pydantic import BaseModel, ConfigDict, field_validator
 from pint import Quantity
 from pathlib import Path
-from typing import Any, ClassVar, TypedDict
+from typing_extensions import ClassVar, TypedDict
 
 
 class Command(TypedDict):
@@ -75,22 +75,22 @@ class Segment(BaseModel):
             # Strict check keys and types
             expected_keys = {"magnitude", "units"}
             if set(v.keys()) != expected_keys:
-                raise ValidationError(
+                raise ValueError(
                     f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}"
                 )
-            if not isinstance(v["magnitude"], float):
-                raise ValidationError(
-                    f"QuantityDict magnitude must be float, got {type(v['magnitude'])}"
+            if not isinstance(v["magnitude"], (float, int)):
+                raise ValueError(
+                    f"QuantityDict magnitude must be float or int, got {type(v['magnitude'])}"
                 )
             if not isinstance(v["units"], str):
-                raise ValidationError(
+                raise ValueError(
                     f"QuantityDict units must be str, got {type(v['units'])}"
                 )
             return cls._dict_to_quantity(v)
         elif isinstance(v, Quantity):
             return v
         else:
-            raise ValidationError(f"Expected QuantityDict or Quantity, got {type(v)}")
+            raise ValueError(f"Expected QuantityDict or Quantity, got {type(v)}")
 
     def to_dict(self) -> SegmentDict:
         return {

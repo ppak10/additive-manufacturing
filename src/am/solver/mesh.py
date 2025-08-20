@@ -7,7 +7,6 @@ from matplotlib.collections import QuadMesh
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 
-from datetime import datetime
 from pathlib import Path
 from pint import Quantity
 from scipy.ndimage import gaussian_filter

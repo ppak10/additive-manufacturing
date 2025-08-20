@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import TypedDict
+from typing_extensions import TypedDict
 
 
 class SolverForwardParameters(TypedDict):

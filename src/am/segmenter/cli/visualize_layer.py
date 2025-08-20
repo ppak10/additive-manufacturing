@@ -54,6 +54,8 @@ def register_segmenter_visualize_layer(app: typer.Typer):
             segmenter = SegmenterVisualize()
             _ = segmenter.load_segments(segment_layer_file_path)
 
+            print('loaded segments')
+
             segmenter.visualize(
                 segments_path = segments_path,
                 visualization_name = f"layer_{layer_number_string}",

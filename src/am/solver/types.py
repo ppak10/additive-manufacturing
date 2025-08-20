@@ -9,7 +9,7 @@ from pydantic import (
     field_serializer,
     ValidationError,
 )
-from typing import cast, ClassVar, Literal, TypedDict
+from typing_extensions import cast, ClassVar, Literal, TypedDict
 
 # TODO: Make a class for handling quantity for these configs to inherit from.
 
