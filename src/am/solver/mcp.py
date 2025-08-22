@@ -8,6 +8,7 @@ from typing import Union
 def register_solver(app: FastMCP):
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
+    from am.solver.__main__ import SolverOutputFolder
     
     @app.tool(
         title="Initialize Solver",
@@ -106,11 +107,9 @@ def register_solver(app: FastMCP):
                 solver_configs_path / "mesh" / mesh_config_filename
             )
 
-            meshes_path = workspace_path / "meshes"
-
             model_name = "eagar-tsai"
 
-            run_out_path = solver.run_layer(segments, build_config, material_config, mesh_config, meshes_path, model_name, run_name)
+            run_out_path = solver.run_layer(segments, build_config, material_config, mesh_config, workspace_path, model_name, run_name)
 
             return tool_success(run_out_path)
             
@@ -139,6 +138,7 @@ def register_solver(app: FastMCP):
     def solver_visualize_2D(
         workspace: str,
         run_name: str | None = None,
+        output_folder: SolverOutputFolder = SolverOutputFolder.meshes,
         frame_format: str = "png",
         include_axis: bool = True,
         transparent: bool = False,
@@ -165,9 +165,10 @@ def register_solver(app: FastMCP):
 
                 run_name = run_dirs[0].name
 
-            run_folder = runs_folder / run_name
             animation_out_path = Solver.visualize_2D(
-                run_folder,
+                workspace_path,
+                run_name,
+                output_folder,
                 frame_format=frame_format,
                 include_axis=include_axis,
                 transparent=transparent,

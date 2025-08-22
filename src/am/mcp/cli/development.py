@@ -30,7 +30,7 @@ def register_mcp_development(app: typer.Typer):
         # Run the MCP Inspector command with shell=True on Windows
         shell = sys.platform == "win32"
 
-        file_spec = files("am.mcp.__main__").joinpath("__main__.py")
+        file_spec = files("am.mcp").joinpath("__main__.py")
 
         print(file_spec)
 

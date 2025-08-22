@@ -70,9 +70,7 @@ def register_solver_run_layer(app: typer.Typer):
                 solver_configs_path / "mesh" / mesh_config_filename
             )
 
-            meshes_path = workspace_path / "meshes"
-
-            solver.run_layer(segments, build_config, material_config, mesh_config, meshes_path, model_name, run_name)
+            solver.run_layer(segments, build_config, material_config, mesh_config, workspace_path, model_name, run_name)
             rprint(f"✅ Solver Finished")
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")

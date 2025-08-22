@@ -38,7 +38,9 @@ class Workspace:
         """
         Creates folders inputs and outputs within workspace.
         """
-        folders = ["meshes", "parts", "segments"]
+
+        # TODO: Move `mesurements` and `meshes` into a parent `runs` folder.
+        folders = ["measurements", "meshes", "parts", "segments"]
         for folder in folders:
             resource_dir = files(data) / folder
             dest_dir = workspace_path / folder

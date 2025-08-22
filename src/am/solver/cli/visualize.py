@@ -1,21 +1,24 @@
-import os
 import typer
 
-from pathlib import Path
 from rich import print as rprint
 
 from am.cli.options import VerboseOption, WorkspaceOption
 
 from typing_extensions import Annotated
 
-
 def register_solver_visualize(app: typer.Typer):
+    from am.solver.__main__ import SolverOutputFolder
+
     @app.command(name="visualize")
     def solver_visualize(
         run_name: Annotated[
             str | None,
             typer.Option("--run_name", help="Run name used for saving to mesh folder"),
         ] = None,
+        output_folder: Annotated[
+            SolverOutputFolder,
+            typer.Option("--output_folder", help="Select which output to visualize"),
+        ] = SolverOutputFolder.meshes,
         frame_format: Annotated[
             str, typer.Option(help="File extension to save frames in")
         ] = "png",
@@ -51,11 +54,12 @@ def register_solver_visualize(app: typer.Typer):
             rprint(
                 f"ℹ️  [bold]`run_name` not provided[/bold], using latest run: [green]{run_name}[/green]"
             )
-        run_folder = runs_folder / run_name
 
         try:
             Solver.visualize_2D(
-                run_folder,
+                workspace_path,
+                run_name,
+                output_folder,
                 frame_format=frame_format,
                 include_axis=include_axis,
                 transparent=transparent,

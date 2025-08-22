@@ -2,6 +2,7 @@ import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 
 from datetime import datetime
+from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from pint import UnitRegistry
@@ -13,9 +14,13 @@ from .config import SolverConfig
 
 from am.segmenter.types import Segment
 from am.solver.types import BuildConfig, MaterialConfig, MeshConfig
+from am.solver.measure import SolverMeasure
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
 
+class SolverOutputFolder(str, Enum):
+    meshes = "meshes"
+    measurements = "measurements"
 
 class Solver:
     """
@@ -78,9 +83,7 @@ class Solver:
         build_config: BuildConfig,
         material_config: MaterialConfig,
         mesh_config: MeshConfig,
-
-        # TODO: Include as part of mesh_config
-        meshes_path: Path,
+        workspace_path: Path,
         model_name: str = "eagar-tsai",
         run_name: str | None = None,
     ) -> Path:
@@ -91,13 +94,18 @@ class Solver:
         if run_name is None:
             run_name = datetime.now().strftime("solver_%Y%m%d_%H%M%S")
 
-        run_out_path = meshes_path / run_name
-        run_out_path.mkdir(exist_ok=True, parents=True)
+        mesh_out_path = workspace_path / "meshes" / run_name
+        mesh_out_path.mkdir(exist_ok=True, parents=True)
+
+        measure_out_path = workspace_path / "measurements" / run_name
+        measure_out_path.mkdir(exist_ok=True, parents=True)
 
         initial_temperature = cast(float, build_config.temperature_preheat.magnitude)
 
         solver_mesh = SolverMesh(self.config, mesh_config)
         _ = solver_mesh.initialize_grid(initial_temperature)
+
+        solver_measure = SolverMeasure(self.config, mesh_config, material_config)
 
         zfill = len(f"{len(segments)}")
 
@@ -109,6 +117,11 @@ class Solver:
             case _:
                 raise Exception("Invalid `model_name`")
 
+        # Save solver configs
+        build_config.save(mesh_out_path / "config" / "build.json")
+        material_config.save(mesh_out_path / "config" / "material.json")
+        mesh_config.save(mesh_out_path / "config" / "mesh.json")
+
         # for segment_index, segment in tqdm(enumerate(segments[0:3])):
         for segment_index, segment in tqdm(enumerate(segments), total=len(segments)):
 
@@ -118,6 +131,14 @@ class Solver:
             )
 
             theta = model(segment)
+
+            # TODO: Implement alternative saving functionalities that don't
+            # write to disk as often.
+            # Or maybe make this asynchronous.
+
+            segment_index_string = f"{segment_index}".zfill(zfill)
+            solver_measure.grid = theta
+            solver_measure.save(measure_out_path / "timesteps" / f"{segment_index_string}.pt")
 
             solver_mesh.diffuse(
                 delta_time=segment.distance_xy / build_config.scan_velocity,
@@ -130,17 +151,15 @@ class Solver:
             solver_mesh.update_xy(segment)
             solver_mesh.graft(theta, grid_offset)
 
-            # TODO: Implement alternative saving functionalities that don't
-            # write to disk as often.
-            # Or maybe make this asynchronous.
-            segment_index_string = f"{segment_index}".zfill(zfill)
-            _ = solver_mesh.save(run_out_path / "timesteps" / f"{segment_index_string}.pt")
+            _ = solver_mesh.save(mesh_out_path / "timesteps" / f"{segment_index_string}.pt")
 
-        return run_out_path
+        return mesh_out_path
 
     @staticmethod
     def visualize_2D(
-        run_path: Path,
+        workspace_path: Path,
+        run_name: str,
+        output_folder: SolverOutputFolder = SolverOutputFolder.meshes,
         cmap: str = "plasma",
         frame_format: str = "png",
         include_axis: bool = True,
@@ -155,31 +174,44 @@ class Solver:
         Visualizes meshes in given run folder.
         """
 
+        run_path = workspace_path / output_folder.value / run_name
         visualizations_path = run_path / "visualizations"
         visualizations_path.mkdir(exist_ok=True, parents=True)
 
         frames_path = visualizations_path / "frames"
         frames_path.mkdir(exist_ok=True, parents=True)
 
-        mesh_folder = run_path / "timesteps"
-        mesh_files = sorted([f.name for f in mesh_folder.iterdir() if f.is_file()])
+        timesteps_folder = run_path / "timesteps"
+        timestep_files = sorted([f.name for f in timesteps_folder.iterdir() if f.is_file()])
 
         animation_out_path = visualizations_path / "frames.gif"
         writer = imageio.get_writer(animation_out_path, mode="I", duration=0.1, loop=0)
 
-        for mesh_file in tqdm(mesh_files):
-            mesh_index_string = Path(mesh_file).stem
-            solver_mesh = SolverMesh.load(mesh_folder / mesh_file)
+        for timestep_file in tqdm(timestep_files):
+            mesh_index_string = Path(timestep_file).stem
             fig_path = frames_path / f"{mesh_index_string}.png"
-            fig, _, _ = solver_mesh.visualize_2D(
-                cmap=cmap,
-                include_axis=include_axis,
-                label=label,
-                vmin=vmin,
-                vmax=vmax,
-                transparent=transparent,
-                units=units,
-            )
+            if output_folder == SolverOutputFolder.meshes:
+                solver_mesh = SolverMesh.load(timesteps_folder / timestep_file)
+                fig, _, _ = solver_mesh.visualize_2D(
+                    cmap=cmap,
+                    include_axis=include_axis,
+                    label=label,
+                    vmin=vmin,
+                    vmax=vmax,
+                    transparent=transparent,
+                    units=units,
+                )
+            else:
+                solver_measure = SolverMeasure.load(timesteps_folder / timestep_file)
+                fig, _, _ = solver_measure.visualize_2D(
+                    cmap=cmap,
+                    include_axis=include_axis,
+                    label=label,
+                    vmin=vmin,
+                    vmax=vmax,
+                    transparent=transparent,
+                    units=units,
+                )
             fig.savefig(fig_path, dpi=600, bbox_inches="tight")
             plt.close(fig)
 
