@@ -4,7 +4,7 @@ import torch
 from pint import Quantity
 from typing import cast
 
-from am.solver.types import BuildConfig, MaterialConfig
+from am.solver.types import BuildConfig, MaterialConfig, MeltPoolDimensions
 from am.solver.mesh import SolverMesh
 from am.segmenter.types import Segment
 
@@ -16,7 +16,7 @@ class Rosenthal:
         self,
         build_config: BuildConfig,
         material_config: MaterialConfig,
-        solver_mesh: SolverMesh,
+        solver_mesh: SolverMesh | None = None,
         device: str = "cpu",
         **kwargs,
     ):
@@ -37,6 +37,9 @@ class Rosenthal:
         self.thermal_conductivity: Quantity = cast(
             Quantity, self.material_config.thermal_conductivity.to("watts / (meter * kelvin)")
         )
+        self.temperature_melt = cast(
+            Quantity, self.material_config.temperature_melt.to("kelvin")
+        )
 
         # Build Parameters
         self.beam_power: Quantity = cast(
@@ -50,24 +53,29 @@ class Rosenthal:
         )
 
         # Mesh Range
-        self.X, self.Y, self.Z = torch.meshgrid(
-            solver_mesh.x_range_centered,
-            solver_mesh.y_range_centered,
-            solver_mesh.z_range_centered,
-            indexing="ij"
-        )
+        self.solver_mesh = solver_mesh
+        if solver_mesh is not None:
+            self.X, self.Y, self.Z = torch.meshgrid(
+                solver_mesh.x_range_centered,
+                solver_mesh.y_range_centered,
+                solver_mesh.z_range_centered,
+                indexing="ij"
+            )
 
-        self.theta_shape: tuple[int, int, int] = (
-            len(solver_mesh.x_range_centered),
-            len(solver_mesh.y_range_centered),
-            len(solver_mesh.z_range_centered),
-        )
+            self.theta_shape: tuple[int, int, int] = (
+                len(solver_mesh.x_range_centered),
+                len(solver_mesh.y_range_centered),
+                len(solver_mesh.z_range_centered),
+            )
 
     def forward(self, segment: Segment) -> torch.Tensor:
         """
         Provides Eagar-Tsai approximation of the melt pool centered and rotated
         within the middle of the middle of the mesh.
         """
+
+        if self.solver_mesh is None:
+            raise Exception("self.solver_mesh is not defined,")
 
         phi = cast(float, segment.angle_xy.to("radian").magnitude)
         distance_xy = cast(float, segment.distance_xy.to("meter").magnitude)
@@ -105,6 +113,64 @@ class Rosenthal:
                 theta += result
 
         return theta
+
+    def solve_melt_pool_dimensions(self) -> MeltPoolDimensions:
+        alpha = cast(float, self.absorptivity.magnitude)
+        p = cast(float, self.beam_power.magnitude)
+        k = cast(float, self.thermal_conductivity.magnitude)
+        D = cast(float, self.thermal_diffusivity.magnitude)
+        t_melt = cast(float, self.temperature_melt.magnitude)
+        t_0 = cast(float, self.temperature_preheat.magnitude)
+        t_delta = t_melt - t_0
+        v = cast(float, self.scan_velocity.magnitude)
+
+        R_tail = (alpha * p) / (2 * np.pi * k * t_delta)
+
+        # Generate R values up to slightly beyond the tail
+        R_values = np.linspace(1e-6, R_tail * 1.1, 5000)
+        
+        max_width_r = 0
+        min_z = 0  # Length in front of heat source (negative z)
+        width_point_z = 0
+
+        def rosenthal(R):
+            return R + (((2*D)/v) * np.log((2 * np.pi * k * R * t_delta)/(alpha * p)))
+
+        for R in R_values:
+            # Rosenthal equation: z = f(R)
+            z = rosenthal(R)
+
+            if R**2 > z**2:
+                r = np.sqrt(R**2 - z**2)
+                
+                # Track maximum r (width point where dr/dz ≈ 0)
+                if r > max_width_r:
+                    max_width_r = r
+                    # width_point_z = z
+                
+                # Track minimum z (length in front of heat source)
+                if z < min_z:
+                    min_z = z
+        
+        # Maximum z occurs at the tail point (length behind heat source)
+        max_z = rosenthal(R_tail)
+
+        depth = Quantity(max_width_r, 'm').to('micron')
+        width = Quantity(2 * max_width_r, 'm').to('micron')
+        length = Quantity(max_z - min_z, 'm').to('micron')
+        length_front = Quantity(abs(min_z), 'm').to('micron')
+        length_behind = Quantity(max_z, 'm').to('micron')
+
+        melt_pool_dimensions = MeltPoolDimensions(
+            depth = cast(Quantity, depth),
+            width = cast(Quantity, width),
+            length = cast(Quantity, length),
+            length_front = cast(Quantity, length_front),
+            length_behind = cast(Quantity, length_behind),
+        )
+
+        return melt_pool_dimensions
+
 
     def solve(
         self,

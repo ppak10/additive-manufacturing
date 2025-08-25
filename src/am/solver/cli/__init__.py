@@ -3,6 +3,7 @@ from .initialize import register_solver_initialize
 from .initialize_build_config import register_solver_initialize_build_config
 from .initialize_mesh_config import register_solver_initialize_mesh_config
 from .initialize_material_config import register_solver_initialize_material_config
+from .measure_melt_pool_dimensions import register_solver_measure_melt_pool_dimensions
 from .run_layer import register_solver_run_layer
 from .visualize import register_solver_visualize
 
@@ -12,5 +13,7 @@ _ = register_solver_initialize_material_config(app)
 _ = register_solver_initialize_mesh_config(app)
 _ = register_solver_run_layer(app)
 _ = register_solver_visualize(app)
+_ = register_solver_measure_melt_pool_dimensions(app)
 
 __all__ = ["app"]
+

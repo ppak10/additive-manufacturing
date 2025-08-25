@@ -138,6 +138,7 @@ class Solver:
 
             segment_index_string = f"{segment_index}".zfill(zfill)
             solver_measure.grid = theta
+            solver_measure.approximate_melt_pool_dimensions(segment)
             solver_measure.save(measure_out_path / "timesteps" / f"{segment_index_string}.pt")
 
             solver_mesh.diffuse(
@@ -154,6 +155,28 @@ class Solver:
             _ = solver_mesh.save(mesh_out_path / "timesteps" / f"{segment_index_string}.pt")
 
         return mesh_out_path
+
+    def measure_melt_pool_dimensions(
+        self,
+        build_config: BuildConfig,
+        material_config: MaterialConfig,
+        workspace_path: Path,
+        run_name: str | None = None,
+    ) -> Path:
+        if run_name is None:
+            run_name = datetime.now().strftime("solver_%Y%m%d_%H%M%S")
+
+        model = Rosenthal(build_config, material_config)
+        melt_pool_dimensions = model.solve_melt_pool_dimensions()
+
+        out_folder = workspace_path / "measurements" / run_name
+        out_folder.mkdir(exist_ok=True, parents=True)
+
+        out_path =  out_folder / "melt_pool_dimensions.json"
+
+        _ = melt_pool_dimensions.save(out_path)
+
+        return out_path
 
     @staticmethod
     def visualize_2D(

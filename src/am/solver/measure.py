@@ -12,6 +12,8 @@ from pint import Quantity
 from torch.types import Tensor
 from typing import Any, cast
 
+from am.segmenter.types import Segment
+
 from .config import SolverConfig
 from .types import MaterialConfig, MeshConfig
 
@@ -38,7 +40,9 @@ class SolverMeasure:
 
         self.y_range = torch.arange(y_start, y_end, y_step, device=device, dtype=dtype)
 
-    def melt_pool_dimensions(self):
+    def approximate_melt_pool_dimensions(self, segment: Segment):
+        phi = cast(float, segment.angle_xy.to("radian").magnitude)
+        distance_xy = cast(float, segment.distance_xy.to("meter").magnitude)
         pass
 
     def save(self, path: Path) -> Path:
