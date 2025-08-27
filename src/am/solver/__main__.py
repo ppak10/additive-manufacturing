@@ -19,9 +19,11 @@ from am.solver.measure import SolverMeasure
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
 
+
 class SolverOutputFolder(str, Enum):
     meshes = "meshes"
     measurements = "measurements"
+
 
 class Solver:
     """
@@ -66,7 +68,7 @@ class Solver:
             else:
                 config_path = Path.cwd() / "config"
 
-        build_parameters = BuildParameters.create_default()
+        build_parameters = BuildParameters()
         build_parameters_path = config_path / "build_parameters" / "default.json"
         _ = build_parameters.save(build_parameters_path)
 
@@ -101,7 +103,9 @@ class Solver:
         measure_out_path = workspace_path / "measurements" / run_name
         measure_out_path.mkdir(exist_ok=True, parents=True)
 
-        initial_temperature = cast(float, build_parameters.temperature_preheat.magnitude)
+        initial_temperature = cast(
+            float, build_parameters.temperature_preheat.magnitude
+        )
 
         solver_mesh = SolverMesh(self.config, mesh_config)
         _ = solver_mesh.initialize_grid(initial_temperature)
@@ -140,7 +144,9 @@ class Solver:
             segment_index_string = f"{segment_index}".zfill(zfill)
             solver_measure.grid = theta
             solver_measure.approximate_melt_pool_dimensions(segment)
-            solver_measure.save(measure_out_path / "timesteps" / f"{segment_index_string}.pt")
+            solver_measure.save(
+                measure_out_path / "timesteps" / f"{segment_index_string}.pt"
+            )
 
             solver_mesh.diffuse(
                 delta_time=segment.distance_xy / build_parameters.scan_velocity,
@@ -153,7 +159,9 @@ class Solver:
             solver_mesh.update_xy(segment)
             solver_mesh.graft(theta, grid_offset)
 
-            _ = solver_mesh.save(mesh_out_path / "timesteps" / f"{segment_index_string}.pt")
+            _ = solver_mesh.save(
+                mesh_out_path / "timesteps" / f"{segment_index_string}.pt"
+            )
 
         return mesh_out_path
 
@@ -184,7 +192,9 @@ class Solver:
         frames_path.mkdir(exist_ok=True, parents=True)
 
         timesteps_folder = run_path / "timesteps"
-        timestep_files = sorted([f.name for f in timesteps_folder.iterdir() if f.is_file()])
+        timestep_files = sorted(
+            [f.name for f in timesteps_folder.iterdir() if f.is_file()]
+        )
 
         animation_out_path = visualizations_path / "frames.gif"
         writer = imageio.get_writer(animation_out_path, mode="I", duration=0.1, loop=0)
