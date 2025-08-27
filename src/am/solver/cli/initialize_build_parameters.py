@@ -7,15 +7,14 @@ from am.cli.options import VerboseOption
 
 
 # TODO: Add in more customizability for generating build configs.
-def register_solver_initialize_build_config(app: typer.Typer):
-    @app.command(name="initialize_build_config")
-    def solver_initialize_build_config(
+def register_solver_initialize_build_parameters(app: typer.Typer):
+    @app.command(name="initialize_build_parameters")
+    def solver_initialize_build_parameters(
         build_name: str | None = "default",
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
-        from am.solver import SolverConfig
-        from am.solver.types import BuildConfig
+        from am.schema import BuildParameters
 
         # Check for workspace config file in current directory
         cwd = Path.cwd()
@@ -33,14 +32,13 @@ def register_solver_initialize_build_config(app: typer.Typer):
                 "❌ [red]Segmenter not initialized. `segmenter/config.json` not found.[/red]"
             )
         # try:
-        solver_config = SolverConfig.load(solver_config_file)
-        build_config = BuildConfig.create_default(solver_config.ureg)
+        build_parameters = BuildParameters.create_default()
         default_save_path = cwd / "solver" / "config" / "build" / "default.json"
-        save_path = build_config.save(default_save_path)
+        save_path = build_parameters.save(default_save_path)
         rprint(f"✅ Initialized solver build at {save_path}")
         # except Exception as e:
         #     rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
         #     raise typer.Exit(code=1)
 
-    _ = app.command(name="init_build_config")(solver_initialize_build_config)
-    return solver_initialize_build_config
+    _ = app.command(name="init_build_parameters")(solver_initialize_build_parameters)
+    return solver_initialize_build_parameters

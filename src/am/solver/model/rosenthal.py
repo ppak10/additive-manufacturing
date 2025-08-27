@@ -4,7 +4,8 @@ import torch
 from pint import Quantity
 from typing import cast
 
-from am.solver.types import BuildConfig, MaterialConfig, MeltPoolDimensions
+from am.schema import BuildParameters
+from am.solver.types import MaterialConfig, MeltPoolDimensions
 from am.solver.mesh import SolverMesh
 from am.segmenter.types import Segment
 
@@ -14,13 +15,13 @@ FLOOR = 10**-7  # Float32
 class Rosenthal:
     def __init__(
         self,
-        build_config: BuildConfig,
+        build_parameters: BuildParameters,
         material_config: MaterialConfig,
         solver_mesh: SolverMesh | None = None,
         device: str = "cpu",
         **kwargs,
     ):
-        self.build_config: BuildConfig = build_config
+        self.build_parameters: BuildParameters = build_parameters
         self.material_config: MaterialConfig = material_config
         self.device: str = device
         self.dtype = torch.float32
@@ -43,13 +44,13 @@ class Rosenthal:
 
         # Build Parameters
         self.beam_power: Quantity = cast(
-            Quantity, self.build_config.beam_power.to("watts")
+            Quantity, self.build_parameters.beam_power.to("watts")
         )
         self.scan_velocity: Quantity = cast(
-            Quantity, self.build_config.scan_velocity.to("meter / second")
+            Quantity, self.build_parameters.scan_velocity.to("meter / second")
         )
         self.temperature_preheat: Quantity = cast(
-            Quantity, self.build_config.temperature_preheat.to("kelvin")
+            Quantity, self.build_parameters.temperature_preheat.to("kelvin")
         )
 
         # Mesh Range

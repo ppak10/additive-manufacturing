@@ -15,8 +15,8 @@ def register_solver_run_layer(app: typer.Typer):
         layer_index: Annotated[
             int, typer.Argument(help="Use segments within specified layer index")
         ],
-        build_config_filename: Annotated[
-            str, typer.Option("--build_config", help="Build config filename")
+        build_parameters_filename: Annotated[
+            str, typer.Option("--build_parameters", help="Build config filename")
         ] = "default.json",
         material_config_filename: Annotated[
             str, typer.Option("--material_config", help="Material config filename")
@@ -39,8 +39,9 @@ def register_solver_run_layer(app: typer.Typer):
     ) -> None:
         """Create folder for solver data inside workspace folder."""
         from am.cli.utils import get_workspace_path
+        from am.schema import BuildParameters
         from am.solver import Solver
-        from am.solver.types import BuildConfig, MaterialConfig, MeshConfig
+        from am.solver.types import MaterialConfig, MeshConfig
         from am.segmenter.types import Segment
 
         workspace_path = get_workspace_path(workspace)
@@ -60,8 +61,8 @@ def register_solver_run_layer(app: typer.Typer):
 
             # Configs
             solver_configs_path = workspace_path / "solver" / "config"
-            build_config = BuildConfig.load(
-                solver_configs_path / "build" / build_config_filename
+            build_parameters = BuildParameters.load(
+                solver_configs_path / "build" / build_parameters_filename
             )
             material_config = MaterialConfig.load(
                 solver_configs_path / "material" / material_config_filename
@@ -70,7 +71,7 @@ def register_solver_run_layer(app: typer.Typer):
                 solver_configs_path / "mesh" / mesh_config_filename
             )
 
-            solver.run_layer(segments, build_config, material_config, mesh_config, workspace_path, model_name, run_name)
+            solver.run_layer(segments, build_parameters, material_config, mesh_config, workspace_path, model_name, run_name)
             rprint(f"✅ Solver Finished")
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")

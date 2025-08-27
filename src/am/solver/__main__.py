@@ -13,7 +13,8 @@ from tqdm import tqdm
 from .config import SolverConfig
 
 from am.segmenter.types import Segment
-from am.solver.types import BuildConfig, MaterialConfig, MeshConfig
+from am.solver.types import MaterialConfig, MeshConfig
+from am.schema import BuildParameters
 from am.solver.measure import SolverMeasure
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
@@ -65,9 +66,9 @@ class Solver:
             else:
                 config_path = Path.cwd() / "config"
 
-        build_config = BuildConfig.create_default(self.ureg)
-        build_config_path = config_path / "build" / "default.json"
-        _ = build_config.save(build_config_path)
+        build_parameters = BuildParameters.create_default()
+        build_parameters_path = config_path / "build_parameters" / "default.json"
+        _ = build_parameters.save(build_parameters_path)
 
         material_config = MaterialConfig.create_default(self.ureg)
         material_config_path = config_path / "material" / "default.json"
@@ -80,7 +81,7 @@ class Solver:
     def run_layer(
         self,
         segments: list[Segment],
-        build_config: BuildConfig,
+        build_parameters: BuildParameters,
         material_config: MaterialConfig,
         mesh_config: MeshConfig,
         workspace_path: Path,
@@ -100,7 +101,7 @@ class Solver:
         measure_out_path = workspace_path / "measurements" / run_name
         measure_out_path.mkdir(exist_ok=True, parents=True)
 
-        initial_temperature = cast(float, build_config.temperature_preheat.magnitude)
+        initial_temperature = cast(float, build_parameters.temperature_preheat.magnitude)
 
         solver_mesh = SolverMesh(self.config, mesh_config)
         _ = solver_mesh.initialize_grid(initial_temperature)
@@ -111,14 +112,14 @@ class Solver:
 
         match model_name:
             case "eagar-tsai":
-                model = EagarTsai(build_config, material_config, solver_mesh)
+                model = EagarTsai(build_parameters, material_config, solver_mesh)
             case "rosenthal":
-                model = Rosenthal(build_config, material_config, solver_mesh)
+                model = Rosenthal(build_parameters, material_config, solver_mesh)
             case _:
                 raise Exception("Invalid `model_name`")
 
         # Save solver configs
-        build_config.save(mesh_out_path / "config" / "build.json")
+        build_parameters.save(mesh_out_path / "config" / "build.json")
         material_config.save(mesh_out_path / "config" / "material.json")
         mesh_config.save(mesh_out_path / "config" / "mesh.json")
 
@@ -127,7 +128,7 @@ class Solver:
 
             # solver_mesh = self._forward(model, solver_mesh, segment)
             grid_offset = cast(
-                float, build_config.temperature_preheat.to("K").magnitude
+                float, build_parameters.temperature_preheat.to("K").magnitude
             )
 
             theta = model(segment)
@@ -142,7 +143,7 @@ class Solver:
             solver_measure.save(measure_out_path / "timesteps" / f"{segment_index_string}.pt")
 
             solver_mesh.diffuse(
-                delta_time=segment.distance_xy / build_config.scan_velocity,
+                delta_time=segment.distance_xy / build_parameters.scan_velocity,
                 diffusivity=material_config.thermal_diffusivity,
                 grid_offset=grid_offset,
             )

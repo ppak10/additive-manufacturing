@@ -1,3 +1,5 @@
+[![Tests](https://github.com/ppak10/additive-manufacturing/actions/workflows/pytest.yml/badge.svg)](https://github.com/ppak10/additive-manufacturing/actions/workflows/pytest.yml)
+
 # additive-manufacturing
 Additive Manufacturing related software modules
 

@@ -27,6 +27,15 @@ class QuantityModel(BaseModel):
     
     _quantity_fields: ClassVar[set[str]] = set()
 
+    def __init_subclass__(cls):
+        # Automatically detect Quantity fields
+        super().__init_subclass__()
+        cls._quantity_fields = {
+            name
+            for name, typ in cls.__annotations__.items()
+            if typ is Quantity
+        }
+
     @staticmethod
     def _quantity_to_dict(q: Quantity) -> QuantityDict:
         return {"magnitude": cast(float, q.magnitude), "units": str(q.units)}
@@ -65,20 +74,6 @@ class QuantityModel(BaseModel):
                 raise ValueError(f"Expected QuantityDict or Quantity, got {type(v)}")
         return v
 
-    def to_dict(self) -> dict[str, Any]:
-        # return self.model_dump(mode="json")
-        return self.serialize_model(lambda m: m.model_dump(mode="python"))
-
-    @classmethod
-    def from_dict(cls: type[T], data: dict[str, Any]) -> T:
-        return cls(**data)
-
-    def save(self, path: Path) -> Path:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        data = self.serialize_model(lambda m: m.model_dump(mode="python"))
-        _ = path.write_text(json.dumps(data, indent=2))
-        return path
-
     @classmethod
     def load(cls: type[T], path: Path) -> T:
         with path.open("r") as f:
@@ -87,3 +82,28 @@ class QuantityModel(BaseModel):
             return cls.from_dict(data)
         raise ValueError(f"Unexpected JSON structure in {path}: expected dict or list of dicts")
 
+    def save(self, path: Path) -> Path:
+        """Save model to JSON with quantities serialized."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        data = self.to_dict()  # <-- use the JSON-safe dict
+        path.write_text(json.dumps(data, indent=2))
+        return path
+    
+    @classmethod
+    def from_dict(cls: type[T], data: dict[str, Any]) -> T:
+        # Ensure quantity fields are parsed from dicts if needed
+        for name in cls._quantity_fields:
+            if name in data and isinstance(data[name], dict):
+                data[name] = cls._dict_to_quantity(data[name])
+        return cls(**data)
+
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a fully JSON-serializable dict, converting all Quantities to dicts."""
+        data = self.model_dump(mode="python")
+        for name in self._quantity_fields:
+            value = getattr(self, name)
+            if isinstance(value, Quantity):
+                data[name] = self._quantity_to_dict(value)
+        return data
+    
