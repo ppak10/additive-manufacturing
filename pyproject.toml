@@ -40,7 +40,7 @@ target-version = ["py310"]
 dev = [
     "black>=25.1.0",
     "coverage>=7.10.5",
+    "pre-commit>=4.3.0",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
 ]
-

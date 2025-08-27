@@ -29,7 +29,7 @@ jobs:
       run: uv pip install -e .
 
     - name: Run tests
-      run: uv run pytest tests --cov --cov-branch --cov-report=xml
+      run: uv run pytest tests --cov --junitxml=junitxml -o junit_family=legacy 
 
     - name: Upload to Codecov
       uses: codecov/codecov-action@v5
@@ -41,4 +41,3 @@ jobs:
       uses: codecov/test-results-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-
