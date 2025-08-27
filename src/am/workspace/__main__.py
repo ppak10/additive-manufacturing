@@ -40,7 +40,7 @@ class Workspace:
         """
 
         # TODO: Move `mesurements` and `meshes` into a parent `runs` folder.
-        folders = ["measurements", "meshes", "parts", "segments"]
+        folders = ["measurements", "meshes", "parts", "process_maps", "segments"]
         for folder in folders:
             resource_dir = files(data) / folder
             dest_dir = workspace_path / folder

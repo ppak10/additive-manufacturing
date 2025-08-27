@@ -3,10 +3,9 @@ import subprocess
 import typer
 
 from importlib.resources import files
-from typing_extensions import Annotated, Literal
+from typing_extensions import Annotated
 from pathlib import Path
 from rich import print as rprint
-
 
 
 def register_mcp_install(app: typer.Typer):
