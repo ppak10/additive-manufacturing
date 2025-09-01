@@ -2,22 +2,91 @@ import json
 
 from pint import Quantity
 from pathlib import Path
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    field_validator,
-    model_validator,
-    model_serializer,
-)
+from pydantic import BaseModel, ConfigDict, model_validator, model_serializer
 
-from typing import Any, Tuple, Union
-from typing_extensions import cast, ClassVar, TypedDict, TypeVar
+from typing import Any, Tuple
+from typing_extensions import cast, ClassVar, TypeAlias, TypedDict, TypeVar
 
 T = TypeVar("T", bound="QuantityModel")
 
-QuantityInput = Union[float, int, Tuple[float | int, str]]
-
+Number: TypeAlias = float | int
+QuantityInput = Number | Tuple[Number, str]
 QuantityField = Quantity | QuantityInput | None
+
+
+def parse_cli_input(
+    value: str | None | tuple[Number, str] | Any
+) -> QuantityInput | None:
+    """
+    Convert CLI input into a QuantityInput type.
+
+    Accepted formats:
+      "5"                  -> 5 (int)
+      "5.5"                -> 5.5 (float)
+      "5e-5"               -> 5e-5 (float)
+      "5,meter"            -> (5, "meter")
+      "1.1 m/s"            -> (1.1, "m/s")
+      None                 -> None
+      (5, "m")             -> (5, "m")   (passthrough)
+      "(5e-05, 'meter')"   -> (5e-05, "meter")
+    """
+    if value is None:
+        return None
+
+    # If already a tuple, pass through
+    if isinstance(value, tuple):
+        if len(value) != 2:
+            raise ValueError(f"Invalid quantity tuple: {value!r}")
+        num, unit = value
+        if not isinstance(num, (int, float)) or not isinstance(unit, str):
+            raise ValueError(f"Invalid types in tuple: {value!r}")
+        return num, unit
+
+    if not isinstance(value, str):
+        raise TypeError(f"Unsupported type for quantity: {type(value)}")
+
+    value = value.strip()
+
+    # Handle stringified tuple input like "(5e-05, 'meter')"
+    if value.startswith("(") and value.endswith(")"):
+        try:
+            parsed = eval(value, {"__builtins__": {}})
+            if isinstance(parsed, tuple) and len(parsed) == 2:
+                num, unit = parsed
+                if isinstance(num, (int, float)) and isinstance(unit, str):
+                    return num, unit
+        except Exception:
+            raise ValueError(f"Invalid tuple-like quantity string: {value!r}")
+
+    try:
+        # number,unit (comma separated)
+        if "," in value:
+            num_str, unit = value.split(",", 1)
+            num_str = num_str.strip()
+            unit = unit.strip().strip("'\"")
+            number = (
+                float(num_str)
+                if "." in num_str or "e" in num_str.lower()
+                else int(num_str)
+            )
+            return (number, unit)
+
+        # number unit (space separated, e.g. "1.1 m/s")
+        parts = value.split(maxsplit=1)
+        if len(parts) == 2:
+            num_str, unit = parts
+            number = (
+                float(num_str)
+                if "." in num_str or "e" in num_str.lower()
+                else int(num_str)
+            )
+            return (number, unit.strip())
+
+        # plain number
+        return float(value) if "." in value or "e" in value.lower() else int(value)
+
+    except Exception as e:
+        raise ValueError(f"Invalid quantity string: {value!r}") from e
 
 
 class QuantityDict(TypedDict):
@@ -59,28 +128,46 @@ class QuantityModel(BaseModel):
         return data
 
     @model_validator(mode="before")
+    @classmethod
     def coerce_quantity_inputs(cls, values: dict[str, Any]) -> dict[str, Any]:
-        for field in cls._quantity_defaults:
-            val = values.get(field)
-            if isinstance(val, (float, int)):
-                # Use default units
-                mag, unit = cls._quantity_defaults[field]
-                values[field] = Quantity(val, unit)
-            elif isinstance(val, tuple) and len(val) == 2:
-                # Tuple (magnitude, unit)
-                values[field] = Quantity(*val)
-            elif isinstance(val, dict) and "magnitude" in val and "units" in val:
-                # Dict input
-                values[field] = Quantity(val["magnitude"], val["units"])
-            # If already a Quantity, do nothing
-        return values
+        """Convert various input formats to Quantity objects before field validation"""
+        for field in cls._quantity_fields:
+            if field not in values:
+                # Use default if field not provided
+                if field in cls._quantity_defaults:
+                    mag, unit = cls._quantity_defaults[field]
+                    values[field] = Quantity(mag, unit)
+                continue
 
-    @field_validator("*", mode="before")
-    def parse_quantity(cls, v: Any, info) -> Any:
-        if info.field_name in cls._quantity_fields:
+            v = values[field]
+
+            # Already a Quantity, keep as is
             if isinstance(v, Quantity):
-                return v
+                continue
 
+            # Just a number - use default units
+            elif isinstance(v, (float, int)):
+                if field in cls._quantity_defaults:
+                    _, unit = cls._quantity_defaults[field]
+                    values[field] = Quantity(v, unit)
+                else:
+                    raise ValueError(f"No default units for field {field}")
+
+            # Tuple (magnitude, unit)
+            elif isinstance(v, tuple) and len(v) == 2:
+                if len(v) != 2:
+                    raise ValueError(
+                        f"Expected exact length of 2 (magnitude, units) if tuple is provided"
+                    )
+                if not isinstance(v[0], (float, int)):
+                    raise ValueError(
+                        f"Magnitude must be float or int, got {type(v[0])}"
+                    )
+                if not isinstance(v[1], str):
+                    raise ValueError(f"Units must be str, got {type(v[1])}")
+                values[field] = Quantity(v[0], v[1])
+
+            # Dict input
             elif isinstance(v, dict):
                 expected_keys = {"magnitude", "units"}
                 if set(v.keys()) != expected_keys:
@@ -93,33 +180,13 @@ class QuantityModel(BaseModel):
                     raise ValueError(
                         f"QuantityDict units must be str, got {type(v['units'])}"
                     )
-                return cls._dict_to_quantity(cast(QuantityDict, v))
+                values[field] = Quantity(v["magnitude"], v["units"])
 
-            elif isinstance(v, Tuple):
-                if len(v) != 2:
-                    raise ValueError(
-                        f"Expected exact length of 2 (magnitude, units) if tuple is provided"
-                    )
-                if not isinstance(v[0], (float, int)):
-                    raise ValueError(
-                        f"Magnitude must be float or int, got {type(v[0])}"
-                    )
-                if not isinstance(v[1], str):
-                    raise ValueError(f"Units must be str, got {type(v[1])}")
-
-                return Quantity(v[0], v[1])
-
-            elif isinstance(v, (float, int)):
-                if info.field_name not in cls._quantity_defaults:
-                    raise ValueError(f"Units not provided in _quantity_defaults")
-                units = cls._quantity_defaults[info.field_name][1]
-                return Quantity(v, units)
-
+            # Invalid type
             else:
-                raise ValueError(
-                    f"Expected Float, Int, Tuple, QuantityDict, Quantity, got {type(v)}"
-                )
-        return v
+                raise ValueError(f"Invalid input for quantity field {field}: {type(v)}")
+
+        return values
 
     @classmethod
     def load(cls: type[T], path: Path) -> T:
@@ -127,9 +194,7 @@ class QuantityModel(BaseModel):
             data = json.load(f)
         if isinstance(data, dict):
             return cls.from_dict(data)
-        raise ValueError(
-            f"Unexpected JSON structure in {path}: expected dict or list of dicts"
-        )
+        raise ValueError(f"Unexpected JSON structure in {path}: expected dict")
 
     def save(self, path):
         data = self.to_dict()  # Convert all Quantities to dicts first
@@ -139,33 +204,23 @@ class QuantityModel(BaseModel):
 
     @classmethod
     def from_dict(cls: type[T], data: dict[str, Any]) -> T:
-        # Ensure quantity fields are parsed from dicts if needed
-        for name in cls._quantity_fields:
-            if name in data and isinstance(data[name], dict):
-                data[name] = cls._dict_to_quantity(data[name])
+        # Data will be processed by model_validator automatically
         return cls(**data)
 
     def to_dict(self):
         out = {}
-
-        for field, value in self.__dict__.items():
+        for field in self.__class__.model_fields:
             if field in self._quantity_fields:
+                value = getattr(self, field)
                 if isinstance(value, Quantity):
                     out[field] = {
                         "magnitude": value.magnitude,
                         "units": str(value.units),
                     }
-                elif isinstance(value, (tuple, list)) and len(value) == 2:
-                    mag, unit = value
-                    out[field] = {"magnitude": mag, "units": unit}
-                elif isinstance(value, (float, int)):
-                    # Only use defaults if they exist
-                    if (
-                        hasattr(self, "_quantity_defaults")
-                        and field in self._quantity_defaults
-                    ):
-                        _, unit = self._quantity_defaults[field]
-                        out[field] = {"magnitude": value, "units": unit}
+                else:
+                    # This shouldn't happen if validators work correctly
+                    out[field] = value
             else:
+                value = getattr(self, field)
                 out[field] = value
         return out

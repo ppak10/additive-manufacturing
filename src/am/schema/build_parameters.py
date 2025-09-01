@@ -1,6 +1,4 @@
-from pint import Quantity
-
-from typing_extensions import cast, TypedDict
+from typing_extensions import TypedDict
 
 from .quantity import QuantityDict, QuantityModel, QuantityField
 
@@ -24,12 +22,10 @@ class BuildParameters(QuantityModel):
     Build configurations utilized for solver and process map.
     """
 
-    beam_diameter: QuantityField = cast(Quantity, Quantity(*DEFAULT["beam_diameter"]))
-    beam_power: QuantityField = cast(Quantity, Quantity(*DEFAULT["beam_power"]))
-    scan_velocity: QuantityField = cast(Quantity, Quantity(*DEFAULT["scan_velocity"]))
-    temperature_preheat: QuantityField = cast(
-        Quantity, Quantity(*DEFAULT["temperature_preheat"])
-    )
+    beam_diameter: QuantityField = DEFAULT["beam_diameter"]
+    beam_power: QuantityField = DEFAULT["beam_power"]
+    scan_velocity: QuantityField = DEFAULT["scan_velocity"]
+    temperature_preheat: QuantityField = DEFAULT["temperature_preheat"]
 
     _quantity_defaults = DEFAULT
     _quantity_fields = set(DEFAULT.keys())
