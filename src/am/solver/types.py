@@ -24,12 +24,14 @@ class QuantityDict(TypedDict):
 # MeltPoolDimensions #
 ######################
 
+
 class MeltPoolDimensionsDict(TypedDict):
     depth: QuantityDict
     width: QuantityDict
     length: QuantityDict
     length_front: QuantityDict
     length_behind: QuantityDict
+
 
 class MeltPoolDimensions(BaseModel):
     model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
@@ -123,157 +125,6 @@ class MeltPoolDimensions(BaseModel):
                 f"Unexpected JSON structure in {path}: expected dict or list of dicts"
             )
 
-####################
-# Material Configs #
-####################
-
-class MaterialConfigDict(TypedDict):
-    name: str
-    # Specific Heat Capacity at Constant Pressure (J ⋅ kg^-1 ⋅ K^-1)
-    specific_heat_capacity: QuantityDict
-
-    # Absorptivity (Unitless)
-    absorptivity: QuantityDict
-
-    # Thermal Conductivity (W / (m ⋅ K))
-    thermal_conductivity: QuantityDict
-
-    # # Density (kg / m^3)
-    density: QuantityDict
-
-    # Melting Temperature (K)
-    temperature_melt: QuantityDict
-
-    # https://www.researchgate.net/figure/Liquidus-and-solidus-temperatures-of-316L-SS-and-304-SS_tbl3_353416408
-    # Liquidus Temperature (K)
-    temperature_liquidus: QuantityDict
-
-    # Solidus Temperature (K)
-    temperature_solidus: QuantityDict
-
-
-class MaterialConfig(BaseModel):
-    model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
-
-    name: str
-    specific_heat_capacity: Quantity
-    absorptivity: Quantity
-    thermal_conductivity: Quantity
-    density: Quantity
-    temperature_melt: Quantity
-    temperature_liquidus: Quantity
-    temperature_solidus: Quantity
-
-    @staticmethod
-    def _quantity_to_dict(q: Quantity) -> QuantityDict:
-        return {"magnitude": cast(float, q.magnitude), "units": str(q.units)}
-
-    @field_serializer(
-        "specific_heat_capacity",
-        "absorptivity",
-        "thermal_conductivity",
-        "density",
-        "temperature_melt",
-        "temperature_liquidus",
-        "temperature_solidus",
-    )
-    def serialize_quantity(self, value: Quantity) -> QuantityDict:
-        if isinstance(value, Quantity):
-            return self._quantity_to_dict(value)
-        return QuantityDict(magnitude=0.0, units="unknown")
-
-    @classmethod
-    def create_default(cls, ureg: UnitRegistry) -> "MaterialConfig":
-        return cls(
-            name="Stainless Steel 316L",
-            specific_heat_capacity=cast(
-                Quantity, ureg.Quantity(455, "joules / (kilogram * kelvin)")
-            ),
-            absorptivity=cast(Quantity, ureg.Quantity(1.0, "dimensionless")),
-            thermal_conductivity=cast(
-                Quantity, ureg.Quantity(8.9, "watts / (meter * kelvin)")
-            ),
-            density=cast(Quantity, ureg.Quantity(7910, "kilogram / (meter) ** 3")),
-            temperature_melt=cast(Quantity, ureg.Quantity(1673, "kelvin")),
-            temperature_liquidus=cast(Quantity, ureg.Quantity(1710.26, "kelvin")),
-            temperature_solidus=cast(Quantity, ureg.Quantity(1683.68, "kelvin")),
-        )
-
-    def to_dict(self) -> MaterialConfigDict:
-        return {
-            "name": self.name,
-            "specific_heat_capacity": self._quantity_to_dict(
-                self.specific_heat_capacity
-            ),
-            "absorptivity": self._quantity_to_dict(self.absorptivity),
-            "thermal_conductivity": self._quantity_to_dict(self.thermal_conductivity),
-            "density": self._quantity_to_dict(self.density),
-            "temperature_melt": self._quantity_to_dict(self.temperature_melt),
-            "temperature_liquidus": self._quantity_to_dict(self.temperature_liquidus),
-            "temperature_solidus": self._quantity_to_dict(self.temperature_solidus),
-        }
-
-    @property
-    def thermal_diffusivity(self) -> Quantity:
-        # Thermal Diffusivity (Wolfer et al. Equation 1)
-        return self.thermal_conductivity / (self.density * self.specific_heat_capacity)
-
-    @staticmethod
-    def _dict_to_quantity(d: QuantityDict) -> Quantity:
-        # Create Quantity from magnitude and units string
-        return Quantity(d["magnitude"], d["units"])
-
-    @field_validator(
-        "specific_heat_capacity",
-        "absorptivity",
-        "thermal_conductivity",
-        "density",
-        "temperature_melt",
-        "temperature_liquidus",
-        "temperature_solidus",
-        mode="before",
-    )
-    def parse_quantity(cls, v: QuantityDict | Quantity) -> Quantity:
-        if isinstance(v, dict):
-            # Strict check keys and types
-            expected_keys = {"magnitude", "units"}
-            if set(v.keys()) != expected_keys:
-                raise ValidationError(
-                    f"Invalid keys for QuantityDict, expected {expected_keys} but got {v.keys()}"
-                )
-            if not isinstance(v["magnitude"], float):
-                raise ValidationError(
-                    f"QuantityDict magnitude must be float, got {type(v['magnitude'])}"
-                )
-            if not isinstance(v["units"], str):
-                raise ValidationError(
-                    f"QuantityDict units must be str, got {type(v['units'])}"
-                )
-            return cls._dict_to_quantity(v)
-        elif isinstance(v, Quantity):
-            return v
-        else:
-            raise ValidationError(f"Expected QuantityDict or Quantity, got {type(v)}")
-
-    @classmethod
-    def from_dict(cls, data: MaterialConfigDict) -> "MaterialConfig":
-        return cls(**data)
-
-    def save(self, path: Path) -> Path:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        _ = path.write_text(self.model_dump_json(indent=2))
-        return path
-
-    @classmethod
-    def load(cls, path: Path) -> "MaterialConfig":
-        with path.open("r") as f:
-            data = json.load(f)
-        if isinstance(data, dict):
-            return cls.from_dict(data)
-        else:
-            raise ValueError(
-                f"Unexpected JSON structure in {path}: expected dict or list of dicts"
-            )
 
 ################
 # Mesh Configs #

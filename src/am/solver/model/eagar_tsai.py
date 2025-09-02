@@ -5,8 +5,7 @@ from pint import Quantity
 from scipy import integrate
 from typing import cast
 
-from am.schema import BuildParameters
-from am.solver.types import MaterialConfig
+from am.schema import BuildParameters, Material
 from am.solver.mesh import SolverMesh
 from am.segmenter.types import Segment
 
@@ -17,48 +16,41 @@ class EagarTsai:
     def __init__(
         self,
         build_parameters: BuildParameters,
-        material_config: MaterialConfig,
+        material: Material,
         solver_mesh: SolverMesh,
         device: str = "cpu",
         **kwargs,
     ):
-        self.build_parameters: BuildParameters = build_parameters 
-        self.material_config: MaterialConfig = material_config
+        self.build_parameters: BuildParameters = build_parameters
+        self.material: Material = material
         self.device: str = device
         self.dtype = torch.float32
         self.num: int | None = kwargs.get("num", None)
 
         # Material Properties
         # Converted into SI units before passing to solver.
-        self.absorptivity: Quantity = cast(
-            Quantity, self.material_config.absorptivity.to("dimensionless")
+        self.absorptivity = cast(Quantity, self.material.absorptivity).to(
+            "dimensionless"
         )
-        self.specific_heat_capacity: Quantity = cast(
-            Quantity,
-            self.material_config.specific_heat_capacity.to(
-                "joule / (kelvin * kilogram)"
-            ),
+        self.specific_heat_capacity = cast(
+            Quantity, self.material.specific_heat_capacity
+        ).to("joule / (kelvin * kilogram)")
+        self.thermal_diffusivity = cast(Quantity, self.material.thermal_diffusivity).to(
+            "meter ** 2 / second"
         )
-        self.thermal_diffusivity: Quantity = cast(
-            Quantity, self.material_config.thermal_diffusivity.to("meter ** 2 / second")
-        )
-        self.density: Quantity = cast(
-            Quantity, self.material_config.density.to("kilogram / meter ** 3")
-        )
+        self.density = cast(Quantity, self.material.density).to("kilogram / meter ** 3")
 
         # Build Parameters
-        self.beam_diameter: Quantity = cast(
-            Quantity, self.build_parameters.beam_diameter.to("meter") / 4
+        self.beam_diameter = (
+            cast(Quantity, self.build_parameters.beam_diameter).to("meter") / 4
         )
-        self.beam_power: Quantity = cast(
-            Quantity, self.build_parameters.beam_power.to("watts")
+        self.beam_power = cast(Quantity, self.build_parameters.beam_power).to("watts")
+        self.scan_velocity = cast(Quantity, self.build_parameters.scan_velocity).to(
+            "meter / second"
         )
-        self.scan_velocity: Quantity = cast(
-            Quantity, self.build_parameters.scan_velocity.to("meter / second")
-        )
-        self.temperature_preheat: Quantity = cast(
-            Quantity, self.build_parameters.temperature_preheat.to("kelvin")
-        )
+        self.temperature_preheat = cast(
+            Quantity, self.build_parameters.temperature_preheat
+        ).to("kelvin")
 
         # Mesh Range
         self.X: torch.Tensor = solver_mesh.x_range_centered[:, None, None, None]

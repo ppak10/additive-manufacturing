@@ -5,15 +5,16 @@ from datetime import datetime
 from enum import Enum
 from io import BytesIO
 from pathlib import Path
-from pint import UnitRegistry
+from pint import Quantity, UnitRegistry
 from rich import print as rprint
 from typing import cast, Literal
 from tqdm import tqdm
 
 from .config import SolverConfig
 
+from am.schema import Material
 from am.segmenter.types import Segment
-from am.solver.types import MaterialConfig, MeshConfig
+from am.solver.types import MeshConfig
 from am.schema import BuildParameters
 from am.solver.measure import SolverMeasure
 from am.solver.mesh import SolverMesh
@@ -72,9 +73,9 @@ class Solver:
         build_parameters_path = config_path / "build_parameters" / "default.json"
         _ = build_parameters.save(build_parameters_path)
 
-        material_config = MaterialConfig.create_default(self.ureg)
-        material_config_path = config_path / "material" / "default.json"
-        _ = material_config.save(material_config_path)
+        material = Material()
+        material_path = config_path / "materials" / "default.json"
+        _ = material.save(material_path)
 
         mesh_config = MeshConfig.create_default(self.ureg)
         mesh_config_path = config_path / "mesh" / "default.json"
@@ -84,7 +85,7 @@ class Solver:
         self,
         segments: list[Segment],
         build_parameters: BuildParameters,
-        material_config: MaterialConfig,
+        material: Material,
         mesh_config: MeshConfig,
         workspace_path: Path,
         model_name: str = "eagar-tsai",
@@ -103,36 +104,36 @@ class Solver:
         measure_out_path = workspace_path / "measurements" / run_name
         measure_out_path.mkdir(exist_ok=True, parents=True)
 
-        initial_temperature = cast(
-            float, build_parameters.temperature_preheat.magnitude
-        )
+        initial_temperature: float = cast(
+            Quantity, build_parameters.temperature_preheat
+        ).magnitude
 
         solver_mesh = SolverMesh(self.config, mesh_config)
         _ = solver_mesh.initialize_grid(initial_temperature)
 
-        solver_measure = SolverMeasure(self.config, mesh_config, material_config)
+        solver_measure = SolverMeasure(self.config, mesh_config, material)
 
         zfill = len(f"{len(segments)}")
 
         match model_name:
             case "eagar-tsai":
-                model = EagarTsai(build_parameters, material_config, solver_mesh)
+                model = EagarTsai(build_parameters, material, solver_mesh)
             case "rosenthal":
-                model = Rosenthal(build_parameters, material_config, solver_mesh)
+                model = Rosenthal(build_parameters, material, solver_mesh)
             case _:
                 raise Exception("Invalid `model_name`")
 
         # Save solver configs
-        build_parameters.save(mesh_out_path / "config" / "build.json")
-        material_config.save(mesh_out_path / "config" / "material.json")
+        build_parameters.save(mesh_out_path / "config" / "build_parameters.json")
+        material.save(mesh_out_path / "config" / "material.json")
         mesh_config.save(mesh_out_path / "config" / "mesh.json")
 
         # for segment_index, segment in tqdm(enumerate(segments[0:3])):
         for segment_index, segment in tqdm(enumerate(segments), total=len(segments)):
 
             # solver_mesh = self._forward(model, solver_mesh, segment)
-            grid_offset = cast(
-                float, build_parameters.temperature_preheat.to("K").magnitude
+            grid_offset: float = (
+                cast(Quantity, build_parameters.temperature_preheat).to("K").magnitude
             )
 
             theta = model(segment)
@@ -150,7 +151,7 @@ class Solver:
 
             solver_mesh.diffuse(
                 delta_time=segment.distance_xy / build_parameters.scan_velocity,
-                diffusivity=material_config.thermal_diffusivity,
+                diffusivity=material.thermal_diffusivity,
                 grid_offset=grid_offset,
             )
 

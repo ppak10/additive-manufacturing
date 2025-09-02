@@ -6,14 +6,15 @@ from am.cli.options import VerboseOption, WorkspaceOption
 
 from typing_extensions import Annotated
 
+
 def register_solver_measure_melt_pool_dimensions(app: typer.Typer):
     @app.command(name="measure_melt_pool_dimensions")
     def solver_measure_melt_pool_dimensions(
         build_parameters_filename: Annotated[
-            str, typer.Option("--build_parameters", help="Build config filename")
+            str, typer.Option("--build_parameters", help="Build parameters filename")
         ] = "default.json",
-        material_config_filename: Annotated[
-            str, typer.Option("--material_config", help="Material config filename")
+        material_filename: Annotated[
+            str, typer.Option("--material", help="Material filename")
         ] = "default.json",
         run_name: Annotated[
             str | None,
@@ -24,9 +25,8 @@ def register_solver_measure_melt_pool_dimensions(app: typer.Typer):
     ) -> None:
         """Create folder for solver data inside workspace folder."""
         from am.cli.utils import get_workspace_path
-        from am.schema import BuildParameters
+        from am.schema import BuildParameters, Material
         from am.solver import Solver
-        from am.solver.types import MaterialConfig
 
         workspace_path = get_workspace_path(workspace)
 
@@ -38,14 +38,15 @@ def register_solver_measure_melt_pool_dimensions(app: typer.Typer):
             build_parameters = BuildParameters.load(
                 solver_configs_path / "build_parameters" / build_parameters_filename
             )
-            material_config = MaterialConfig.load(
-                solver_configs_path / "material" / material_config_filename
+            material = Material.load(
+                solver_configs_path / "materials" / material_filename
             )
 
-            solver.measure_melt_pool_dimensions(build_parameters, material_config, workspace_path, run_name)
+            solver.measure_melt_pool_dimensions(
+                build_parameters, material, workspace_path, run_name
+            )
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
             raise typer.Exit(code=1)
 
     return solver_measure_melt_pool_dimensions
-

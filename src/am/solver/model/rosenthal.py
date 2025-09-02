@@ -4,10 +4,11 @@ import torch
 from pint import Quantity
 from typing import cast
 
-from am.schema import BuildParameters
-from am.solver.types import MaterialConfig, MeltPoolDimensions
+from am.schema import BuildParameters, Material
+from am.solver.types import MeltPoolDimensions
 from am.solver.mesh import SolverMesh
 from am.segmenter.types import Segment
+
 
 FLOOR = 10**-7  # Float32
 
@@ -16,42 +17,40 @@ class Rosenthal:
     def __init__(
         self,
         build_parameters: BuildParameters,
-        material_config: MaterialConfig,
+        material: Material,
         solver_mesh: SolverMesh | None = None,
         device: str = "cpu",
         **kwargs,
     ):
         self.build_parameters: BuildParameters = build_parameters
-        self.material_config: MaterialConfig = material_config
+        self.material: Material = material
         self.device: str = device
         self.dtype = torch.float32
         self.num: int | None = kwargs.get("num", None)
 
         # Material Properties
         # Converted into SI units before passing to solver.
-        self.absorptivity: Quantity = cast(
-            Quantity, self.material_config.absorptivity.to("dimensionless")
+        self.absorptivity = cast(Quantity, self.material.absorptivity).to(
+            "dimensionless"
         )
-        self.thermal_diffusivity: Quantity = cast(
-            Quantity, self.material_config.thermal_diffusivity.to("meter ** 2 / second")
+        self.thermal_diffusivity = self.material.thermal_diffusivity.to(
+            "meter ** 2 / second"
         )
-        self.thermal_conductivity: Quantity = cast(
-            Quantity, self.material_config.thermal_conductivity.to("watts / (meter * kelvin)")
-        )
-        self.temperature_melt = cast(
-            Quantity, self.material_config.temperature_melt.to("kelvin")
+        self.thermal_conductivity = cast(
+            Quantity, self.material.thermal_conductivity
+        ).to("watts / (meter * kelvin)")
+        self.temperature_melt = cast(Quantity, self.material.temperature_melt).to(
+            "kelvin"
         )
 
         # Build Parameters
-        self.beam_power: Quantity = cast(
-            Quantity, self.build_parameters.beam_power.to("watts")
+        self.beam_power = cast(Quantity, self.build_parameters.beam_power).to("watts")
+        self.scan_velocity = cast(Quantity, self.build_parameters.scan_velocity).to(
+            "meter / second"
         )
-        self.scan_velocity: Quantity = cast(
-            Quantity, self.build_parameters.scan_velocity.to("meter / second")
-        )
-        self.temperature_preheat: Quantity = cast(
-            Quantity, self.build_parameters.temperature_preheat.to("kelvin")
-        )
+        self.temperature_preheat = cast(
+            Quantity, self.build_parameters.temperature_preheat
+        ).to("kelvin")
 
         # Mesh Range
         self.solver_mesh = solver_mesh
@@ -60,7 +59,7 @@ class Rosenthal:
                 solver_mesh.x_range_centered,
                 solver_mesh.y_range_centered,
                 solver_mesh.z_range_centered,
-                indexing="ij"
+                indexing="ij",
             )
 
             self.theta_shape: tuple[int, int, int] = (
@@ -107,7 +106,6 @@ class Rosenthal:
 
         theta = torch.ones(self.theta_shape, device=self.device, dtype=self.dtype) * t_0
 
-
         if dt > 0:
             for tau in torch.linspace(0, dt, steps=num, device=self.device):
                 result = self.solve(tau, phi, D, v, c)
@@ -116,26 +114,28 @@ class Rosenthal:
         return theta
 
     def solve_melt_pool_dimensions(self) -> MeltPoolDimensions:
-        alpha = cast(float, self.absorptivity.magnitude)
-        p = cast(float, self.beam_power.magnitude)
-        k = cast(float, self.thermal_conductivity.magnitude)
-        D = cast(float, self.thermal_diffusivity.magnitude)
-        t_melt = cast(float, self.temperature_melt.magnitude)
-        t_0 = cast(float, self.temperature_preheat.magnitude)
+        alpha = self.absorptivity.magnitude
+        p = self.beam_power.magnitude
+        k = self.thermal_conductivity.magnitude
+        D = self.thermal_diffusivity.magnitude
+        t_melt = self.temperature_melt.magnitude
+        t_0 = self.temperature_preheat.magnitude
         t_delta = t_melt - t_0
-        v = cast(float, self.scan_velocity.magnitude)
+        v = self.scan_velocity.magnitude
 
         R_tail = (alpha * p) / (2 * np.pi * k * t_delta)
 
         # Generate R values up to slightly beyond the tail
         R_values = np.linspace(1e-6, R_tail * 1.1, 5000)
-        
+
         max_width_r = 0
         min_z = 0  # Length in front of heat source (negative z)
         width_point_z = 0
 
         def rosenthal(R):
-            return R + (((2*D)/v) * np.log((2 * np.pi * k * R * t_delta)/(alpha * p)))
+            return R + (
+                ((2 * D) / v) * np.log((2 * np.pi * k * R * t_delta) / (alpha * p))
+            )
 
         for R in R_values:
             # Rosenthal equation: z = f(R)
@@ -143,35 +143,34 @@ class Rosenthal:
 
             if R**2 > z**2:
                 r = np.sqrt(R**2 - z**2)
-                
+
                 # Track maximum r (width point where dr/dz ≈ 0)
                 if r > max_width_r:
                     max_width_r = r
                     # width_point_z = z
-                
+
                 # Track minimum z (length in front of heat source)
                 if z < min_z:
                     min_z = z
-        
+
         # Maximum z occurs at the tail point (length behind heat source)
         max_z = rosenthal(R_tail)
 
-        depth = Quantity(max_width_r, 'm').to('micron')
-        width = Quantity(2 * max_width_r, 'm').to('micron')
-        length = Quantity(max_z - min_z, 'm').to('micron')
-        length_front = Quantity(abs(min_z), 'm').to('micron')
-        length_behind = Quantity(max_z, 'm').to('micron')
+        depth = Quantity(max_width_r, "m").to("micron")
+        width = Quantity(2 * max_width_r, "m").to("micron")
+        length = Quantity(max_z - min_z, "m").to("micron")
+        length_front = Quantity(abs(min_z), "m").to("micron")
+        length_behind = Quantity(max_z, "m").to("micron")
 
         melt_pool_dimensions = MeltPoolDimensions(
-            depth = cast(Quantity, depth),
-            width = cast(Quantity, width),
-            length = cast(Quantity, length),
-            length_front = cast(Quantity, length_front),
-            length_behind = cast(Quantity, length_behind),
+            depth=cast(Quantity, depth),
+            width=cast(Quantity, width),
+            length=cast(Quantity, length),
+            length_front=cast(Quantity, length_front),
+            length_behind=cast(Quantity, length_behind),
         )
 
         return melt_pool_dimensions
-
 
     def solve(
         self,

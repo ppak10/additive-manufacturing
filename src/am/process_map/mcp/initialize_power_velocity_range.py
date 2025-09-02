@@ -7,8 +7,6 @@ from typing import Union
 def register_process_map_initialize_power_velocity_range(app: FastMCP):
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
-    from am.schema import QuantityInput
-    from am.schema.build_parameters import DEFAULT
 
     @app.tool(
         title="Initialize Process Map with Power and Velocity Range",
@@ -19,6 +17,7 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
         workspace: str,
         name: str | None = "default",
         build_parameters_filename: str = "default.json",
+        material_filename: str = "default.json",
         beam_power_range: list[int] = [0, 1000, 100],
         beam_power_units: str = "W",
         scan_velocity_range: list[int] = [0, 1000, 100],
@@ -32,7 +31,7 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
         """
 
         from am.cli.utils import get_workspace_path
-        from am.schema import BuildParameters
+        from am.schema import BuildParameters, Material
         from am.process_map.initialize import initialize_power_velocity_range
 
         try:
@@ -45,13 +44,13 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
 
             build_parameters = BuildParameters.load(build_parameters_path)
 
-            # material_config = MaterialConfig.load(
-            #     solver_configs_path / "material" / material_config_filename
-            # )
+            material_path = workspace_path / "materials" / material_filename
+            material = Material.load(material_path)
 
             out_path = initialize_power_velocity_range(
                 workspace_path=workspace_path,
                 build_parameters=build_parameters,
+                material=material,
                 name=name,
                 beam_power_range=beam_power_range,
                 beam_power_units=beam_power_units,

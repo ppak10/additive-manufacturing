@@ -13,18 +13,22 @@ from torch.types import Tensor
 from typing import Any, cast
 
 from am.segmenter.types import Segment
+from am.schema import Material
 
 from .config import SolverConfig
-from .types import MaterialConfig, MeshConfig
+from .types import MeshConfig
 
 device = "cpu"
 dtype = torch.float32
 
+
 class SolverMeasure:
-    def __init__(self, config: SolverConfig, mesh_config: MeshConfig, material_config: MaterialConfig):
+    def __init__(
+        self, config: SolverConfig, mesh_config: MeshConfig, material: Material
+    ):
         self.config: SolverConfig = config
         self.mesh_config: MeshConfig = mesh_config
-        self.material_config: MaterialConfig = material_config
+        self.material: Material = material
 
         self.grid: Tensor = torch.Tensor()
 
@@ -51,7 +55,7 @@ class SolverMeasure:
         data = {
             "config": self.config.model_dump(),
             "mesh_config": self.mesh_config.to_dict(),
-            "material_config": self.material_config.to_dict(),
+            "material": self.material.to_dict(),
             "grid": self.grid.cpu(),
         }
 
@@ -104,17 +108,15 @@ class SolverMeasure:
 
         return fig, ax, mesh
 
-
     @classmethod
     def load(cls, path: Path) -> "SolverMeasure":
         data: dict[str, Any] = torch.load(path, map_location="cpu")
 
         config = SolverConfig(**data["config"])
-        material_config = MaterialConfig.from_dict(data["material_config"])
+        material = Material.from_dict(data["material"])
         mesh_config = MeshConfig.from_dict(data["mesh_config"])
 
-        instance = cls(config, mesh_config, material_config)
+        instance = cls(config, mesh_config, material)
 
         instance.grid = data["grid"]
         return instance
-

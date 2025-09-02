@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from am.schema import QuantityModel
+from am.schema import QuantityField, QuantityModel
 from pydantic import ValidationError
 from pint import Quantity
 
@@ -10,18 +10,13 @@ from pint import Quantity
 
 
 class ChildModel(QuantityModel):
-    _quantity_fields = {"length", "width"}
-
-    length: Quantity
-    width: Quantity
+    length: QuantityField
+    width: QuantityField
     id: int  # Non-quantity field
 
 
 class ChildModelWithDefaults(QuantityModel):
-    _quantity_fields = {"length"}
-    _quantity_defaults = {"length": (1.0, "m")}
-
-    length: Quantity
+    length: QuantityField = (10, "m")
     id: int
 
 

@@ -7,6 +7,7 @@ from rich import print as rprint
 from am import data
 from am.workspace.config import WorkspaceConfig
 
+
 class Workspace:
     """
     Base workspace methods.
@@ -40,7 +41,14 @@ class Workspace:
         """
 
         # TODO: Move `mesurements` and `meshes` into a parent `runs` folder.
-        folders = ["measurements", "meshes", "parts", "process_maps", "segments"]
+        folders = [
+            "materials",
+            "measurements",
+            "meshes",
+            "parts",
+            "process_maps",
+            "segments",
+        ]
         for folder in folders:
             resource_dir = files(data) / folder
             dest_dir = workspace_path / folder
@@ -57,7 +65,7 @@ class Workspace:
         self,
         out_path: Path | None = None,
         include_example_parts: bool = True,
-        force: bool | None = False
+        force: bool | None = False,
     ) -> WorkspaceConfig:
         # Use the out_path if provided, otherwise default to package out_path.
         if out_path is None:
@@ -75,7 +83,7 @@ class Workspace:
             )
             rprint("Use [cyan]--force[/cyan] to overwrite, or edit the existing file.")
             raise FileExistsError("Workspace already exists")
-        
+
         self.create_workspace_folders(workspace_path)
 
         self.config.workspace_path = workspace_path
@@ -84,5 +92,3 @@ class Workspace:
         rprint(f"Workspace config file saved at: {workspace_config_file}")
 
         return self.config
-
-

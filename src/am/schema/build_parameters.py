@@ -26,6 +26,3 @@ class BuildParameters(QuantityModel):
     beam_power: QuantityField = DEFAULT["beam_power"]
     scan_velocity: QuantityField = DEFAULT["scan_velocity"]
     temperature_preheat: QuantityField = DEFAULT["temperature_preheat"]
-
-    _quantity_defaults = DEFAULT
-    _quantity_fields = set(DEFAULT.keys())

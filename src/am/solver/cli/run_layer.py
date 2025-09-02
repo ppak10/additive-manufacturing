@@ -16,19 +16,20 @@ def register_solver_run_layer(app: typer.Typer):
             int, typer.Argument(help="Use segments within specified layer index")
         ],
         build_parameters_filename: Annotated[
-            str, typer.Option("--build_parameters", help="Build config filename")
+            str, typer.Option("--build_parameters", help="Build Parameters filename")
         ] = "default.json",
-        material_config_filename: Annotated[
-            str, typer.Option("--material_config", help="Material config filename")
+        material_filename: Annotated[
+            str, typer.Option("--material", help="Material filename")
         ] = "default.json",
         mesh_config_filename: Annotated[
             str, typer.Option("--mesh_config", help="Mesh config filename")
         ] = "default.json",
         model_name: Annotated[
-            str, typer.Option(
+            str,
+            typer.Option(
                 "--model_name",
-                help="One of either 'eagar-tsai', 'rosenthal', 'surrogate'"
-            )
+                help="One of either 'eagar-tsai', 'rosenthal', 'surrogate'",
+            ),
         ] = "eagar-tsai",
         run_name: Annotated[
             str | None,
@@ -39,9 +40,9 @@ def register_solver_run_layer(app: typer.Typer):
     ) -> None:
         """Create folder for solver data inside workspace folder."""
         from am.cli.utils import get_workspace_path
-        from am.schema import BuildParameters
+        from am.schema import BuildParameters, Material
         from am.solver import Solver
-        from am.solver.types import MaterialConfig, MeshConfig
+        from am.solver.types import MeshConfig
         from am.segmenter.types import Segment
 
         workspace_path = get_workspace_path(workspace)
@@ -62,16 +63,22 @@ def register_solver_run_layer(app: typer.Typer):
             # Configs
             solver_configs_path = workspace_path / "solver" / "config"
             build_parameters = BuildParameters.load(
-                solver_configs_path / "build" / build_parameters_filename
+                workspace_path / "build_parameters" / build_parameters_filename
             )
-            material_config = MaterialConfig.load(
-                solver_configs_path / "material" / material_config_filename
-            )
+            material = Material.load(workspace_path / "materials" / material_filename)
             mesh_config = MeshConfig.load(
                 solver_configs_path / "mesh" / mesh_config_filename
             )
 
-            solver.run_layer(segments, build_parameters, material_config, mesh_config, workspace_path, model_name, run_name)
+            solver.run_layer(
+                segments,
+                build_parameters,
+                material,
+                mesh_config,
+                workspace_path,
+                model_name,
+                run_name,
+            )
             rprint(f"✅ Solver Finished")
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")

@@ -5,13 +5,16 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, model_validator, model_serializer
 
 from typing import Any, Tuple
-from typing_extensions import cast, ClassVar, TypeAlias, TypedDict, TypeVar
+from pydantic_core import PydanticUndefined
+from typing_extensions import cast, ClassVar, get_args, TypeAlias, TypedDict, TypeVar
 
 T = TypeVar("T", bound="QuantityModel")
 
 Number: TypeAlias = float | int
 QuantityInput = Number | Tuple[Number, str]
 QuantityField = Quantity | QuantityInput | None
+
+QUANTITY_FIELD_SET = set(get_args(QuantityField))
 
 
 class QuantityDict(TypedDict):
@@ -106,8 +109,7 @@ class QuantityModel(BaseModel):
 
     model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
 
-    _quantity_defaults: ClassVar[dict[str, Tuple[float | int, str]]] = {}
-    _quantity_fields: ClassVar[set[str]] = set()
+    # _quantity_defaults: ClassVar[dict[str, Tuple[float | int, str]]] = {}
 
     @staticmethod
     def _quantity_to_dict(q: Quantity) -> QuantityDict:
@@ -121,70 +123,83 @@ class QuantityModel(BaseModel):
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
         data = handler(self)
-        for name in self._quantity_fields:
-            value = getattr(self, name)
+
+        for field in self.__class__.model_fields:
+            value = getattr(self, field)
             if isinstance(value, Quantity):
-                data[name] = self._quantity_to_dict(value)
+                data[field] = self._quantity_to_dict(value)
         return data
 
     @model_validator(mode="before")
     @classmethod
     def coerce_quantity_inputs(cls, values: dict[str, Any]) -> dict[str, Any]:
-        """Convert various input formats to Quantity objects before field validation"""
-        for field in cls._quantity_fields:
-            if field not in values:
+        """Convert various input formats to Quantity if applicable."""
+        for name, info in cls.model_fields.items():
+
+            # Check that name is in values argument.
+            if name not in values:
                 # Use default if field not provided
-                if field in cls._quantity_defaults:
-                    mag, unit = cls._quantity_defaults[field]
-                    values[field] = Quantity(mag, unit)
+                if info.default is not PydanticUndefined:
+                    if isinstance(info.default, tuple) and len(info.default) == 2:
+                        # Just checks if input from dict is tuple to assume quantity
+                        values[name] = Quantity(*info.default)
+                    else:
+                        values[name] = info.default
                 continue
 
-            v = values[field]
+            v = values[name]
+            field_type_set = set(get_args(info.annotation))
 
-            # Already a Quantity, keep as is
-            if isinstance(v, Quantity):
-                continue
+            # If input is intended to be Quantity.
+            if QUANTITY_FIELD_SET.issubset(field_type_set):
 
-            # Just a number - use default units
-            elif isinstance(v, (float, int)):
-                if field in cls._quantity_defaults:
-                    _, unit = cls._quantity_defaults[field]
-                    values[field] = Quantity(v, unit)
+                # Already a Quantity, keep as is
+                if isinstance(v, Quantity):
+                    continue
+
+                # Just a number - use default units
+                if isinstance(v, (float, int)):
+                    if info.default is PydanticUndefined:
+                        raise ValueError(
+                            f"Default quantity not provided, could not obtain default units"
+                        )
+                    else:
+                        values[name] = Quantity(v, info.default[1])
+
+                # Tuple (magnitude, unit)
+                elif isinstance(v, tuple) and len(v) == 2:
+                    if len(v) != 2:
+                        raise ValueError(
+                            f"Expected exact length of 2 (magnitude, units) if tuple is provided"
+                        )
+                    if not isinstance(v[0], (float, int)):
+                        raise ValueError(
+                            f"Magnitude must be float or int, got {type(v[0])}"
+                        )
+                    if not isinstance(v[1], str):
+                        raise ValueError(f"Units must be str, got {type(v[1])}")
+                    values[name] = Quantity(v[0], v[1])
+
+                # Dict input
+                elif isinstance(v, dict):
+                    expected_keys = {"magnitude", "units"}
+                    if set(v.keys()) != expected_keys:
+                        raise ValueError(f"Invalid keys for QuantityDict: {v.keys()}")
+                    if not isinstance(v["magnitude"], (float, int)):
+                        raise ValueError(
+                            f"QuantityDict magnitude must be float or int, got {type(v['magnitude'])}"
+                        )
+                    if not isinstance(v["units"], str):
+                        raise ValueError(
+                            f"QuantityDict units must be str, got {type(v['units'])}"
+                        )
+                    values[name] = Quantity(v["magnitude"], v["units"])
+
+                # Invalid type
                 else:
-                    raise ValueError(f"No default units for field {field}")
-
-            # Tuple (magnitude, unit)
-            elif isinstance(v, tuple) and len(v) == 2:
-                if len(v) != 2:
                     raise ValueError(
-                        f"Expected exact length of 2 (magnitude, units) if tuple is provided"
+                        f"Invalid input for quantity field {name}: {type(v)}"
                     )
-                if not isinstance(v[0], (float, int)):
-                    raise ValueError(
-                        f"Magnitude must be float or int, got {type(v[0])}"
-                    )
-                if not isinstance(v[1], str):
-                    raise ValueError(f"Units must be str, got {type(v[1])}")
-                values[field] = Quantity(v[0], v[1])
-
-            # Dict input
-            elif isinstance(v, dict):
-                expected_keys = {"magnitude", "units"}
-                if set(v.keys()) != expected_keys:
-                    raise ValueError(f"Invalid keys for QuantityDict: {v.keys()}")
-                if not isinstance(v["magnitude"], (float, int)):
-                    raise ValueError(
-                        f"QuantityDict magnitude must be float or int, got {type(v['magnitude'])}"
-                    )
-                if not isinstance(v["units"], str):
-                    raise ValueError(
-                        f"QuantityDict units must be str, got {type(v['units'])}"
-                    )
-                values[field] = Quantity(v["magnitude"], v["units"])
-
-            # Invalid type
-            else:
-                raise ValueError(f"Invalid input for quantity field {field}: {type(v)}")
 
         return values
 
@@ -210,17 +225,12 @@ class QuantityModel(BaseModel):
     def to_dict(self):
         out = {}
         for field in self.__class__.model_fields:
-            if field in self._quantity_fields:
-                value = getattr(self, field)
-                if isinstance(value, Quantity):
-                    out[field] = {
-                        "magnitude": value.magnitude,
-                        "units": str(value.units),
-                    }
-                else:
-                    # This shouldn't happen if validators work correctly
-                    out[field] = value
+            value = getattr(self, field)
+            if isinstance(value, Quantity):
+                out[field] = {
+                    "magnitude": value.magnitude,
+                    "units": str(value.units),
+                }
             else:
-                value = getattr(self, field)
                 out[field] = value
         return out

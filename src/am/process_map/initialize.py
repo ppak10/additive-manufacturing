@@ -1,15 +1,14 @@
 from pathlib import Path
 from pint import Quantity
 
-from am.schema import BuildParameters
-from am.solver.types import MaterialConfig
+from am.schema import BuildParameters, Material
 from .schema import ProcessMap
 
 
 def initialize_power_velocity_range(
     workspace_path: Path,
     build_parameters: BuildParameters,
-    # material_config: MaterialConfig,
+    material: Material,
     name: str | None = None,
     beam_power_range: list[int] = [0, 1000, 100],
     beam_power_units: str = "W",
@@ -48,7 +47,7 @@ def initialize_power_velocity_range(
     process_map_out_path.mkdir(exist_ok=True, parents=True)
 
     build_parameters.save(process_map_out_path / "build_parameters.json")
-    # material_config.save(process_map_out_path / "material.json")
+    material.save(process_map_out_path / "material.json")
 
     beam_powers = range(*beam_power_range)
     scan_velocities = range(*scan_velocity_range)
