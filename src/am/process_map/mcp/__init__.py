@@ -1,9 +1,5 @@
-from .__main__ import app
-
 from .initialize_power_velocity_range import (
     register_process_map_initialize_power_velocity_range,
 )
 
-_ = register_process_map_initialize_power_velocity_range(app)
-
-__all__ = ["app"]
+__all__ = ["register_process_map_initialize_power_velocity_range"]

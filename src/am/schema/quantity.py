@@ -14,6 +14,15 @@ QuantityInput = Number | Tuple[Number, str]
 QuantityField = Quantity | QuantityInput | None
 
 
+class QuantityDict(TypedDict):
+    """
+    TypedDict for Quantity serialized as dict
+    """
+
+    magnitude: float
+    units: str
+
+
 def parse_cli_input(
     value: str | None | tuple[Number, str] | Any
 ) -> QuantityInput | None:
@@ -87,15 +96,6 @@ def parse_cli_input(
 
     except Exception as e:
         raise ValueError(f"Invalid quantity string: {value!r}") from e
-
-
-class QuantityDict(TypedDict):
-    """
-    TypedDict for Quantity serialized as dict
-    """
-
-    magnitude: float
-    units: str
 
 
 class QuantityModel(BaseModel):

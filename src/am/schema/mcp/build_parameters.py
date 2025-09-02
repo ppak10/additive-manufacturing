@@ -26,9 +26,12 @@ def register_schema_build_parameters(app: FastMCP):
         """
         Creates a configuration file for build parameters.
         Args:
-            segments: Folder name for the segments to visualize.
             workspace: Folder name of existing workspace.
-            layer_number: Layer number (starts from 1) of part to visualize.
+            name: Used in generating file name for saved build parameters
+            beam_diameter: Defaults to 5e-5 meters
+            beam_power: Defaults to 200 watts
+            scan_velocity: Defaults to 0.8 meters / second
+            temperature_preheat: Defaults to 300 kelvin
         """
 
         from am.cli.utils import get_workspace_path
