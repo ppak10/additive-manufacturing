@@ -10,9 +10,9 @@ def initialize_power_velocity_range(
     build_parameters: BuildParameters,
     material: Material,
     name: str | None = None,
-    beam_power_range: list[int] = [0, 1000, 100],
+    beam_power_range: list[int] = [100, 1100, 100],
     beam_power_units: str = "W",
-    scan_velocity_range: list[int] = [0, 1000, 100],
+    scan_velocity_range: list[int] = [100, 1100, 100],
     scan_velocity_units: str = "mm/s",
 ) -> Path:
     """

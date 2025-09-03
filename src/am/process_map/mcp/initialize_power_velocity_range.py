@@ -18,9 +18,9 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
         name: str | None = "default",
         build_parameters_filename: str = "default.json",
         material_filename: str = "default.json",
-        beam_power_range: list[int] = [0, 1000, 100],
+        beam_power_range: list[int] = [100, 1100, 100],
         beam_power_units: str = "W",
-        scan_velocity_range: list[int] = [0, 1000, 100],
+        scan_velocity_range: list[int] = [100, 1100, 100],
         scan_velocity_units: str = "mm/s",
     ) -> Union[ToolSuccess[Path], ToolError]:
         """
