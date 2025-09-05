@@ -7,10 +7,11 @@ from am.cli.options import VerboseOption, WorkspaceOption
 from typing_extensions import Annotated
 
 
+# TODO: Split up this functionality
 def register_process_map_generate_melt_pool_measurements(app: typer.Typer):
 
     @app.command(name="generate")
-    def generate_melt_pool_measurements(
+    def generate_process_map(
         name: str | None = None,
         build_parameters_filename: Annotated[
             str, typer.Option("--build_parameters", help="Build config filename")
@@ -77,5 +78,5 @@ def register_process_map_generate_melt_pool_measurements(app: typer.Typer):
             rprint(f"⚠️  [yellow]Unable to create build parameters file: {e}[/yellow]")
             raise typer.Exit(code=1)
 
-    _ = app.command(name="generate")(generate_melt_pool_measurements)
-    return generate_melt_pool_measurements
+    _ = app.command(name="generate")(generate_process_map)
+    return generate_process_map

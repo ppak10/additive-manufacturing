@@ -11,13 +11,14 @@ from .classification import balling, lack_of_fusion, keyhole
 from .schema import ProcessMap
 
 
+# TODO: Make better
 def generate_melt_pool_measurements(
     workspace_path: Path,
     build_parameters: BuildParameters,
     material: Material,
     process_map: ProcessMap,
     name: str,
-) -> Path:
+) -> list[dict[str, int]]:
     """
     Function to generate process map with provided configurations.
     Right now assumes the beam_power and scan_velocity are two parameters.
@@ -179,4 +180,17 @@ def generate_melt_pool_measurements(
     plt.savefig(workspace_path / "process_maps" / name / "balling.png")
     plt.close(fig)
 
-    return workspace_path
+    # Lack of Fusion values
+    lack_of_fusion_list = []
+
+    for row_index, row in enumerate(lack_of_fusion_2d):
+        for col_index, col in enumerate(row):
+            if col:
+                lack_of_fusion_list.append(
+                    {
+                        "power": y_values[row_index],
+                        "velocity": x_values[col_index],
+                    }
+                )
+
+    return lack_of_fusion_list
