@@ -20,6 +20,8 @@ def register_schema_build_parameters(app: FastMCP):
         name: str | None = "default",
         beam_diameter: QuantityInput | None = DEFAULT["beam_diameter"],
         beam_power: QuantityInput | None = DEFAULT["beam_power"],
+        hatch_spacing: QuantityInput | None = DEFAULT["hatch_spacing"],
+        layer_height: QuantityInput | None = DEFAULT["layer_height"],
         scan_velocity: QuantityInput | None = DEFAULT["scan_velocity"],
         temperature_preheat: QuantityInput | None = DEFAULT["temperature_preheat"],
     ) -> Union[ToolSuccess[Path], ToolError]:
@@ -30,6 +32,8 @@ def register_schema_build_parameters(app: FastMCP):
             name: Used in generating file name for saved build parameters
             beam_diameter: Defaults to 5e-5 meters
             beam_power: Defaults to 200 watts
+            hatch_spacing: Defaults to 50 microns
+            layer_height: Defaults to 100 microns
             scan_velocity: Defaults to 0.8 meters / second
             temperature_preheat: Defaults to 300 kelvin
         """
@@ -42,6 +46,8 @@ def register_schema_build_parameters(app: FastMCP):
             build_parameters = BuildParameters(
                 beam_diameter=beam_diameter,
                 beam_power=beam_power,
+                hatch_spacing=hatch_spacing,
+                layer_height=layer_height,
                 scan_velocity=scan_velocity,
                 temperature_preheat=temperature_preheat,
             )

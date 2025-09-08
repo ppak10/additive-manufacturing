@@ -16,8 +16,8 @@ def register_process_map_generate_process_map(app: FastMCP):
     async def process_map_generate_process_map(
         workspace: str,
         name: str | None = "default",
-        build_parameters_filename: str = "build_parameters.json",
-        material_filename: str = "material.json",
+        # build_parameters_filename: str = "build_parameters.json",
+        # material_filename: str = "material.json",
     ) -> Union[ToolSuccess[list[dict[str, int]]], ToolError]:
         """
         Creates a configuration file for build parameters.
@@ -55,12 +55,16 @@ def register_process_map_generate_process_map(app: FastMCP):
 
             # Build Parameters
             build_parameters_path = (
-                process_maps_folder / name / build_parameters_filename
+                # process_maps_folder / name / build_parameters_filename
+                process_maps_folder
+                / name
+                / "build_parameters.json"
             )
 
             build_parameters = BuildParameters.load(build_parameters_path)
 
-            material_path = process_maps_folder / name / material_filename
+            # material_path = process_maps_folder / name / material_filename
+            material_path = process_maps_folder / name / "material.json"
 
             material = Material.load(material_path)
 
