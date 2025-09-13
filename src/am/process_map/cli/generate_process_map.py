@@ -50,33 +50,33 @@ def register_process_map_generate_melt_pool_measurements(app: typer.Typer):
                 f"ℹ️  [bold]`name` not provided[/bold], using most recently initialized process_map: [green]{name}[/green]"
             )
 
-        try:
-            # Build Parameters
-            build_parameters_path = (
-                process_maps_folder / name / build_parameters_filename
-            )
+        # try:
+        # Build Parameters
+        build_parameters_path = (
+            process_maps_folder / name / build_parameters_filename
+        )
 
-            build_parameters = BuildParameters.load(build_parameters_path)
+        build_parameters = BuildParameters.load(build_parameters_path)
 
-            material_path = process_maps_folder / name / material_filename
+        material_path = process_maps_folder / name / material_filename
 
-            material = Material.load(material_path)
+        material = Material.load(material_path)
 
-            process_map_config_path = process_maps_folder / name / "config.json"
+        process_map_config_path = process_maps_folder / name / "config.json"
 
-            process_map = ProcessMap.load(process_map_config_path)
+        process_map = ProcessMap.load(process_map_config_path)
 
-            generate_melt_pool_measurements(
-                workspace_path=workspace_path,
-                build_parameters=build_parameters,
-                material=material,
-                process_map=process_map,
-                name=name,
-            )
+        generate_melt_pool_measurements(
+            workspace_path=workspace_path,
+            build_parameters=build_parameters,
+            material=material,
+            process_map=process_map,
+            name=name,
+        )
 
-        except Exception as e:
-            rprint(f"⚠️  [yellow]Unable to create build parameters file: {e}[/yellow]")
-            raise typer.Exit(code=1)
+        # except Exception as e:
+        #     rprint(f"⚠️  [yellow]Unable to create build parameters file: {e}[/yellow]")
+        #     raise typer.Exit(code=1)
 
     _ = app.command(name="generate")(generate_process_map)
     return generate_process_map

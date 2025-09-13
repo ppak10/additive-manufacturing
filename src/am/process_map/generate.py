@@ -1,188 +1,101 @@
-import matplotlib.pyplot as plt
+import multiprocessing as mp
 import numpy as np
+import sys
 
+from copy import deepcopy
 from pathlib import Path
+from pint import Quantity
 from tqdm import tqdm
 
 from am.schema import BuildParameters, Material
 from am.solver.model import Rosenthal
 
-from .classification import balling, lack_of_fusion, keyhole
+from .classification import lack_of_fusion
 from .schema import ProcessMap
+from .plot import create_lack_of_fusion_plot
 
 
-# TODO: Make better
-def generate_melt_pool_measurements(
+
+def process_layer_height_offset(
+    layer_height_offset: int,
     workspace_path: Path,
     build_parameters: BuildParameters,
     material: Material,
     process_map: ProcessMap,
-    name: str,
-) -> list[dict[str, int]]:
+    prescribed_layer_height: float,
+    process_id: int = 0,  # Add process ID for unique progress bars
+) -> tuple[int, list[dict[str, int]], np.ndarray, list, list]:
     """
-    Function to generate process map with provided configurations.
-    Right now assumes the beam_power and scan_velocity are two parameters.
-    Also generates the visuals and stuff, will move this elsewhere later.
+    Process a single layer height offset in a separate process.
+    Returns: (layer_height, lack_of_fusion_list, lack_of_fusion_2d, x_values, y_values)
     """
-
+    # Create a deep copy to avoid race conditions
+    local_build_parameters = deepcopy(build_parameters)
+    
     parameters = process_map.parameters
-
-    # i.e. [((100, 100), <measurements>), ((100, 150), <measurements>)]
     point_tuples = []
-
     length_2d = []
     length_row = []
-
     width_2d = []
     width_row = []
-
     depth_2d = []
     depth_row = []
-
     x_values = []
     y_values = []
-
-    for point in tqdm(process_map.points):
-
+    
+    # Create unique progress bar with position
+    desc = f"Layer {layer_height_offset:+3d}μm"
+    
+    for point in tqdm(
+        process_map.points, 
+        desc=desc,
+        position=process_id,  # Each process gets its own line
+        leave=True,
+        file=sys.stdout,
+        ncols=100  # Fixed width to prevent overlap
+    ):
         parameter_tuple = ()
-
-        # scanning_velocity, beam_power
         x, y = point[1].magnitude, point[0].magnitude
         if x not in x_values:
             x_values.append(x)
-
         if y not in y_values:
             if len(y_values) != 0:
                 length_2d.append(length_row)
                 length_row = []
-
                 depth_2d.append(depth_row)
                 depth_row = []
-
                 width_2d.append(width_row)
                 width_row = []
-
             y_values.append(y)
-
+        
         for index, parameter in enumerate(parameters):
-            build_parameters.__setattr__(parameter, point[index])
+            local_build_parameters.__setattr__(parameter, point[index])
             parameter_tuple = parameter_tuple + (point[index].magnitude,)
-
-        model = Rosenthal(build_parameters, material)
-
-        # TODO: Create a schema for saving measurements. Probably put this
-        # inside a schema related to process maps.
+        
+        layer_height = prescribed_layer_height + layer_height_offset
+        local_build_parameters.layer_height = Quantity(layer_height, "microns")
+        model = Rosenthal(local_build_parameters, material)
         melt_pool_dimensions = model.solve_melt_pool_dimensions()
+        
         point_tuples.append((parameter_tuple, melt_pool_dimensions))
         depth_row.append(melt_pool_dimensions.depth.magnitude)
         width_row.append(melt_pool_dimensions.width.magnitude)
         length_row.append(melt_pool_dimensions.length.magnitude)
-
-    # Add last
+    
+    # Add last rows
     depth_2d.append(depth_row)
     length_2d.append(length_row)
     width_2d.append(width_row)
-
-    keyhole_2d = keyhole(np.array(width_2d), np.array(depth_2d))
+    
     lack_of_fusion_2d = lack_of_fusion(
-        build_parameters.hatch_spacing.magnitude,
-        build_parameters.layer_height.magnitude,
+        local_build_parameters.hatch_spacing.magnitude,
+        local_build_parameters.layer_height.magnitude,
         np.array(width_2d),
         np.array(depth_2d),
     )
-    balling_2d = balling(np.array(length_2d), np.array(width_2d))
-
-    # Depth plot
-    fig, ax = plt.subplots(figsize=(6, 6))
-    im = ax.imshow(
-        depth_2d,
-        cmap="viridis",
-        origin="lower",
-        extent=[x_values[0], x_values[-1], y_values[0], y_values[-1]],
-    )
-    fig.colorbar(im, ax=ax, label="microns")
-    ax.set_title("Melt Pool Depth")
-    ax.set_xlabel("scanning_velocity (mm/s)")
-    ax.set_ylabel("beam_power (W)")
-    plt.savefig(workspace_path / "process_maps" / name / "depth.png")
-    plt.close(fig)
-
-    # Width plot
-    fig, ax = plt.subplots(figsize=(6, 6))
-    im = ax.imshow(
-        width_2d,
-        cmap="viridis",
-        origin="lower",
-        extent=[x_values[0], x_values[-1], y_values[0], y_values[-1]],
-    )
-    fig.colorbar(im, ax=ax, label="microns")
-    ax.set_title("Melt Pool Width")
-    ax.set_xlabel("scanning_velocity (mm/s)")
-    ax.set_ylabel("beam_power (W)")
-    plt.savefig(workspace_path / "process_maps" / name / "width.png")
-    plt.close(fig)
-
-    # Length plot
-    fig, ax = plt.subplots(figsize=(6, 6))
-    im = ax.imshow(
-        length_2d,
-        cmap="viridis",
-        origin="lower",
-        extent=[x_values[0], x_values[-1], y_values[0], y_values[-1]],
-    )
-    fig.colorbar(im, ax=ax, label="microns")
-    ax.set_title("Melt Pool Length")
-    ax.set_xlabel("scanning_velocity (mm/s)")
-    ax.set_ylabel("beam_power (W)")
-    plt.savefig(workspace_path / "process_maps" / name / "length.png")
-    plt.close(fig)
-
-    # Keyhole plot
-    fig, ax = plt.subplots(figsize=(6, 6))
-    im = ax.imshow(
-        keyhole_2d,
-        cmap="viridis",
-        origin="lower",
-        extent=[x_values[0], x_values[-1], y_values[0], y_values[-1]],
-    )
-    ax.set_title("Keyholing")
-    ax.set_xlabel("scanning_velocity (mm/s)")
-    ax.set_ylabel("beam_power (W)")
-    plt.savefig(workspace_path / "process_maps" / name / "keyhole.png")
-    plt.close(fig)
-
-    # Lack of Fusion plot
-    fig, ax = plt.subplots(figsize=(6, 6))
-    im = ax.imshow(
-        lack_of_fusion_2d,
-        cmap="viridis",
-        origin="lower",
-        extent=[x_values[0], x_values[-1], y_values[0], y_values[-1]],
-    )
-    ax.set_title("Lack of Fusion")
-    ax.set_xlabel("scanning_velocity (mm/s)")
-    ax.set_ylabel("beam_power (W)")
-    plt.savefig(workspace_path / "process_maps" / name / "lack_of_fusion.png")
-    plt.close(fig)
-
-    # Balling plot
-    fig, ax = plt.subplots(figsize=(6, 6))
-    im = ax.imshow(
-        balling_2d,
-        cmap="viridis",
-        origin="lower",
-        extent=[x_values[0], x_values[-1], y_values[0], y_values[-1]],
-    )
-    fig.colorbar(im, ax=ax, label="microns")
-    ax.set_title("Balling")
-    ax.set_xlabel("scanning_velocity (mm/s)")
-    ax.set_ylabel("beam_power (W)")
-    plt.savefig(workspace_path / "process_maps" / name / "balling.png")
-    plt.close(fig)
-
-    # Lack of Fusion values
+    
+    # Generate lack of fusion list
     lack_of_fusion_list = []
-
     for row_index, row in enumerate(lack_of_fusion_2d):
         for col_index, col in enumerate(row):
             if col:
@@ -192,5 +105,94 @@ def generate_melt_pool_measurements(
                         "velocity": x_values[col_index],
                     }
                 )
+    
+    actual_layer_height = prescribed_layer_height + layer_height_offset
+    
+    return actual_layer_height, lack_of_fusion_list, lack_of_fusion_2d, x_values, y_values
 
-    return lack_of_fusion_list
+
+def generate_melt_pool_measurements_with_separate_progress(
+    workspace_path: Path,
+    build_parameters: BuildParameters,
+    material: Material,
+    process_map: ProcessMap,
+    name: str,
+    max_processes: int = None,
+) -> list[tuple[int, dict[str, int]]]:
+    """
+    Multiprocessing version with separate progress bars for each process.
+    Uses ProcessPoolExecutor for better progress bar control.
+    """
+    if max_processes is None:
+        max_processes = min(3, mp.cpu_count())
+    
+    prescribed_layer_height = build_parameters.layer_height.to("microns").magnitude
+    layer_height_offsets = [-25, 0, 25]
+    
+    print(f"🚀 Starting multiprocessing with {max_processes} processes")
+    print(f"💻 System has {mp.cpu_count()} CPU cores available")
+    print("📊 Progress bars (one per process):")
+    print()  # Add space for progress bars
+    
+    import concurrent.futures
+    
+    # Use ProcessPoolExecutor for better control over individual processes
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max_processes) as executor:
+        # Submit all jobs with process IDs for unique progress bar positions
+        future_to_info = {}
+        for i, offset in enumerate(layer_height_offsets):
+            future = executor.submit(
+                process_layer_height_offset,
+                offset,
+                workspace_path,
+                build_parameters,
+                material,
+                process_map,
+                prescribed_layer_height,
+                i  # Process ID for progress bar positioning
+            )
+            future_to_info[future] = (offset, i)
+        
+        # Collect results as they complete
+        results = []
+        completed = 0
+        total = len(layer_height_offsets)
+        
+        for future in concurrent.futures.as_completed(future_to_info):
+            offset, process_id = future_to_info[future]
+            try:
+                result = future.result()
+                results.append(result)
+                completed += 1
+                # Print completion message after progress bars
+                print(f"\n✅ Process {process_id + 1}/3 (offset {offset:+d}μm) completed!")
+            except Exception as exc:
+                print(f"\n❌ Process for offset {offset} failed: {exc}")
+    
+    print(f"\n🎉 All {completed} processes completed successfully!")
+    
+    # Sort and process results
+    results.sort(key=lambda x: x[0])
+    lack_of_fusion_lists = [(r[0], r[1]) for r in results]
+    lack_of_fusion_2ds = [(r[0], r[2]) for r in results]
+    x_values = results[0][3]
+    y_values = results[0][4]
+    
+    create_lack_of_fusion_plot(
+        data_2ds=lack_of_fusion_2ds,
+        x_values=x_values,
+        y_values=y_values,
+        save_path=workspace_path / "process_maps" / name / "lack_of_fusion.png",
+        title=None,
+        xlabel="Scanning Velocity (mm/s)",
+        ylabel="Beam Power (W)",
+        is_boolean=True,
+        colorbar_label="Layer Height",
+        transparent_bg=True,
+    )
+    
+    return lack_of_fusion_lists
+
+# Alias for the main function with separate progress bars
+generate_melt_pool_measurements = generate_melt_pool_measurements_with_separate_progress
+
