@@ -13,12 +13,12 @@ def register_process_map_generate_process_map(app: FastMCP):
         description="Generates a process map using the configurations in the folder and returns a list of power and velocity combinations (W and mm/s respectively) where lack of fusion is expected.",
         structured_output=True,
     )
-    async def process_map_generate_process_map(
+    def process_map_generate_process_map(
         workspace: str,
         name: str | None = "default",
         # build_parameters_filename: str = "build_parameters.json",
         # material_filename: str = "material.json",
-    ) -> Union[ToolSuccess[list[dict[str, int]]], ToolError]:
+    ) -> Union[ToolSuccess[list[tuple[int, list[dict[str, int]]]]], ToolError]:
         """
         Creates a configuration file for build parameters.
         Args:
@@ -78,6 +78,8 @@ def register_process_map_generate_process_map(app: FastMCP):
                 material=material,
                 process_map=process_map,
                 name=name,
+                max_processes=1,
+                disable_progress=True,
             )
 
             return tool_success(lack_of_fusion_power_velocities)
