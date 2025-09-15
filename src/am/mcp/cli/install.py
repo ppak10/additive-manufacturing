@@ -19,8 +19,6 @@ def register_mcp_install(app: typer.Typer):
     ) -> None:
         import am
 
-        from am import data
-
         # Determine project root path
         if project_path:
             am_path = Path(project_path)

@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.10"
+version = "0.0.11"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
@@ -35,6 +35,9 @@ am = "am.cli:app"
 [tool.black]
 line-length = 88
 target-version = ["py310"]
+
+[tool.uv]
+include = ["am/py.typed"]
 
 [dependency-groups]
 dev = [
