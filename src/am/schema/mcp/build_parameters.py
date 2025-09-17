@@ -38,8 +38,9 @@ def register_schema_build_parameters(app: FastMCP):
             temperature_preheat: Defaults to 300 kelvin
         """
 
-        from am.cli.utils import get_workspace_path
         from am.schema import BuildParameters
+
+        from ow.cli.utils import get_workspace_path
 
         try:
             workspace_path = get_workspace_path(workspace)

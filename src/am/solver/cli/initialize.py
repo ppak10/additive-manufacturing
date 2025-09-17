@@ -2,7 +2,9 @@ import typer
 
 from rich import print as rprint
 
-from am.cli.options import VerboseOption, WorkspaceOption
+from am.cli.options import VerboseOption
+from ow.cli.options import WorkspaceOption
+
 
 def register_solver_initialize(app: typer.Typer):
     @app.command(name="initialize")
@@ -12,7 +14,7 @@ def register_solver_initialize(app: typer.Typer):
     ) -> None:
         """Initializes solver with defaults inside workspace folder."""
         from am.solver import Solver
-        from am.cli.utils import get_workspace_path
+        from ow.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 
@@ -27,4 +29,3 @@ def register_solver_initialize(app: typer.Typer):
 
     _ = app.command(name="init")(solver_initialize)
     return solver_initialize
-

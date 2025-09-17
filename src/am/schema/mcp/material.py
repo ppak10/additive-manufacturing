@@ -42,8 +42,9 @@ def register_schema_material(app: FastMCP):
             temperature_solidus: Defaults to 1683.68 kelvin
         """
 
-        from am.cli.utils import get_workspace_path
         from am.schema import Material
+
+        from ow.cli.utils import get_workspace_path
 
         try:
             workspace_path = get_workspace_path(workspace)

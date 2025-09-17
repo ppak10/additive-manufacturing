@@ -17,7 +17,6 @@ def test_main_help(runner):
     assert "Additive Manufacturing Tools" in result.stdout
     assert "segmenter" in result.stdout
     assert "solver" in result.stdout
-    assert "workspace" in result.stdout
     assert "mcp" in result.stdout
 
 
@@ -54,13 +53,6 @@ def test_solver_subcommand_exists(runner):
     result = runner.invoke(app, ["solver", "--help"])
     assert result.exit_code == 0
     assert "Solver management" in result.stdout
-
-
-def test_workspace_subcommand_exists(runner):
-    """Test workspace subcommand is available."""
-    result = runner.invoke(app, ["workspace", "--help"])
-    assert result.exit_code == 0
-    assert "Workspace management" in result.stdout
 
 
 def test_mcp_subcommand_exists(runner):

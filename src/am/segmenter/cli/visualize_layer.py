@@ -1,10 +1,10 @@
 import os
 import typer
 
-from pathlib import Path
 from rich import print as rprint
 
-from am.cli.options import VerboseOption, WorkspaceOption
+from am.cli.options import VerboseOption
+from ow.cli.options import WorkspaceOption
 
 from typing_extensions import Annotated
 
@@ -37,7 +37,8 @@ def register_segmenter_visualize_layer(app: typer.Typer):
     ) -> None:
         """Create folder for solver data inside workspace folder."""
         from am.segmenter.visualize import SegmenterVisualize
-        from am.cli.utils import get_workspace_path
+
+        from ow.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 
@@ -49,16 +50,18 @@ def register_segmenter_visualize_layer(app: typer.Typer):
             total_layers = len(os.listdir(segment_layers_path))
             z_fill = len(f"{total_layers}")
             layer_number_string = f"{layer_number}".zfill(z_fill)
-            segment_layer_file_path = segment_layers_path / f"{layer_number_string}.json"
+            segment_layer_file_path = (
+                segment_layers_path / f"{layer_number_string}.json"
+            )
 
             segmenter = SegmenterVisualize()
             _ = segmenter.load_segments(segment_layer_file_path)
 
-            print('loaded segments')
+            print("loaded segments")
 
             segmenter.visualize(
-                segments_path = segments_path,
-                visualization_name = f"layer_{layer_number_string}",
+                segments_path=segments_path,
+                visualization_name=f"layer_{layer_number_string}",
                 color=color,
                 frame_format=frame_format,
                 include_axis=include_axis,

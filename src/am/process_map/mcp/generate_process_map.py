@@ -1,6 +1,5 @@
 from mcp.server.fastmcp import FastMCP
 
-from pathlib import Path
 from typing import Union
 
 
@@ -26,10 +25,11 @@ def register_process_map_generate_process_map(app: FastMCP):
             name: Used for the process map folder
         """
 
-        from am.cli.utils import get_workspace_path
         from am.schema import BuildParameters, Material
         from am.process_map.generate import generate_melt_pool_measurements
         from am.process_map.schema import ProcessMap
+
+        from ow.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 

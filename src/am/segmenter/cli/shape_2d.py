@@ -2,7 +2,8 @@ import typer
 
 from rich import print as rprint
 
-from am.cli.options import VerboseOption, WorkspaceOption
+from am.cli.options import VerboseOption
+from ow.cli.options import WorkspaceOption
 
 from typing_extensions import Annotated
 
@@ -20,7 +21,7 @@ def register_segmenter_shape_2d(app: typer.Typer):
         verbose: VerboseOption = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
-        from am.cli.utils import get_workspace_path
+        from ow.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 
@@ -31,7 +32,9 @@ def register_segmenter_shape_2d(app: typer.Typer):
             segmenter_shape_2d = SegmenterShape2D()
             segmenter_shape_2d.generate(shape, size, distance_xy_max, units)
             segments_path = workspace_path / "segments" / segments_name
-            output_path = segmenter_shape_2d.save_segments(segments_path, verbose=verbose)
+            output_path = segmenter_shape_2d.save_segments(
+                segments_path, verbose=verbose
+            )
             rprint(f"✅ Created 2d shape `{shape}` saved at `{output_path}`")
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to create 2d shape `{shape}`: {e}[/yellow]")

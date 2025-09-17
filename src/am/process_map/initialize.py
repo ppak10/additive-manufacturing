@@ -1,5 +1,6 @@
 from pathlib import Path
 from pint import Quantity
+from ow.workspace.model import Workspace
 
 from am.schema import BuildParameters, Material
 from .schema import ProcessMap
@@ -42,6 +43,10 @@ def initialize_power_velocity_range(
             f"{scan_velocity_max}_"
             f"{scan_velocity_units}"
         )
+
+    # workspace = Workspace.load(workspace_path / "workspace.json")
+    # if "process_maps" not in workspace.subfolders:
+    #     workspace.add_subfolder("process_maps")
 
     process_map_out_path = workspace_path / "process_maps" / name
     process_map_out_path.mkdir(exist_ok=True, parents=True)
