@@ -1,8 +1,10 @@
 [![pytest](https://github.com/ppak10/additive-manufacturing/actions/workflows/pytest.yml/badge.svg)](https://github.com/ppak10/additive-manufacturing/actions/workflows/pytest.yml)
 [![codecov](https://codecov.io/github/ppak10/additive-manufacturing/graph/badge.svg?token=O827DEYWQ9)](https://codecov.io/github/ppak10/additive-manufacturing)
 
-# additive-manufacturing
-<img src="./logo/logo_icon.svg" alt="Logo" width="40" style="vertical-align:middle"/>
+<h1>
+    <img src="./logo/logo_icon.svg" alt="Logo" width="40" style="vertical-align:middle"/>
+    additive-manufacturing
+</h1>
 Additive Manufacturing related software modules
 
 ## Getting Started
