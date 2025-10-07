@@ -2,6 +2,7 @@
 [![codecov](https://codecov.io/github/ppak10/additive-manufacturing/graph/badge.svg?token=O827DEYWQ9)](https://codecov.io/github/ppak10/additive-manufacturing)
 
 # additive-manufacturing
+<img src="./logo/logo_icon.svg" alt="Logo" width="40" style="vertical-align:middle"/>
 Additive Manufacturing related software modules
 
 ## Getting Started
