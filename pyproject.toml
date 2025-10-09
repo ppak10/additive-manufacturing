@@ -9,6 +9,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "imageio>=2.37.0",
+    "jax>=0.6.2",
     "matplotlib>=3.10.3",
     "mcp>=1.12.3",
     "out-workspace>=0.0.5",
@@ -17,8 +18,6 @@ dependencies = [
     "pygcode>=0.2.1",
     "rich>=14.0.0",
     "scipy>=1.15.3",
-    "torch>=2.7.1",
-    "torchvision>=0.22.1",
     "tqdm>=4.67.1",
     "typer>=0.16.0",
 ]

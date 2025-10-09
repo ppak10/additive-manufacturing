@@ -27,12 +27,12 @@ def register_solver_measure_melt_pool_dimensions(app: typer.Typer):
         """Create folder for solver data inside workspace folder."""
         from ow.cli.utils import get_workspace_path
         from am.schema import BuildParameters, Material
-        from am.solver import Solver
+        from am.solver.layer import SolverLayer
 
         workspace_path = get_workspace_path(workspace)
 
         try:
-            solver = Solver()
+            solver = SolverLayer()
 
             # Configs
             solver_configs_path = workspace_path / "solver" / "config"

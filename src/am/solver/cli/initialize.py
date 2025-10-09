@@ -5,7 +5,7 @@ from rich import print as rprint
 from am.cli.options import VerboseOption
 from ow.cli.options import WorkspaceOption
 
-
+# TODO: Deprecate, initialization is not needed
 def register_solver_initialize(app: typer.Typer):
     @app.command(name="initialize")
     def solver_initialize(
@@ -13,13 +13,13 @@ def register_solver_initialize(app: typer.Typer):
         verbose: VerboseOption = False,
     ) -> None:
         """Initializes solver with defaults inside workspace folder."""
-        from am.solver import Solver
+        from am.solver.layer import SolverLayer
         from ow.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 
         try:
-            solver = Solver()
+            solver = SolverLayer()
             solver.create_solver_config(solver_path=workspace_path / "solver")
             solver.create_default_configs()
             rprint(f"✅ Solver initialized")

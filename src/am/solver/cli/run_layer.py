@@ -42,14 +42,14 @@ def register_solver_run_layer(app: typer.Typer):
         """Create folder for solver data inside workspace folder."""
         from ow.cli.utils import get_workspace_path
         from am.schema import BuildParameters, Material
-        from am.solver import Solver
+        from am.solver.layer import SolverLayer
         from am.solver.types import MeshConfig
         from am.segmenter.types import Segment
 
         workspace_path = get_workspace_path(workspace)
 
         try:
-            solver = Solver()
+            solver_layer = SolverLayer()
             # Segments
             segments_path = workspace_path / "segments" / segments_filename / "layers"
 
@@ -71,7 +71,7 @@ def register_solver_run_layer(app: typer.Typer):
                 solver_configs_path / "mesh" / mesh_config_filename
             )
 
-            solver.run_layer(
+            solver_layer.run(
                 segments,
                 build_parameters,
                 material,

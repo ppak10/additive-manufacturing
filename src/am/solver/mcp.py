@@ -9,7 +9,7 @@ from typing import Union
 def register_solver(app: FastMCP):
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
-    from am.solver.__main__ import SolverOutputFolder
+    from am.solver.layer import SolverOutputFolder
 
     @app.tool(
         title="Initialize Solver",
@@ -20,13 +20,13 @@ def register_solver(app: FastMCP):
         workspace_name: str,
     ) -> Union[ToolSuccess[None], ToolError]:
         """Initializes solver with defaults inside workspace folder."""
-        from am.solver import Solver
+        from am.solver.layer import SolverLayer
         from ow.cli.utils import get_workspace_path
 
         try:
             workspace_path = get_workspace_path(workspace_name)
 
-            solver = Solver()
+            solver = SolverLayer()
             solver.create_solver_config(solver_path=workspace_path / "solver")
             solver.create_default_configs()
 
@@ -138,13 +138,13 @@ def register_solver(app: FastMCP):
         from ow.cli.utils import get_workspace_path
         from am.schema import BuildParameters, Material
         from am.segmenter.types import Segment
-        from am.solver import Solver
+        from am.solver.layer import SolverLayer
         from am.solver.types import MeshConfig
 
         try:
             workspace_path = get_workspace_path(workspace)
 
-            solver = Solver()
+            solver = SolverLayer()
 
             # Segments
             segments_path = workspace_path / "segments" / segments_foldername / "layers"
@@ -169,7 +169,7 @@ def register_solver(app: FastMCP):
 
             model_name = "eagar-tsai"
 
-            run_out_path = solver.run_layer(
+            run_out_path = solver.run(
                 segments,
                 build_parameters,
                 material,
@@ -214,7 +214,7 @@ def register_solver(app: FastMCP):
     ) -> Union[ToolSuccess[Path], ToolError]:
         """Generates visualizations of mesh"""
         from ow.cli.utils import get_workspace_path
-        from am.solver import Solver
+        from am.solver.layer import SolverLayer
 
         try:
             workspace_path = get_workspace_path(workspace)
@@ -235,7 +235,7 @@ def register_solver(app: FastMCP):
 
                 run_name = run_dirs[0].name
 
-            animation_out_path = Solver.visualize_2D(
+            animation_out_path = SolverLayer.visualize_2D(
                 workspace_path,
                 run_name,
                 output_folder,

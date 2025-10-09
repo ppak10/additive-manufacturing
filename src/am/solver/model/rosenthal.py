@@ -1,6 +1,7 @@
 import numpy as np
-import torch
+import jax.numpy as jnp
 
+from jax import Array
 from pint import Quantity
 from typing import cast
 
@@ -19,13 +20,11 @@ class Rosenthal:
         build_parameters: BuildParameters,
         material: Material,
         solver_mesh: SolverMesh | None = None,
-        device: str = "cpu",
         **kwargs,
     ):
         self.build_parameters: BuildParameters = build_parameters
         self.material: Material = material
-        self.device: str = device
-        self.dtype = torch.float32
+        self.dtype = jnp.float32
         self.num: int | None = kwargs.get("num", None)
 
         # Material Properties
@@ -55,7 +54,7 @@ class Rosenthal:
         # Mesh Range
         self.solver_mesh = solver_mesh
         if solver_mesh is not None:
-            self.X, self.Y, self.Z = torch.meshgrid(
+            self.X, self.Y, self.Z = jnp.meshgrid(
                 solver_mesh.x_range_centered,
                 solver_mesh.y_range_centered,
                 solver_mesh.z_range_centered,
@@ -68,7 +67,7 @@ class Rosenthal:
                 len(solver_mesh.z_range_centered),
             )
 
-    def forward(self, segment: Segment) -> torch.Tensor:
+    def forward(self, segment: Segment) -> Array:
         """
         Provides Eagar-Tsai approximation of the melt pool centered and rotated
         within the middle of the middle of the mesh.
@@ -104,10 +103,10 @@ class Rosenthal:
         if num is None:
             num = max(1, int(dt // 1e-4))
 
-        theta = torch.ones(self.theta_shape, device=self.device, dtype=self.dtype) * t_0
+        theta = jnp.ones(self.theta_shape, dtype=self.dtype) * t_0
 
         if dt > 0:
-            for tau in torch.linspace(0, dt, steps=num, device=self.device):
+            for tau in jnp.linspace(0, dt, num):
                 result = self.solve(tau, phi, D, v, c)
                 theta += result
 
@@ -174,12 +173,12 @@ class Rosenthal:
 
     def solve(
         self,
-        tau: torch.Tensor,
+        tau: Array,
         phi: float,
         D: float,
         v: float,
         c: float,
-    ) -> torch.Tensor:
+    ) -> Array:
         # Adds in the expected distance traveled along global x and y axes.
         x_travel = -v * tau * np.cos(phi)
         y_travel = -v * tau * np.sin(phi)
@@ -188,7 +187,7 @@ class Rosenthal:
         zeta = -(self.X - x_travel)
 
         # r is the cylindrical radius composed of y and z
-        r = torch.sqrt((self.Y - y_travel) ** 2 + self.Z**2)
+        r = jnp.sqrt((self.Y - y_travel) ** 2 + self.Z**2)
 
         # Rotate the reference frame for Rosenthal by phi
         # Counterclockwise
@@ -204,13 +203,13 @@ class Rosenthal:
             r_rot = -zeta * np.sin(phi) + r * np.cos(phi)
 
         # Prevent `nan` values with minimum floor value.
-        min_R = torch.tensor(FLOOR)
+        min_R = jnp.array(FLOOR)
 
-        R = torch.max(torch.sqrt(zeta_rot**2 + r_rot**2), min_R)
+        R = jnp.maximum(jnp.sqrt(zeta_rot**2 + r_rot**2), min_R)
 
         # Rosenthal temperature contribution
         # `notes/rosenthal/#shape_of_temperature_field`
-        temp = (c / R) * torch.exp((v * (zeta_rot - R)) / (2 * D))
+        temp = (c / R) * jnp.exp((v * (zeta_rot - R)) / (2 * D))
 
         ########################
         # Temperature Clamping #
@@ -228,5 +227,5 @@ class Rosenthal:
 
         return temp
 
-    def __call__(self, segment: Segment) -> torch.Tensor:
+    def __call__(self, segment: Segment) -> Array:
         return self.forward(segment)

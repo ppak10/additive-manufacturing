@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 
 def register_solver_visualize(app: typer.Typer):
-    from am.solver.__main__ import SolverOutputFolder
+    from am.solver.layer import SolverOutputFolder
 
     @app.command(name="visualize")
     def solver_visualize(
@@ -36,7 +36,7 @@ def register_solver_visualize(app: typer.Typer):
     ) -> None:
         """Create folder for solver data inside workspace folder."""
         from ow.cli.utils import get_workspace_path
-        from am.solver import Solver
+        from am.solver.layer import SolverLayer
 
         workspace_path = get_workspace_path(workspace)
 
@@ -58,7 +58,7 @@ def register_solver_visualize(app: typer.Typer):
             )
 
         try:
-            Solver.visualize_2D(
+            SolverLayer.visualize_2D(
                 workspace_path,
                 run_name,
                 output_folder,
