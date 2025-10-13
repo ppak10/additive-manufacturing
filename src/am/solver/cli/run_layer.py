@@ -10,9 +10,11 @@ from typing_extensions import Annotated
 
 
 def register_solver_run_layer(app: typer.Typer):
-    @app.command(name="run_layer")
+    @app.command(name="run-layer")
     def solver_run_layer(
-        segments_filename: Annotated[str, typer.Argument(help="Segments filename")],
+        segments_foldername: Annotated[
+            str, typer.Argument(help="Name of the folder that contains the segments.")
+        ],
         layer_index: Annotated[
             int, typer.Argument(help="Use segments within specified layer index")
         ],
@@ -22,7 +24,7 @@ def register_solver_run_layer(app: typer.Typer):
         material_filename: Annotated[
             str, typer.Option("--material", help="Material filename")
         ] = "default.json",
-        mesh_config_filename: Annotated[
+        mesh_parameters_filename: Annotated[
             str, typer.Option("--mesh_config", help="Mesh config filename")
         ] = "default.json",
         model_name: Annotated[
@@ -39,19 +41,19 @@ def register_solver_run_layer(app: typer.Typer):
         workspace: WorkspaceOption = None,
         verbose: VerboseOption = False,
     ) -> None:
-        """Create folder for solver data inside workspace folder."""
-        from wa.cli.utils import get_workspace_path
-        from am.schema import BuildParameters, Material
+        """Run solver for a specified layer of segments."""
+        from am.schema import BuildParameters, Material, MeshParameters
         from am.solver.layer import SolverLayer
-        from am.solver.types import MeshConfig
         from am.segmenter.types import Segment
+
+        from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 
         try:
             solver_layer = SolverLayer()
             # Segments
-            segments_path = workspace_path / "segments" / segments_filename / "layers"
+            segments_path = workspace_path / "segments" / segments_foldername / "layers"
 
             # Uses number of files in segments path as total layers for zfill.
             total_layers = len(os.listdir(segments_path))
@@ -62,28 +64,30 @@ def register_solver_run_layer(app: typer.Typer):
             segments = Segment.load(segments_file_path)
 
             # Configs
-            solver_configs_path = workspace_path / "solver" / "config"
+            # TODO: Add in checks for subfolders and throw specific errors with
+            # information on how to create subfolder.
+
             build_parameters = BuildParameters.load(
                 workspace_path / "build_parameters" / build_parameters_filename
             )
             material = Material.load(workspace_path / "materials" / material_filename)
-            mesh_config = MeshConfig.load(
-                solver_configs_path / "mesh" / mesh_config_filename
+            mesh_parameters = MeshParameters.load(
+                workspace_path / "mesh_parameters" / mesh_parameters_filename
             )
 
             solver_layer.run(
                 segments,
                 build_parameters,
                 material,
-                mesh_config,
+                mesh_parameters,
                 workspace_path,
                 model_name,
                 run_name,
             )
             rprint(f"✅ Solver Finished")
         except Exception as e:
-            rprint(f"⚠️  [yellow]Unable to initialize solver: {e}[/yellow]")
+            rprint(f"⚠️  [yellow]Unable to run solver for layer: {e}[/yellow]")
             raise typer.Exit(code=1)
 
-    _ = app.command(name="run_layer")(solver_run_layer)
+    _ = app.command(name="run-layer")(solver_run_layer)
     return solver_run_layer

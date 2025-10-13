@@ -4,17 +4,14 @@
 # additive-manufacturing
 Additive Manufacturing related software modules
 
-<img src="./icon.svg" alt="Logo" width="100%"/>
+<p align="center">
+  <img src="./icon.svg" alt="Logo" width="50%">
+</p>
 
 ## Getting Started
 ### Installation
 ```bash
 uv add additive-manufacturing
-```
-
-### CLI
-```bash
-am --help
 ```
 
 ### Agent
@@ -29,5 +26,12 @@ am mcp install
 ```bash
 claude mcp remove am
 ```
+
+### CLI (`am --help`)
+#### 1. Create Workspace (via `workspace-agent`)
+```bash
+wa workspace init test
+```
+
 #### Example
 An example implementation can be found [here](https://github.com/ppak10/additive-manufacturing-agent)

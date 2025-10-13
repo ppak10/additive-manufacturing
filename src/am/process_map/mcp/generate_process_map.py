@@ -29,7 +29,7 @@ def register_process_map_generate_process_map(app: FastMCP):
         from am.process_map.generate import generate_melt_pool_measurements
         from am.process_map.schema import ProcessMap
 
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 
