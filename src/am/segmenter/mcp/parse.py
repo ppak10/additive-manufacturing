@@ -32,7 +32,7 @@ def register_segmenter_parse(app: FastMCP):
         """
 
         from am.segmenter import SegmenterParse
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         try:
             # project_root = WorkspaceConfig.get_project_root_from_package()

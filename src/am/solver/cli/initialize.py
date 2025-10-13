@@ -3,7 +3,8 @@ import typer
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
+
 
 # TODO: Deprecate, initialization is not needed
 def register_solver_initialize(app: typer.Typer):
@@ -14,7 +15,7 @@ def register_solver_initialize(app: typer.Typer):
     ) -> None:
         """Initializes solver with defaults inside workspace folder."""
         from am.solver.layer import SolverLayer
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 

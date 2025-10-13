@@ -33,7 +33,7 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
         from am.schema import BuildParameters, Material
         from am.process_map.initialize import initialize_power_velocity_range
 
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         try:
             workspace_path = get_workspace_path(workspace)

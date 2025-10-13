@@ -31,7 +31,7 @@ def register_segmenter_shape_2d(app: FastMCP):
             units: Distance units used for size and distance_xy_max.
         """
 
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace_name)
 

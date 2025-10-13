@@ -1,11 +1,10 @@
 [![pytest](https://github.com/ppak10/additive-manufacturing/actions/workflows/pytest.yml/badge.svg)](https://github.com/ppak10/additive-manufacturing/actions/workflows/pytest.yml)
 [![codecov](https://codecov.io/github/ppak10/additive-manufacturing/graph/badge.svg?token=O827DEYWQ9)](https://codecov.io/github/ppak10/additive-manufacturing)
 
-<h1>
-    additive-manufacturing
-    <img src="./logo/logo_icon.svg" alt="Logo" width="40" style="vertical-align:middle"/>
-</h1>
+# additive-manufacturing
 Additive Manufacturing related software modules
+
+<img src="./icon.svg" alt="Logo" width="100%"/>
 
 ## Getting Started
 ### Installation
@@ -25,10 +24,10 @@ am --help
 ```bash
 am mcp install
 ```
-- If updating, you will need to remove the previously existing mcp tools
+
+- If updating, you will need to remove the previously existing MCP tools
 ```bash
 claude mcp remove am
 ```
 #### Example
 An example implementation can be found [here](https://github.com/ppak10/additive-manufacturing-agent)
-

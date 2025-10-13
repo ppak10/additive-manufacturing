@@ -3,7 +3,7 @@ import typer
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
 
 from typing_extensions import Annotated
 
@@ -35,7 +35,7 @@ def register_solver_visualize(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
         from am.solver.layer import SolverLayer
 
         workspace_path = get_workspace_path(workspace)

@@ -3,7 +3,7 @@ import typer
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
 
 
 # TODO: Add in more customizability for generating build configs.
@@ -41,7 +41,7 @@ def register_schema_build_parameters(app: typer.Typer):
         """Create file for build parameters."""
         from am.schema import BuildParameters, parse_cli_input
 
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 

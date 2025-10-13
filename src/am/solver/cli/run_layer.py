@@ -4,7 +4,7 @@ import typer
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
 
 from typing_extensions import Annotated
 
@@ -40,7 +40,7 @@ def register_solver_run_layer(app: typer.Typer):
         verbose: VerboseOption = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
         from am.schema import BuildParameters, Material
         from am.solver.layer import SolverLayer
         from am.solver.types import MeshConfig

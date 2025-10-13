@@ -18,7 +18,6 @@ dependencies = [
     { name = "jax", version = "0.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "matplotlib" },
     { name = "mcp" },
-    { name = "out-workspace" },
     { name = "pint", version = "0.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pint", version = "0.25", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pydantic" },
@@ -28,6 +27,7 @@ dependencies = [
     { name = "scipy", version = "1.16.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "tqdm" },
     { name = "typer" },
+    { name = "workspace-agent" },
 ]
 
 [package.dev-dependencies]
@@ -45,7 +45,6 @@ requires-dist = [
     { name = "jax", specifier = ">=0.6.2" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "mcp", specifier = ">=1.12.3" },
-    { name = "out-workspace", specifier = ">=0.0.5" },
     { name = "pint", specifier = ">=0.24.4" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pygcode", specifier = ">=0.2.1" },
@@ -53,6 +52,7 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.15.3" },
     { name = "tqdm", specifier = ">=4.67.1" },
     { name = "typer", specifier = ">=0.16.0" },
+    { name = "workspace-agent", specifier = ">=0.0.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -1225,21 +1225,6 @@ wheels = [
 ]
 
 [[package]]
-name = "out-workspace"
-version = "0.0.9"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "mcp" },
-    { name = "pydantic" },
-    { name = "rich" },
-    { name = "typer" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/71/69/dd9cc730336f3a5347bbe7ca4145f3ac6ed2368c96edc9ab973e99d9e6e8/out_workspace-0.0.9.tar.gz", hash = "sha256:cb4e6ec59f4256f596348117c127e87fcc797f06d32c177e0894887107ec945a", size = 12309, upload-time = "2025-09-17T17:30:36.742Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/12/7d99a41d466901ea511851ad49d6cbe70697b0a7947f91bd87c13a298326/out_workspace-0.0.9-py3-none-any.whl", hash = "sha256:1e85581d831d360e35ba0a84363c45b622edd7d5e3d6d200a4f82bb0e7fb7fcc", size = 18924, upload-time = "2025-09-17T17:30:35.996Z" },
-]
-
-[[package]]
 name = "packaging"
 version = "25.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2170,4 +2155,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/1c/14/37fcdba2808a6c615681cd216fecae00413c9dab44fb2e57805ecf3eaee3/virtualenv-20.34.0.tar.gz", hash = "sha256:44815b2c9dee7ed86e387b842a84f20b93f7f417f95886ca1996a72a4138eb1a", size = 6003808, upload-time = "2025-08-13T14:24:07.464Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/76/06/04c8e804f813cf972e3262f3f8584c232de64f0cde9f703b46cf53a45090/virtualenv-20.34.0-py3-none-any.whl", hash = "sha256:341f5afa7eee943e4984a9207c025feedd768baff6753cd660c857ceb3e36026", size = 5983279, upload-time = "2025-08-13T14:24:05.111Z" },
+]
+
+[[package]]
+name = "workspace-agent"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mcp" },
+    { name = "pydantic" },
+    { name = "rich" },
+    { name = "typer" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/66/1f/b8aafc7de37d3b83bd0960149e53807e4ba364a4250a77aa26a25533cfca/workspace_agent-0.0.1.tar.gz", hash = "sha256:0bc86033020eaad3c4954159fdbd4cc59519fca8b5df29d541037aa7ea37effd", size = 12497, upload-time = "2025-10-13T18:25:49.743Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/16/55/8d7bc73eb7a2202d5e8f7b76a92c5a500dccb95e0976109160d718b4e4cc/workspace_agent-0.0.1-py3-none-any.whl", hash = "sha256:2dceea4801270147fad9bda72071328e19992e8d7e5c81b988f8cd83b8b2d2a8", size = 18832, upload-time = "2025-10-13T18:25:48.952Z" },
 ]

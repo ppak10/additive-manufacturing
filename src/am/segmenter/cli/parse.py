@@ -3,7 +3,7 @@ import typer
 from typing_extensions import Annotated
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
 
 
 def register_segmenter_parse(app: typer.Typer):
@@ -37,7 +37,7 @@ async def _segmenter_parse_async(
     from rich import print as rprint
 
     from am.segmenter import SegmenterParse
-    from ow.cli.utils import get_workspace_path
+    from wa.cli.utils import get_workspace_path
 
     workspace_path = get_workspace_path(workspace)
 
