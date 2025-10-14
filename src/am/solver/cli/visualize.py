@@ -15,11 +15,13 @@ def register_solver_visualize(app: typer.Typer):
     def solver_visualize(
         run_name: Annotated[
             str | None,
-            typer.Option("--run_name", help="Run name used for saving to mesh folder"),
+            typer.Option(
+                help="Run name used for saving to solver mesh folder, defaults to most recent run."
+            ),
         ] = None,
         output_folder: Annotated[
             SolverOutputFolder,
-            typer.Option("--output_folder", help="Select which output to visualize"),
+            typer.Option(help="Select which output to visualize"),
         ] = SolverOutputFolder.meshes,
         frame_format: Annotated[
             str, typer.Option(help="File extension to save frames in")

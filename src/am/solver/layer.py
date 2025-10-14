@@ -14,7 +14,6 @@ from .config import SolverConfig
 
 from am.schema import BuildParameters, Material, MeshParameters
 from am.segmenter.types import Segment
-# from am.solver.measure import SolverMeasure
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
 
@@ -95,8 +94,6 @@ class SolverLayer:
 
         solver_mesh = SolverMesh()
         _ = solver_mesh.initialize_grid(mesh_parameters, initial_temperature)
-
-        # solver_measure = SolverMeasure(self.config, mesh_config, material)
 
         zfill = len(f"{len(segments)}")
 
@@ -224,4 +221,3 @@ class SolverLayer:
         writer.close()
 
         return animation_out_path
-

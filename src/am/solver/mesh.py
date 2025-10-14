@@ -12,7 +12,8 @@ from typing import cast
 
 from am.segmenter.types import Segment
 from am.schema import MeshParameters
-from .gaussian import gaussian_blur_3d
+from .diffuse import apply_temperature_bc, apply_flux_bc, separable_gaussian_blur_3d
+
 
 class SolverMesh:
     def __init__(self):
@@ -47,7 +48,9 @@ class SolverMesh:
 
         self.grid: Array = jnp.array([])
 
-    def initialize_grid(self, mesh_parameters: MeshParameters, fill_value: float, dtype=jnp.float32) -> Array:
+    def initialize_grid(
+        self, mesh_parameters: MeshParameters, fill_value: float, dtype=jnp.float32
+    ) -> Array:
 
         self.x_start = mesh_parameters.x_start.to("meter").magnitude
         self.x_end = mesh_parameters.x_end.to("meter").magnitude
@@ -95,7 +98,7 @@ class SolverMesh:
         delta_time: Quantity,
         diffusivity: Quantity,
         grid_offset: float,
-        boundary_condition = "temperature"
+        boundary_condition="temperature",
     ) -> None:
         """
         Performs diffusion on `self.grid` over time delta.
@@ -118,114 +121,36 @@ class SolverMesh:
         sigma_z = diffuse_sigma / self.z_step
 
         # Compute padding values
-        pad_x = max(int(4 * sigma_x), 1)
-        pad_y = max(int(4 * sigma_y), 1)
-        pad_z = max(int(4 * sigma_z), 1)
+        truncate = 4.0
+        pad_x = max(int(truncate * sigma_x + 0.5), 1)
+        pad_y = max(int(truncate * sigma_y + 0.5), 1)
+        pad_z = max(int(truncate * sigma_z + 0.5), 1)
 
         # padding = (pad_z, pad_z, pad_y, pad_y, pad_x, pad_x)
-        padding = ((pad_x, pad_x), (pad_y, pad_y), (pad_z, pad_z))
+        # padding = ((pad_x, pad_x), (pad_y, pad_y), (pad_z, pad_z))
 
         # Meant to normalize temperature values around 0 by removing preheat.
         grid_normalized = self.grid - grid_offset
 
-        # Unsqueeze to account for batch dimension
-        # https://github.com/pytorch/pytorch/issues/72521#issuecomment-1090350222
-        # grid_normalized = grid_normalized.unsqueeze(0)
-
-        # Mirror padding
-        grid_padded = jnp.pad(grid_normalized, padding, mode="reflect")
-
-        # Squeeze back to remove batch dimension
-        # grid_padded = grid_padded.squeeze()
-
-        # Boundary conditions
-        # Temperature Boundary Condition (2019 Wolfer et al. Figure 3b)
+        # Apply boundary conditions through padding
         if boundary_condition == "temperature":
-            # X and Y values are flipped alongside boundary condition
-            # grid_padded[-pad_x:, :, :] *= -1
-            # grid_padded[:pad_x, :, :] *= -1
-            # grid_padded[:, -pad_y:, :] *= -1
-            # grid_padded[:, :pad_y, :] *= -1
-            # grid_padded[:, :, :pad_z] *= -1
-            # grid_padded[:, :, -pad_z:] *= 1
-            grid_padded = grid_padded.at[-pad_x:, :, :].set(-grid_padded[-pad_x:, :, :])
-            grid_padded = grid_padded.at[:pad_x, :, :].set(-grid_padded[:pad_x, :, :])
-            grid_padded = grid_padded.at[:, -pad_y:, :].set(-grid_padded[:, -pad_y:, :])
-            grid_padded = grid_padded.at[:, :pad_y, :].set(-grid_padded[:, :pad_y, :])
-            grid_padded = grid_padded.at[:, :, :pad_z].set(-grid_padded[:, :, :pad_z])
-            grid_padded = grid_padded.at[:, :, -pad_z:].set(grid_padded[:, :, -pad_z:])
+            # Dirichlet BC: T=0 at boundaries (reflected and negated)
+            grid_padded = apply_temperature_bc(grid_normalized, pad_x, pad_y, pad_z)
+        elif boundary_condition == "flux":
+            # Neumann BC: ∂T/∂n=0 at boundaries (reflected)
+            grid_padded = apply_flux_bc(grid_normalized, pad_x, pad_y, pad_z)
+        else:
+            raise ValueError(f"Unknown boundary condition: {boundary_condition}")
 
-        # Flux Boundary Condition (2019 Wolfer et al. Figure 3a)
-        # TODO: Double check this
-        if boundary_condition == "flux":
-            # X and Y values are mirrored alongside boundary condition
-            # grid_padded[-pad_x:, :, :] = grid_padded[-2 * pad_x : -pad_x, :, :]
-            # grid_padded[:pad_x, :, :] = grid_padded[pad_x : 2 * pad_x, :, :]
-            # grid_padded[:, -pad_y:, :] = grid_padded[:, -2 * pad_y : -pad_y, :]
-            # grid_padded[:, :pad_y, :] = grid_padded[:, pad_y : 2 * pad_y, :]
-            # grid_padded[:, :, -pad_z:] = grid_padded[:, :, -(2 * pad_z) : -pad_z]
-            # grid_padded[:, :, :pad_z] = grid_padded[:, :, pad_z : 2 * pad_z]
+        # Apply separable Gaussian convolution (much more efficient than 3D convolution)
+        grid_blurred = separable_gaussian_blur_3d(
+            grid_padded, sigma_x, sigma_y, sigma_z, truncate
+        )
 
-            grid_padded = grid_padded.at[-pad_x:, :, :].set(-grid_padded[-2 * pad_x:-pad_x, :, :])
-            grid_padded = grid_padded.at[:pad_x, :, :].set(-grid_padded[pad_x:2 * pad_x, :, :])
-            grid_padded = grid_padded.at[:, -pad_y:, :].set(-grid_padded[:, -2 * pad_y: -pad_y, :])
-            grid_padded = grid_padded.at[:, :pad_y, :].set(-grid_padded[:, pad_y : 2 * pad_y, :])
-            grid_padded = grid_padded.at[:, :, :pad_z].set(-grid_padded[:, :, -(2 * pad_z) : -pad_z])
-            grid_padded = grid_padded.at[:, :, -pad_z:].set(grid_padded[:, :, pad_z: 2 * pad_z])
+        # Crop padded regions
+        grid_cropped = grid_blurred[pad_x:-pad_x, pad_y:-pad_y, pad_z:-pad_z]
 
-        # Apply Gaussian smoothing
-        # sigma = diffuse_sigma / z_step
-        sigma = float(jnp.mean(jnp.array([sigma_x, sigma_y, sigma_z])))
-
-        blurred = gaussian_blur_3d(grid_padded, sigma=sigma, padding="SAME")
-
-        # match mode:
-        #     case "gaussian_filter":
-        #         grid_filtered = gaussian_filter(grid_padded, sigma=sigma)
-        #         # grid_filtered = torch.tensor(grid_filtered).to(device)
-        #
-        #         # Crop out the padded areas.
-        #         grid_cropped = grid_filtered[pad_x:-pad_x, pad_y:-pad_y, pad_z:-pad_z]
-        #
-        #     case "gaussian_blur":
-        #         # Doesn't seem to work properly, don't use
-        #         pass
-        #         # sigma = torch.tensor(diffuse_sigma / self.mesh["z_step"])
-        #         # kernel_size = 5
-        #         # grid_filtered = gaussian_blur(
-        #         #     grid_padded, kernel_size=[kernel_size, kernel_size], sigma=sigma
-        #         # )
-        #
-        #         # Crop out the padded areas.
-        #         # grid_cropped = grid_filtered[pad_x:-pad_x, pad_y:-pad_y, pad_z:-pad_z]
-        #
-        #     case "gaussian_convolution":
-        #         # Create a 3D Gaussian kernel
-        #         pass
-        #         # kernel_size = int(4 * sigma) | 1  # Ensure kernel size is odd
-        #         # kernel_size = max(3, kernel_size)
-        #         # x = (
-        #         #     torch.arange(kernel_size, dtype=torch.float32, device=device)
-        #         #     - (kernel_size - 1) / 2
-        #         # )
-        #         # g = torch.exp(-(x**2) / (2 * sigma**2))
-        #         # g /= g.sum()
-        #         # kernel_3d = torch.einsum("i,j,k->ijk", g, g, g).to(grid_padded.dtype)
-        #         # kernel = kernel_3d.unsqueeze(0).unsqueeze(0)
-        #         #
-        #         # grid_filtered = F.conv3d(
-        #         #     grid_padded.unsqueeze(0), kernel, padding=0
-        #         # ).squeeze(0)
-        #         #
-        #         # # Crop the padded area
-        #         # grid_cropped = grid_filtered
-        #     case _:
-        #         raise Exception(f"'{mode}' model not found")
-
-        grid_cropped = blurred[pad_x:-pad_x, pad_y:-pad_y, pad_z:-pad_z]
-
-
-        # Re-add in the preheat temperature values
+        # Add back the background temperature
         self.grid = grid_cropped + grid_offset
 
     def update_xy(self, segment: Segment, mode: str = "absolute") -> None:
@@ -264,32 +189,14 @@ class SolverMesh:
         y_roll = round(-y_offset + self.y_index)
 
         # Update prev_theta using torch.roll and subtract background temperature
-        roll = (
-            jnp.roll(theta, shift=(x_roll, y_roll, 0), axis=(0, 1, 2)) - grid_offset
-        )
+        roll = jnp.roll(theta, shift=(x_roll, y_roll, 0), axis=(0, 1, 2)) - grid_offset
         self.grid = self.grid + roll
 
     def save(self, path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        # data = {
-        #     "config": self.config.model_dump(),
-        #     "mesh_config": self.mesh_config.to_dict(),
-        #     "x_range": self.x_range.cpu(),
-        #     "y_range": self.y_range.cpu(),
-        #     "z_range": self.z_range.cpu(),
-        #     "x_range_centered": self.x_range_centered.cpu(),
-        #     "y_range_centered": self.y_range_centered.cpu(),
-        #     "z_range_centered": self.z_range_centered.cpu(),
-        #     "grid": self.grid.cpu(),
-        # }
-        #
-        # torch.save(data, path)
-
         np.savez_compressed(
             path,
-            # config=self.config.model_dump(),
-            # mesh_config=self.mesh_config.to_dict(),
             x_range=np.array(self.x_range),
             y_range=np.array(self.y_range),
             z_range=np.array(self.z_range),
@@ -357,27 +264,22 @@ class SolverMesh:
 
     @classmethod
     def load(cls, path: Path) -> "SolverMesh":
-        # data: dict[str, Any] = torch.load(path, map_location="cpu")
         data = np.load(path, allow_pickle=True)
 
-        # config = SolverConfig(**data["config"].item())
-        # mesh_config = MeshConfig.from_dict(data["mesh_config"])
-
         instance = cls()
-        # instance = cls(config, mesh_config)
         instance.x_range = jnp.array(data["x_range"])
         instance.y_range = jnp.array(data["y_range"])
         instance.z_range = jnp.array(data["z_range"])
 
-        instance.x_start = data["x_start"] 
+        instance.x_start = data["x_start"]
         instance.y_start = data["y_start"]
         instance.z_start = data["z_start"]
 
-        instance.x_end = data["x_end"] 
+        instance.x_end = data["x_end"]
         instance.y_end = data["y_end"]
         instance.z_end = data["z_end"]
 
-        instance.x_step = data["x_step"] 
+        instance.x_step = data["x_step"]
         instance.y_step = data["y_step"]
         instance.z_step = data["z_step"]
 
