@@ -3,7 +3,7 @@ import typer
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
 
 
 def register_schema_material(app: typer.Typer):
@@ -46,7 +46,7 @@ def register_schema_material(app: typer.Typer):
         """Create file for material."""
         from am.schema import Material, parse_cli_input
 
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 

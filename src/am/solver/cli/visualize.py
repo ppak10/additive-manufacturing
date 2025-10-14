@@ -3,23 +3,25 @@ import typer
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
 
 from typing_extensions import Annotated
 
 
 def register_solver_visualize(app: typer.Typer):
-    from am.solver.__main__ import SolverOutputFolder
+    from am.solver.layer import SolverOutputFolder
 
     @app.command(name="visualize")
     def solver_visualize(
         run_name: Annotated[
             str | None,
-            typer.Option("--run_name", help="Run name used for saving to mesh folder"),
+            typer.Option(
+                help="Run name used for saving to solver mesh folder, defaults to most recent run."
+            ),
         ] = None,
         output_folder: Annotated[
             SolverOutputFolder,
-            typer.Option("--output_folder", help="Select which output to visualize"),
+            typer.Option(help="Select which output to visualize"),
         ] = SolverOutputFolder.meshes,
         frame_format: Annotated[
             str, typer.Option(help="File extension to save frames in")
@@ -35,8 +37,8 @@ def register_solver_visualize(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create folder for solver data inside workspace folder."""
-        from ow.cli.utils import get_workspace_path
-        from am.solver import Solver
+        from wa.cli.utils import get_workspace_path
+        from am.solver.layer import SolverLayer
 
         workspace_path = get_workspace_path(workspace)
 
@@ -58,7 +60,7 @@ def register_solver_visualize(app: typer.Typer):
             )
 
         try:
-            Solver.visualize_2D(
+            SolverLayer.visualize_2D(
                 workspace_path,
                 run_name,
                 output_folder,

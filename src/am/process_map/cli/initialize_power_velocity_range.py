@@ -3,7 +3,7 @@ import typer
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
 
 from typing_extensions import Annotated
 
@@ -46,7 +46,7 @@ def register_process_map_initialize_power_velocity_range(app: typer.Typer):
         from am.schema import BuildParameters, Material
         from am.process_map.initialize import initialize_power_velocity_range
 
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 

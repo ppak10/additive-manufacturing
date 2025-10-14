@@ -2,7 +2,7 @@ import shutil
 import subprocess
 
 from importlib.resources import files
-from ow.mcp.install import install as install_ow
+from wa.mcp.install import install as install_wa
 from pathlib import Path
 from rich import print as rprint
 
@@ -15,17 +15,17 @@ def install(path: Path, client: str, include_agent: bool = True) -> None:
             # TODO: Handle case if agent already exists
             # (i.e. auto remove existing agent if updating.)
 
-            claude_ow_check = ["claude", "mcp", "get", "ow"]
-            rprint(f"[blue]Running command:[/blue] {' '.join(claude_ow_check)}")
+            claude_wa_check = ["claude", "mcp", "get", "wa"]
+            rprint(f"[blue]Running command:[/blue] {' '.join(claude_wa_check)}")
             result = subprocess.run(
-                claude_ow_check, capture_output=True, text=True, check=False
+                claude_wa_check, capture_output=True, text=True, check=False
             )
 
             if result.returncode != 0:
                 rprint(
-                    "[yellow]No existing MCP server found for 'out-workspace'. Installing...[/yellow]"
+                    "[yellow]No existing MCP server found for 'workspace-agent'. Installing...[/yellow]"
                 )
-                install_ow(path=path, client=client, include_agent=include_agent)
+                install_wa(path=path, client=client, include_agent=include_agent)
 
             try:
                 claude_cmd = [

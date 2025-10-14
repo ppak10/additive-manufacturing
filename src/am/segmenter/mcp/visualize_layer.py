@@ -29,7 +29,7 @@ def register_segmenter_visualize_layer(app: FastMCP):
         """
 
         from am.segmenter.visualize import SegmenterVisualize
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         try:
             workspace_path = get_workspace_path(workspace_name)

@@ -5,18 +5,15 @@ from datetime import datetime
 from enum import Enum
 from io import BytesIO
 from pathlib import Path
-from pint import Quantity, UnitRegistry
+from pint import Quantity
 from rich import print as rprint
-from typing import cast, Literal
+from typing import cast
 from tqdm import tqdm
 
 from .config import SolverConfig
 
-from am.schema import Material
+from am.schema import BuildParameters, Material, MeshParameters
 from am.segmenter.types import Segment
-from am.solver.types import MeshConfig
-from am.schema import BuildParameters
-from am.solver.measure import SolverMeasure
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
 
@@ -26,26 +23,13 @@ class SolverOutputFolder(str, Enum):
     measurements = "measurements"
 
 
-class Solver:
+class SolverLayer:
     """
     Base solver methods.
     """
 
-    def __init__(
-        self,
-        ureg_default_system: Literal["cgs", "mks"] = "cgs",
-        ureg: UnitRegistry | None = None,
-        solver_path: Path | None = None,
-        verbose: bool | None = False,
-    ):
-        self.config: SolverConfig = SolverConfig(
-            ureg_default_system=ureg_default_system,
-            solver_path=solver_path,
-        )
-
-    @property
-    def ureg(self):
-        return self.config.ureg
+    def __init__(self, solver_path: Path | None = None):
+        self.config: SolverConfig = SolverConfig(solver_path=solver_path)
 
     @property
     def solver_path(self):
@@ -77,16 +61,16 @@ class Solver:
         material_path = config_path / "materials" / "default.json"
         _ = material.save(material_path)
 
-        mesh_config = MeshConfig.create_default(self.ureg)
-        mesh_config_path = config_path / "mesh" / "default.json"
-        _ = mesh_config.save(mesh_config_path)
+        mesh_parameters = MeshParameters()
+        mesh_parameters_path = config_path / "mesh_parameters" / "default.json"
+        _ = mesh_parameters.save(mesh_parameters_path)
 
-    def run_layer(
+    def run(
         self,
         segments: list[Segment],
         build_parameters: BuildParameters,
         material: Material,
-        mesh_config: MeshConfig,
+        mesh_parameters: MeshParameters,
         workspace_path: Path,
         model_name: str = "eagar-tsai",
         run_name: str | None = None,
@@ -108,10 +92,8 @@ class Solver:
             Quantity, build_parameters.temperature_preheat
         ).magnitude
 
-        solver_mesh = SolverMesh(self.config, mesh_config)
-        _ = solver_mesh.initialize_grid(initial_temperature)
-
-        solver_measure = SolverMeasure(self.config, mesh_config, material)
+        solver_mesh = SolverMesh()
+        _ = solver_mesh.initialize_grid(mesh_parameters, initial_temperature)
 
         zfill = len(f"{len(segments)}")
 
@@ -126,7 +108,7 @@ class Solver:
         # Save solver configs
         build_parameters.save(mesh_out_path / "config" / "build_parameters.json")
         material.save(mesh_out_path / "config" / "material.json")
-        mesh_config.save(mesh_out_path / "config" / "mesh.json")
+        mesh_parameters.save(mesh_out_path / "config" / "mesh_parameters.json")
 
         # for segment_index, segment in tqdm(enumerate(segments[0:3])):
         for segment_index, segment in tqdm(enumerate(segments), total=len(segments)):
@@ -143,11 +125,11 @@ class Solver:
             # Or maybe make this asynchronous.
 
             segment_index_string = f"{segment_index}".zfill(zfill)
-            solver_measure.grid = theta
-            solver_measure.approximate_melt_pool_dimensions(segment)
-            solver_measure.save(
-                measure_out_path / "timesteps" / f"{segment_index_string}.pt"
-            )
+            # solver_measure.grid = theta
+            # solver_measure.approximate_melt_pool_dimensions(segment)
+            # solver_measure.save(
+            #     measure_out_path / "timesteps" / f"{segment_index_string}.pt"
+            # )
 
             solver_mesh.diffuse(
                 delta_time=segment.distance_xy / build_parameters.scan_velocity,
@@ -214,17 +196,17 @@ class Solver:
                     transparent=transparent,
                     units=units,
                 )
-            else:
-                solver_measure = SolverMeasure.load(timesteps_folder / timestep_file)
-                fig, _, _ = solver_measure.visualize_2D(
-                    cmap=cmap,
-                    include_axis=include_axis,
-                    label=label,
-                    vmin=vmin,
-                    vmax=vmax,
-                    transparent=transparent,
-                    units=units,
-                )
+            # else:
+            #     solver_measure = SolverMeasure.load(timesteps_folder / timestep_file)
+            #     fig, _, _ = solver_measure.visualize_2D(
+            #         cmap=cmap,
+            #         include_axis=include_axis,
+            #         label=label,
+            #         vmin=vmin,
+            #         vmax=vmax,
+            #         transparent=transparent,
+            #         units=units,
+            #     )
             fig.savefig(fig_path, dpi=600, bbox_inches="tight")
             plt.close(fig)
 
@@ -239,7 +221,3 @@ class Solver:
         writer.close()
 
         return animation_out_path
-
-    def run(self) -> None:
-        # TODO: Save for 3D implementation
-        raise NotImplementedError("Not yet implemented")

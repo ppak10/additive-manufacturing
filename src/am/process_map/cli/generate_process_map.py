@@ -3,7 +3,7 @@ import typer
 from rich import print as rprint
 
 from am.cli.options import VerboseOption
-from ow.cli.options import WorkspaceOption
+from wa.cli.options import WorkspaceOption
 
 from typing_extensions import Annotated
 
@@ -28,7 +28,7 @@ def register_process_map_generate_melt_pool_measurements(app: typer.Typer):
         from am.process_map.generate import generate_melt_pool_measurements
         from am.process_map.schema import ProcessMap
 
-        from ow.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)
 

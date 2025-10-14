@@ -1,6 +1,7 @@
+import jax.numpy as jnp
 import numpy as np
-import torch
 
+from jax import Array
 from pint import Quantity
 from scipy import integrate
 from typing import cast
@@ -18,13 +19,11 @@ class EagarTsai:
         build_parameters: BuildParameters,
         material: Material,
         solver_mesh: SolverMesh,
-        device: str = "cpu",
         **kwargs,
     ):
         self.build_parameters: BuildParameters = build_parameters
         self.material: Material = material
-        self.device: str = device
-        self.dtype = torch.float32
+        self.dtype = jnp.float32
         self.num: int | None = kwargs.get("num", None)
 
         # Material Properties
@@ -53,9 +52,9 @@ class EagarTsai:
         ).to("kelvin")
 
         # Mesh Range
-        self.X: torch.Tensor = solver_mesh.x_range_centered[:, None, None, None]
-        self.Y: torch.Tensor = solver_mesh.y_range_centered[None, :, None, None]
-        self.Z: torch.Tensor = solver_mesh.z_range_centered[None, None, :, None]
+        self.X: Array = solver_mesh.x_range_centered[:, None, None, None]
+        self.Y: Array = solver_mesh.y_range_centered[None, :, None, None]
+        self.Z: Array = solver_mesh.z_range_centered[None, None, :, None]
 
         self.theta_shape: tuple[int, int, int] = (
             len(solver_mesh.x_range_centered),
@@ -63,7 +62,7 @@ class EagarTsai:
             len(solver_mesh.z_range_centered),
         )
 
-    def forward(self, segment: Segment) -> torch.Tensor:
+    def forward(self, segment: Segment) -> Array:
         """
         Provides Eagar-Tsai approximation of the melt pool centered and rotated
         within the middle of the middle of the mesh.
@@ -95,7 +94,7 @@ class EagarTsai:
 
         dt = distance_xy / v
 
-        theta = torch.ones(self.theta_shape, device=self.device, dtype=self.dtype) * t_0
+        theta = jnp.ones(self.theta_shape, dtype=self.dtype) * t_0
 
         num = self.num
         if num is None:
@@ -105,7 +104,7 @@ class EagarTsai:
             result, _ = integrate.fixed_quad(
                 self.solve, FLOOR, dt, args=(phi, D, sigma, v, c), n=num
             )
-            result_tensor = torch.tensor(result)
+            result_tensor = jnp.array(result)
             theta += result_tensor
 
         return theta
@@ -131,20 +130,20 @@ class EagarTsai:
 
         # Wolfer et al. Equation A.3
         termy = sigma * lmbda * np.sqrt(2 * np.pi) / (gamma)
-        yexp1 = np.exp(-1 * ((self.Y.cpu().numpy() - y_travel) ** 2) / (gamma**2))
+        yexp1 = np.exp(-1 * ((self.Y - y_travel) ** 2) / (gamma**2))
         yintegral = termy * yexp1
 
         # Wolfer et al. Equation A.2
         termx = termy
-        xexp1 = np.exp(-1 * ((self.X.cpu().numpy() - x_travel) ** 2) / (gamma**2))
+        xexp1 = np.exp(-1 * ((self.X - x_travel) ** 2) / (gamma**2))
         xintegral = termx * xexp1
 
         # Wolfer et al. Equation 18
-        zintegral = 2 * np.exp(-(self.Z.cpu().numpy() ** 2) / (4 * D * tau))
+        zintegral = 2 * np.exp(-(self.Z ** 2) / (4 * D * tau))
 
         # Wolfer et al. Equation 16
         result = c * start * yintegral * xintegral * zintegral
         return result
 
-    def __call__(self, segment: Segment) -> torch.Tensor:
+    def __call__(self, segment: Segment) -> Array:
         return self.forward(segment)

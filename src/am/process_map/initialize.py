@@ -1,6 +1,6 @@
 from pathlib import Path
 from pint import Quantity
-from ow.workspace.model import Workspace
+from wa.workspace.model import Workspace
 
 from am.schema import BuildParameters, Material
 from .schema import ProcessMap
