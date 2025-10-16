@@ -6,7 +6,7 @@ from typing import Any, TypeVar
 
 from typing_extensions import cast, ClassVar, TypedDict
 
-from am.schema.quantity import QuantityDict
+from pintdantic import QuantityDict
 
 T = TypeVar("T", bound="ProcessMap")
 

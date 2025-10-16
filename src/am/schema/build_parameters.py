@@ -1,6 +1,6 @@
 from typing_extensions import TypedDict
 
-from .quantity import QuantityDict, QuantityModel, QuantityField
+from pintdantic import QuantityDict, QuantityModel, QuantityField
 
 DEFAULT = {
     "beam_diameter": (5e-5, "meter"),

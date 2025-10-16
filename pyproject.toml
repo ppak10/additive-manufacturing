@@ -13,6 +13,7 @@ dependencies = [
     "matplotlib>=3.10.3",
     "mcp>=1.12.3",
     "pint>=0.24.4",
+    "pintdantic>=0.0.1",
     "pydantic>=2.11.7",
     "pygcode>=0.2.1",
     "rich>=14.0.0",

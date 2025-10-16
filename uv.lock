@@ -20,6 +20,7 @@ dependencies = [
     { name = "mcp" },
     { name = "pint", version = "0.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pint", version = "0.25", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pintdantic" },
     { name = "pydantic" },
     { name = "pygcode" },
     { name = "rich" },
@@ -53,6 +54,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "mcp", specifier = ">=1.12.3" },
     { name = "pint", specifier = ">=0.24.4" },
+    { name = "pintdantic", specifier = ">=0.0.1" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pygcode", specifier = ">=0.2.1" },
     { name = "rich", specifier = ">=14.0.0" },
@@ -1655,6 +1657,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5a/cb/e6ffaf3d019e8501b1264dac529bf829ac2f1fe1d488cfcf67f1fccadacf/pint-0.25.tar.gz", hash = "sha256:22911a30d682ee0540d656571c19a7b1806ce00b2be88a16f67218108b7b8cc2", size = 253010, upload-time = "2025-08-15T19:49:12.72Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/76/cc/c528311d798e22ec884b816e8aa2989e0f1f28cdc8e5969e2be5f10bce85/pint-0.25-py3-none-any.whl", hash = "sha256:cc20ae3dff010b9bbea41fb80c2de008f683cc83512cea73633d55aead80aa1e", size = 305462, upload-time = "2025-08-15T19:49:11.083Z" },
+]
+
+[[package]]
+name = "pintdantic"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pint", version = "0.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pint", version = "0.25", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/83/d4/31c5242e9932e126125096e22cdbfc29aa930cd5eb2129cc9fbd82b2f55d/pintdantic-0.0.1.tar.gz", hash = "sha256:ccb729b94d7a15959e8bc13142bb71ccc2d374c6ff7778d96dd3d2baa81c24b4", size = 4804, upload-time = "2025-09-17T21:28:50.712Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/82/14ea72181ba37f7dcc526efe9c41d42a27f4cececedbc66c28f7ec3af6a2/pintdantic-0.0.1-py3-none-any.whl", hash = "sha256:3583c9be6a5ff38be2555a0782113f432e652271721203f67d7c1e43f50129e9", size = 5731, upload-time = "2025-09-17T21:28:49.793Z" },
 ]
 
 [[package]]

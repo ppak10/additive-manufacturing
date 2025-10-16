@@ -1,7 +1,7 @@
 from typing_extensions import cast, Literal, TypedDict
 from pint import Quantity
 
-from .quantity import QuantityDict, QuantityModel, QuantityField
+from pintdantic import QuantityDict, QuantityModel, QuantityField
 
 DEFAULT = {
     "x_step": (25, "micrometer"),

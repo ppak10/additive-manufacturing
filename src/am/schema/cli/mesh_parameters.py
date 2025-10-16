@@ -73,8 +73,8 @@ def register_schema_mesh_parameters(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create file for mesh parameters."""
-        from am.schema import MeshParameters, parse_cli_input
-
+        from am.schema import MeshParameters
+        from pintdantic import parse_cli_input
         from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)

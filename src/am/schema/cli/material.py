@@ -44,8 +44,9 @@ def register_schema_material(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create file for material."""
-        from am.schema import Material, parse_cli_input
+        from am.schema import Material
 
+        from pintdantic import parse_cli_input
         from wa.cli.utils import get_workspace_path
 
         workspace_path = get_workspace_path(workspace)

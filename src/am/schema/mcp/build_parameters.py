@@ -5,9 +5,10 @@ from typing import Union
 
 
 def register_schema_build_parameters(app: FastMCP):
+    from pintdantic import QuantityInput
+
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
-    from am.schema import QuantityInput
     from am.schema.build_parameters import DEFAULT
 
     @app.tool(

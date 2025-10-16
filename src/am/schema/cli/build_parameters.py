@@ -39,9 +39,10 @@ def register_schema_build_parameters(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create file for build parameters."""
-        from am.schema import BuildParameters, parse_cli_input
-
+        from pintdantic import parse_cli_input
         from wa.cli.utils import get_workspace_path
+
+        from am.schema import BuildParameters
 
         workspace_path = get_workspace_path(workspace)
 
