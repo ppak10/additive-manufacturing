@@ -21,6 +21,7 @@ def register_solver_run_layer(app: FastMCP):
         build_parameters_filename: str = "default.json",
         material_filename: str = "default.json",
         mesh_config_filename: str = "default.json",
+        model_name: str = "eagar-tsai",
         run_name: str | None = None,
     ) -> ToolSuccess[Path] | ToolError:
         """
@@ -57,16 +58,13 @@ def register_solver_run_layer(app: FastMCP):
             segments = Segment.load(segments_file_path)
 
             # Configs
-            solver_configs_path = workspace_path / "solver" / "config"
             build_parameters = BuildParameters.load(
                 workspace_path / "build_parameters" / build_parameters_filename
             )
             material = Material.load(workspace_path / "materials" / material_filename)
             mesh_parameters = MeshParameters.load(
-                solver_configs_path / "mesh" / mesh_config_filename
+                workspace_path / "mesh_parameters" / mesh_config_filename
             )
-
-            model_name = "eagar-tsai"
 
             run_out_path = solver.run(
                 segments,

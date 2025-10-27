@@ -168,3 +168,6 @@ dev
 out
 
 !src/am/data/solver/build/
+
+*.DS_Store
+
