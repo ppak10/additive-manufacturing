@@ -19,7 +19,7 @@ dependencies = [
     "rich>=14.0.0",
     "scipy>=1.15.3",
     "tqdm>=4.67.1",
-    "trimesh>=4.9.0",
+    "trimesh[easy]>=4.9.0",
     "typer>=0.16.0",
     "workspace-agent>=0.0.1",
 ]
