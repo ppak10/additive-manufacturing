@@ -6,10 +6,16 @@ from pathlib import Path
 from pygcode import Line, words2dict, GCodeLinearMove, GCode
 from pint import Quantity, Unit
 from typing import cast
+from typing_extensions import TypedDict
 from tqdm import tqdm
 
-from .types import Command, Segment
+from am.schema import Segment
 
+class Command(TypedDict):
+    x: Quantity
+    y: Quantity
+    z: Quantity
+    e: Quantity
 
 class SegmenterParse:
     """

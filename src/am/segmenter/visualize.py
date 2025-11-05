@@ -9,8 +9,7 @@ from pint import Quantity
 from tqdm import tqdm
 from typing import cast
 
-from .types import Segment, SegmentDict
-
+from am.schema import Segment, SegmentDict
 
 class SegmenterVisualize:
     """
@@ -44,7 +43,6 @@ class SegmenterVisualize:
         if visualization_name is None:
             visualization_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
 
-        cwd = Path.cwd()
         visualization_path = segments_path / "visualizations" / visualization_name
         visualization_path.mkdir(exist_ok=True, parents=True)
 

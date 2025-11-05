@@ -12,8 +12,7 @@ from tqdm import tqdm
 
 from .config import SolverConfig
 
-from am.schema import BuildParameters, Material, MeshParameters
-from am.segmenter.types import Segment
+from am.schema import BuildParameters, Material, MeshParameters, Segment
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
 

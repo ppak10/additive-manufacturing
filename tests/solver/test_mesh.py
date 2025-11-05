@@ -6,9 +6,9 @@ import tempfile
 from pathlib import Path
 from pint import Quantity
 
+from am.schema import Segment
 from am.solver.mesh import SolverMesh
 from am.solver.types import MeshConfig
-from am.segmenter.types import Segment
 
 
 @pytest.fixture

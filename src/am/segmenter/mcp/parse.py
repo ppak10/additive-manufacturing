@@ -3,7 +3,6 @@ from mcp.server.fastmcp import FastMCP, Context
 from pathlib import Path
 from typing import Union
 
-
 def register_segmenter_parse(app: FastMCP):
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error

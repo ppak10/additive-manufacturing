@@ -5,11 +5,9 @@ from jax import Array
 from pint import Quantity
 from typing import cast
 
-from am.schema import BuildParameters, Material
+from am.schema import BuildParameters, Material, Segment
 from am.solver.types import MeltPoolDimensions
 from am.solver.mesh import SolverMesh
-from am.segmenter.types import Segment
-
 
 FLOOR = 10**-7  # Float32
 

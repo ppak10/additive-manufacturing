@@ -42,9 +42,10 @@ def register_solver_run_layer(app: typer.Typer):
         verbose: VerboseOption = False,
     ) -> None:
         """Run solver for a specified layer of segments."""
-        from am.schema import BuildParameters, Material, MeshParameters
+        import json
+
+        from am.schema import BuildParameters, Material, MeshParameters, Segment
         from am.solver.layer import SolverLayer
-        from am.segmenter.types import Segment
 
         from wa.cli.utils import get_workspace_path
 
@@ -61,7 +62,11 @@ def register_solver_run_layer(app: typer.Typer):
             layer_index_string = f"{layer_index}".zfill(z_fill)
             segments_file_path = segments_path / f"{layer_index_string}.json"
 
-            segments = Segment.load(segments_file_path)
+            # TODO: Settle on a better way to handle loading of lists of a particular schema.
+            with open(segments_file_path, 'r') as f:
+                segments_data = json.load(f)
+            segments = [Segment(**seg_data) for seg_data in segments_data]
+            # segments = Segment.load(segments_file_path)
 
             # Configs
             # TODO: Add in checks for subfolders and throw specific errors with
