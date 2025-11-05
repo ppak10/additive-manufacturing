@@ -3,7 +3,7 @@ from pathlib import Path
 from pint import Quantity
 from pydantic import ValidationError
 
-from am.schema import BuildParameters
+from am.config import BuildParameters
 
 # -------------------------------
 # Parsing / validation tests

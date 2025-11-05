@@ -6,11 +6,11 @@ from am.cli.options import VerboseOption
 from wa.cli.options import WorkspaceOption
 
 
-def register_schema_material(app: typer.Typer):
-    from am.schema.material import DEFAULT
+def register_config_material(app: typer.Typer):
+    from am.config.material import DEFAULT
 
     @app.command(name="material")
-    def schema_material(
+    def config_material(
         name: str | None = "default",
         specific_heat_capacity: str | None = typer.Option(
             DEFAULT["specific_heat_capacity"],
@@ -44,7 +44,7 @@ def register_schema_material(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create file for material."""
-        from am.schema import Material
+        from am.config import Material
 
         from pintdantic import parse_cli_input
         from wa.cli.utils import get_workspace_path
@@ -67,5 +67,5 @@ def register_schema_material(app: typer.Typer):
             rprint(f"⚠️  [yellow]Unable to create material file: {e}[/yellow]")
             raise typer.Exit(code=1)
 
-    _ = app.command(name="material")(schema_material)
-    return schema_material
+    _ = app.command(name="material")(config_material)
+    return config_material

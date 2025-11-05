@@ -1,8 +1,8 @@
 import typer
 
 app = typer.Typer(
-    name="schema",
-    help="Create schema used within package methods",
+    name="config",
+    help="Create configuration files used within package methods.",
     add_completion=False,
     no_args_is_help=True,
 )

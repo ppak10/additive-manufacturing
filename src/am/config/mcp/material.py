@@ -4,19 +4,19 @@ from pathlib import Path
 from typing import Union
 
 
-def register_schema_material(app: FastMCP):
+def register_config_material(app: FastMCP):
     from pintdantic import QuantityInput
 
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
-    from am.schema.material import DEFAULT
+    from am.config.material import DEFAULT
 
     @app.tool(
-        title="Material Schema",
+        title="Generate Material Configuration File",
         description="Creates a configuration file for material properties such as temperature, absorptivity, density, etc.",
         structured_output=True,
     )
-    async def schema_material(
+    async def config_material(
         workspace: str,
         name: str = "default",
         specific_heat_capacity: QuantityInput | None = DEFAULT[
@@ -43,7 +43,7 @@ def register_schema_material(app: FastMCP):
             temperature_solidus: Defaults to 1683.68 kelvin
         """
 
-        from am.schema import Material
+        from am.config import Material
 
         from wa.cli.utils import get_workspace_path
 
@@ -75,10 +75,10 @@ def register_schema_material(app: FastMCP):
         except Exception as e:
             return tool_error(
                 "Failed to create Material file",
-                "SCHEMA_MATERIAL_FAILED",
+                "CONFIG_MATERIAL_FAILED",
                 workspace_name=workspace,
                 exception_type=type(e).__name__,
                 exception_message=str(e),
             )
 
-    _ = schema_material
+    _ = config_material

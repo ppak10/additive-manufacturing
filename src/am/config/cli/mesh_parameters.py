@@ -6,11 +6,11 @@ from am.cli.options import VerboseOption
 from wa.cli.options import WorkspaceOption
 
 
-def register_schema_mesh_parameters(app: typer.Typer):
-    from am.schema.mesh_parameters import DEFAULT
+def register_config_mesh_parameters(app: typer.Typer):
+    from am.config.mesh_parameters import DEFAULT
 
     @app.command(name="mesh-parameters")
-    def schema_mesh_parameters(
+    def config_mesh_parameters(
         name: str | None = "default",
         x_step: str | None = typer.Option(
             DEFAULT["x_step"], help='Valid formats: 5, "5", "5 um", "(5, \'um\')"'
@@ -73,7 +73,7 @@ def register_schema_mesh_parameters(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create file for mesh parameters."""
-        from am.schema import MeshParameters
+        from am.config import MeshParameters
         from pintdantic import parse_cli_input
         from wa.cli.utils import get_workspace_path
 
@@ -107,5 +107,5 @@ def register_schema_mesh_parameters(app: typer.Typer):
             rprint(f"⚠️  [yellow]Unable to create mesh parameters file: {e}[/yellow]")
             raise typer.Exit(code=1)
 
-    _ = app.command(name="mesh-parameters")(schema_mesh_parameters)
-    return schema_mesh_parameters
+    _ = app.command(name="mesh-parameters")(config_mesh_parameters)
+    return config_mesh_parameters

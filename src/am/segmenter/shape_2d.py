@@ -6,7 +6,7 @@ from pint import Quantity
 from typing import cast
 from tqdm import tqdm
 
-from am.schema import Segment
+from am.config import Segment
 
 class Shape(str, Enum):
     line = "line"

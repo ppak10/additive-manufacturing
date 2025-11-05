@@ -3,7 +3,7 @@ from pathlib import Path
 from pint import Quantity
 from pydantic import ValidationError
 
-from am.schema.mesh_parameters import MeshParameters
+from am.config.mesh_parameters import MeshParameters
 
 # -------------------------------
 # Parsing / validation tests

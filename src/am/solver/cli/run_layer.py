@@ -44,7 +44,7 @@ def register_solver_run_layer(app: typer.Typer):
         """Run solver for a specified layer of segments."""
         import json
 
-        from am.schema import BuildParameters, Material, MeshParameters, Segment
+        from am.config import BuildParameters, Material, MeshParameters, Segment
         from am.solver.layer import SolverLayer
 
         from wa.cli.utils import get_workspace_path

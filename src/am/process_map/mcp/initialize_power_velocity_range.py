@@ -30,7 +30,7 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
             name: Used for the process map folder
         """
 
-        from am.schema import BuildParameters, Material
+        from am.config import BuildParameters, Material
         from am.process_map.initialize import initialize_power_velocity_range
 
         from wa.cli.utils import get_workspace_path

@@ -7,11 +7,11 @@ from wa.cli.options import WorkspaceOption
 
 
 # TODO: Add in more customizability for generating build configs.
-def register_schema_build_parameters(app: typer.Typer):
-    from am.schema.build_parameters import DEFAULT
+def register_config_build_parameters(app: typer.Typer):
+    from am.config.build_parameters import DEFAULT
 
     @app.command(name="build-parameters")
-    def schema_build_parameters(
+    def config_build_parameters(
         name: str | None = "default",
         beam_diameter: str | None = typer.Option(
             DEFAULT["beam_diameter"], help='Valid formats: 5, "5", "5 m", "(5, \'m\')"'
@@ -42,7 +42,7 @@ def register_schema_build_parameters(app: typer.Typer):
         from pintdantic import parse_cli_input
         from wa.cli.utils import get_workspace_path
 
-        from am.schema import BuildParameters
+        from am.config import BuildParameters
 
         workspace_path = get_workspace_path(workspace)
 
@@ -61,5 +61,5 @@ def register_schema_build_parameters(app: typer.Typer):
             rprint(f"⚠️  [yellow]Unable to create build parameters file: {e}[/yellow]")
             raise typer.Exit(code=1)
 
-    _ = app.command(name="build-parameters")(schema_build_parameters)
-    return schema_build_parameters
+    _ = app.command(name="build-parameters")(config_build_parameters)
+    return config_build_parameters

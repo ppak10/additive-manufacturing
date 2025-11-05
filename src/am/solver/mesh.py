@@ -10,7 +10,7 @@ from pathlib import Path
 from pint import Quantity
 from typing import cast
 
-from am.schema import MeshParameters, Segment
+from am.config import MeshParameters, Segment
 from .diffuse import apply_temperature_bc, apply_flux_bc, separable_gaussian_blur_3d
 
 

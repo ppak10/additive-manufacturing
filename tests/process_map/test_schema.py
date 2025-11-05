@@ -1,11 +1,9 @@
-import pytest
 import json
 import tempfile
 from pathlib import Path
 from pint import Quantity
 
-from am.process_map.schema import ProcessMap, ProcessMapDict
-
+from am.process_map.schema import ProcessMap
 
 class TestProcessMap:
     def test_empty_initialization(self):

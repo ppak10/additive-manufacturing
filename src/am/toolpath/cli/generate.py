@@ -7,7 +7,7 @@ from wa.cli.options import WorkspaceOption
 
 
 def register_toolpath_generate(app: typer.Typer):
-    from am.schema.build_parameters import DEFAULT
+    from am.config.build_parameters import DEFAULT
 
     @app.command(name="generate")
     def toolpath_generate(
@@ -27,7 +27,7 @@ def register_toolpath_generate(app: typer.Typer):
         """
         from rich import print as rprint
 
-        from am.schema import BuildParameters
+        from am.config import BuildParameters
         from am.toolpath import ToolpathSlicerPlanar
 
         from wa.cli.utils import get_workspace_path

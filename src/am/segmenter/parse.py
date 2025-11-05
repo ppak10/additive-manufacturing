@@ -9,7 +9,7 @@ from typing import cast
 from typing_extensions import TypedDict
 from tqdm import tqdm
 
-from am.schema import Segment
+from am.config import Segment
 
 class Command(TypedDict):
     x: Quantity

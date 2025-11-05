@@ -12,7 +12,7 @@ from pint import Quantity
 from shapely.geometry import LineString
 from typing import cast
 
-from am.schema import BuildParameters
+from am.config import BuildParameters
 
 class ToolpathOutputFolder(str, Enum):
     toolpaths = "toolpaths"

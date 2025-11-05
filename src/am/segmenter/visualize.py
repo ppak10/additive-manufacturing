@@ -9,7 +9,7 @@ from pint import Quantity
 from tqdm import tqdm
 from typing import cast
 
-from am.schema import Segment, SegmentDict
+from am.config import Segment, SegmentDict
 
 class SegmenterVisualize:
     """

@@ -3,7 +3,7 @@ from pathlib import Path
 from pint import Quantity
 from pydantic import ValidationError
 
-from am.schema.segment import Segment
+from am.config.segment import Segment
 
 # -------------------------------
 # Parsing / validation tests

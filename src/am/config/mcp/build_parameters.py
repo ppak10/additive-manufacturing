@@ -4,19 +4,19 @@ from pathlib import Path
 from typing import Union
 
 
-def register_schema_build_parameters(app: FastMCP):
+def register_config_build_parameters(app: FastMCP):
     from pintdantic import QuantityInput
 
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
-    from am.schema.build_parameters import DEFAULT
+    from am.config.build_parameters import DEFAULT
 
     @app.tool(
-        title="Build Parameters Schema",
+        title="Generate Build Parameters Configuration File",
         description="Creates a configuration file for build parameters such as beam_diameter, beam_power, scan_velocity, and temperature_preheat",
         structured_output=True,
     )
-    async def schema_build_parameters(
+    async def config_build_parameters(
         workspace: str,
         name: str | None = "default",
         beam_diameter: QuantityInput | None = DEFAULT["beam_diameter"],
@@ -39,7 +39,7 @@ def register_schema_build_parameters(app: FastMCP):
             temperature_preheat: Defaults to 300 kelvin
         """
 
-        from am.schema import BuildParameters
+        from am.config import BuildParameters
 
         from wa.cli.utils import get_workspace_path
 
@@ -69,10 +69,10 @@ def register_schema_build_parameters(app: FastMCP):
         except Exception as e:
             return tool_error(
                 "Failed to create Build Parameters file",
-                "SCHEMA_BUILD_PARAMETERS_FAILED",
+                "CONFIG_BUILD_PARAMETERS_FAILED",
                 workspace_name=workspace,
                 exception_type=type(e).__name__,
                 exception_message=str(e),
             )
 
-    _ = schema_build_parameters
+    _ = config_build_parameters

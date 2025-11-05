@@ -25,7 +25,7 @@ def register_process_map_generate_process_map(app: FastMCP):
             name: Used for the process map folder
         """
 
-        from am.schema import BuildParameters, Material
+        from am.config import BuildParameters, Material
         from am.process_map.generate import generate_melt_pool_measurements
         from am.process_map.schema import ProcessMap
 

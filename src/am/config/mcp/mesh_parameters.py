@@ -4,19 +4,19 @@ from pathlib import Path
 from typing import Union
 
 
-def register_schema_mesh_parameters(app: FastMCP):
+def register_config_mesh_parameters(app: FastMCP):
     from pintdantic import QuantityInput
 
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
-    from am.schema.mesh_parameters import DEFAULT
+    from am.config.mesh_parameters import DEFAULT
 
     @app.tool(
-        title="Mesh Parameters Schema",
+        title="Generate Mesh Parameters Configuration File",
         description="Creates a configuration file for mesh parameters such as step sizes, bounds, initial positions, and padding",
         structured_output=True,
     )
-    async def schema_mesh_parameters(
+    async def config_mesh_parameters(
         workspace: str,
         name: str | None = "default",
         x_step: QuantityInput | None = DEFAULT["x_step"],
@@ -65,7 +65,7 @@ def register_schema_mesh_parameters(app: FastMCP):
             boundary_condition: Defaults to "temperature"
         """
 
-        from am.schema import MeshParameters
+        from am.config import MeshParameters
 
         from wa.cli.utils import get_workspace_path
 
@@ -114,4 +114,4 @@ def register_schema_mesh_parameters(app: FastMCP):
                 exception_message=str(e),
             )
 
-    _ = schema_mesh_parameters
+    _ = config_mesh_parameters

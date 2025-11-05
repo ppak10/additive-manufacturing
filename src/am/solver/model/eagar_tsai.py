@@ -6,7 +6,7 @@ from pint import Quantity
 from scipy import integrate
 from typing import cast
 
-from am.schema import BuildParameters, Material, Segment
+from am.config import BuildParameters, Material, Segment
 from am.solver.mesh import SolverMesh
 
 FLOOR = 10**-7  # Float32
