@@ -8,13 +8,13 @@ from pint import Quantity
 
 from am.config import Segment
 from am.solver.mesh import SolverMesh
-from am.solver.types import MeshConfig
+from am.config import MeshParameters
 
 
 @pytest.fixture
 def mesh_config():
     """Create a simple MeshConfig for testing."""
-    return MeshConfig(
+    return MeshParameters(
         x_step=Quantity(0.1, "mm"),
         y_step=Quantity(0.1, "mm"),
         z_step=Quantity(0.1, "mm"),

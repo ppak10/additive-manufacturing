@@ -92,7 +92,7 @@ def register_config_mesh_parameters(app: FastMCP):
                 z_end_pad=z_end_pad,
                 boundary_condition=boundary_condition,
             )
-            save_path = workspace_path / "mesh_parameters" / f"{name}.json"
+            save_path = workspace_path / "config" / "mesh_parameters" / f"{name}.json"
             mesh_parameters.save(save_path)
 
             return tool_success(save_path)

@@ -64,11 +64,11 @@ def register_solver_run_layer(app: FastMCP):
 
             # Configs
             build_parameters = BuildParameters.load(
-                workspace_path / "build_parameters" / build_parameters_filename
+                workspace_path / "config" / "build_parameters" / build_parameters_filename
             )
-            material = Material.load(workspace_path / "materials" / material_filename)
+            material = Material.load(workspace_path / "config" / "materials" / material_filename)
             mesh_parameters = MeshParameters.load(
-                workspace_path / "mesh_parameters" / mesh_config_filename
+                workspace_path / "config" / "mesh_parameters" / mesh_config_filename
             )
 
             run_out_path = solver.run(

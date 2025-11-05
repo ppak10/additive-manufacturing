@@ -55,7 +55,7 @@ def register_config_build_parameters(app: typer.Typer):
                 scan_velocity=parse_cli_input(scan_velocity),
                 temperature_preheat=parse_cli_input(temperature_preheat),
             )
-            save_path = workspace_path / "build_parameters" / f"{name}.json"
+            save_path = workspace_path / "config" / "build_parameters" / f"{name}.json"
             build_parameters.save(save_path)
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to create build parameters file: {e}[/yellow]")

@@ -53,7 +53,7 @@ def register_config_build_parameters(app: FastMCP):
                 scan_velocity=scan_velocity,
                 temperature_preheat=temperature_preheat,
             )
-            save_path = workspace_path / "build_parameters" / f"{name}.json"
+            save_path = workspace_path / "config" / "build_parameters" / f"{name}.json"
             build_parameters.save(save_path)
 
             return tool_success(save_path)

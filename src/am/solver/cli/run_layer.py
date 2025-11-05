@@ -73,11 +73,11 @@ def register_solver_run_layer(app: typer.Typer):
             # information on how to create subfolder.
 
             build_parameters = BuildParameters.load(
-                workspace_path / "build_parameters" / build_parameters_filename
+                workspace_path / "config" / "build_parameters" / build_parameters_filename
             )
-            material = Material.load(workspace_path / "materials" / material_filename)
+            material = Material.load(workspace_path / "config" / "materials" / material_filename)
             mesh_parameters = MeshParameters.load(
-                workspace_path / "mesh_parameters" / mesh_parameters_filename
+                workspace_path / "config" / "mesh_parameters" / mesh_parameters_filename
             )
 
             solver_layer.run(

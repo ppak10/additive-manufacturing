@@ -101,7 +101,7 @@ def register_config_mesh_parameters(app: typer.Typer):
                 z_end_pad=parse_cli_input(z_end_pad),
                 boundary_condition=boundary_condition,
             )
-            save_path = workspace_path / "mesh_parameters" / f"{name}.json"
+            save_path = workspace_path / "config" / "mesh_parameters" / f"{name}.json"
             mesh_parameters.save(save_path)
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to create mesh parameters file: {e}[/yellow]")

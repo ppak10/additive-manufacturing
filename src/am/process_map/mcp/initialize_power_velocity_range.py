@@ -40,12 +40,12 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
 
             # Build Parameters
             build_parameters_path = (
-                workspace_path / "build_parameters" / build_parameters_filename
+                workspace_path / "config" / "build_parameters" / build_parameters_filename
             )
 
             build_parameters = BuildParameters.load(build_parameters_path)
 
-            material_path = workspace_path / "materials" / material_filename
+            material_path = workspace_path / "config" / "materials" / material_filename
             material = Material.load(material_path)
 
             out_path = initialize_power_velocity_range(

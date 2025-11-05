@@ -43,7 +43,7 @@ def register_process_map_initialize_power_velocity_range(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create file for build parameters."""
-        from am.schema import BuildParameters, Material
+        from am.config import BuildParameters, Material
         from am.process_map.initialize import initialize_power_velocity_range
 
         from wa.cli.utils import get_workspace_path
@@ -53,12 +53,12 @@ def register_process_map_initialize_power_velocity_range(app: typer.Typer):
         try:
             # Build Parameters
             build_parameters_path = (
-                workspace_path / "build_parameters" / build_parameters_filename
+                workspace_path / "config" / "build_parameters" / build_parameters_filename
             )
 
             build_parameters = BuildParameters.load(build_parameters_path)
 
-            material = Material.load(workspace_path / "materials" / material_filename)
+            material = Material.load(workspace_path / "config" / "materials" / material_filename)
 
             out_path = initialize_power_velocity_range(
                 workspace_path=workspace_path,

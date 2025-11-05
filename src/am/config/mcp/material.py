@@ -59,7 +59,7 @@ def register_config_material(app: FastMCP):
                 temperature_liquidus=temperature_liquidus,
                 temperature_solidus=temperature_solidus,
             )
-            save_path = workspace_path / "materials" / f"{name}.json"
+            save_path = workspace_path / "config" / "materials" / f"{name}.json"
             material.save(save_path)
 
             return tool_success(save_path)

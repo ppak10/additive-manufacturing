@@ -38,7 +38,7 @@ def register_toolpath_generate(app: typer.Typer):
             filepath = workspace_path / "parts" / filename
 
             build_parameters = BuildParameters.load(
-                workspace_path / "build_parameters" / build_parameters_filename
+                workspace_path / "config" / "build_parameters" / build_parameters_filename
             )
 
             toolpath_slicer_planar = ToolpathSlicerPlanar()

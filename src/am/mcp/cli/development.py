@@ -2,18 +2,14 @@ import os
 import subprocess
 import sys
 import typer
+
 from importlib.resources import files
-
-from pathlib import Path
 from rich import print as rprint
-
 
 def register_mcp_development(app: typer.Typer):
     @app.command(name="development")
     def mcp_development() -> None:
         from mcp.cli import cli
-
-        cwd = Path.cwd()
 
         # try:
         rprint(f"Starting MCP Development Server")
