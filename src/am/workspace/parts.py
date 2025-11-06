@@ -1,9 +1,10 @@
-from pathlib import Path
 import shutil
+
+from pathlib import Path
 from typing import Optional, List
 
 
-def initialize_parts_folder(
+def create_parts_folder(
     workspace_path: Path,
     include_defaults: bool = False,
 ) -> tuple[Path, Optional[List[str]]]:
@@ -42,9 +43,9 @@ def initialize_parts_folder(
         # Copy all files from data/parts to workspace/parts
         copied_files = []
         for file_path in data_parts_dir.iterdir():
-            if file_path.is_file() and file_path.name != "README.md":
-                dest_path = parts_dir / file_path.name
-                shutil.copy2(file_path, dest_path)
-                copied_files.append(file_path.name)
+            dest_path = parts_dir / file_path.name
+            shutil.copy2(file_path, dest_path)
+            copied_files.append(file_path.name)
 
     return parts_dir, copied_files
+

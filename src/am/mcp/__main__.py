@@ -15,14 +15,13 @@ from am.segmenter.mcp import (
     register_segmenter_shape_2d,
     register_segmenter_visualize_layer,
 )
-from am.part.mcp import register_part_initialize
+from am.workspace.mcp import register_workspace_initialize 
 
 app = FastMCP(name="additive-manufacturing")
 
 _ = register_config_build_parameters(app)
 _ = register_config_material(app)
 _ = register_config_mesh_parameters(app)
-_ = register_part_initialize(app)
 _ = register_process_map_initialize_power_velocity_range(app)
 _ = register_process_map_generate_process_map(app)
 _ = register_segmenter_parse(app)
@@ -30,6 +29,7 @@ _ = register_segmenter_shape_2d(app)
 _ = register_segmenter_visualize_layer(app)
 _ = register_solver_run_layer(app)
 _ = register_solver_visualize(app)
+_ = register_workspace_initialize(app)
 
 
 def main():

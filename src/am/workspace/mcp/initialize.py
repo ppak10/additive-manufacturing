@@ -1,38 +1,43 @@
 from mcp.server.fastmcp import FastMCP, Context
 
 from pathlib import Path
-from typing import Union
+from typing import cast, Union
 
 
-def register_part_initialize(app: FastMCP):
+def register_workspace_initialize(app: FastMCP):
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
 
     @app.tool(
-        title="Part Initialize",
-        description="Creates a `parts` subfolder within a workspace",
+        title="Initialize Additive Manufacturing Workspace",
+        description="Uses workspace-agent package to create a workspace for additive manufacturing.",
         structured_output=True,
     )
-    async def part_initialize(
+    async def workspace_initialize(
         ctx: Context,
-        workspace_name: str,
+        name: str,
+        out_path: Path | None = None,
+        force: bool = False,
         include_defaults: bool = False,
     ) -> Union[ToolSuccess[Path], ToolError]:
         """
         Initialize parts folder within workspace.
 
         Args:
-            ctx: Context for long running task
-            workspace_name: Folder name of existing workspace
+            ctx: Context for long running task.
+            name: Name of folder to initialize. 
+            out_path: Path of folder containing workspaces.
+            force: Overwrite existing workspace.
             include_defaults: If True, copies default part files from data directory
         """
-        from wa.cli.utils import get_workspace_path
-        from am.part.initialize import initialize_parts_folder
+        from wa.workspace.tools.create import create_workspace
+        from am.workspace.parts import create_parts_folder 
 
         try:
-            workspace_path = get_workspace_path(workspace_name)
+            workspace = create_workspace(name, out_path, force)
+            workspace_path = cast(Path, workspace.workspace_path)
 
-            parts_dir, copied_files = initialize_parts_folder(
+            parts_dir, copied_files = create_parts_folder(
                 workspace_path, include_defaults
             )
 
@@ -45,29 +50,21 @@ def register_part_initialize(app: FastMCP):
 
             return tool_success(parts_dir)
 
-        except FileNotFoundError as e:
-            return tool_error(
-                "Data parts directory not found",
-                "DATA_PARTS_NOT_FOUND",
-                workspace_name=workspace_name,
-                exception_message=str(e),
-            )
-
         except PermissionError as e:
             return tool_error(
-                "Permission denied when initializing parts folder",
+                "Permission denied when initializing workspace folder",
                 "PERMISSION_DENIED",
-                workspace_name=workspace_name,
+                workspace_name=name,
                 exception_type=type(e).__name__,
             )
 
         except Exception as e:
             return tool_error(
-                "Failed to initialize parts folder",
-                "PART_INITIALIZE_FAILED",
-                workspace_name=workspace_name,
+                "Failed to initialize workspace folder",
+                "WORKSPACE_INITIALIZE_FAILED",
+                workspace_name=name,
                 exception_type=type(e).__name__,
                 exception_message=str(e),
             )
 
-    _ = part_initialize
+    _ = workspace_initialize
