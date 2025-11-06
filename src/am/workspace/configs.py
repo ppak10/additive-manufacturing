@@ -2,6 +2,7 @@ from pathlib import Path
 
 from am.config import BuildParameters, Material, MeshParameters
 
+
 def initialize_configs(workspace_path: Path) -> Path:
     """
     Initialize configs subfolder within workspace with defaults.
@@ -24,4 +25,3 @@ def initialize_configs(workspace_path: Path) -> Path:
     _ = mesh_parameters.save(mesh_parameters_path)
 
     return configs_path
-

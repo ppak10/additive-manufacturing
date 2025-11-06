@@ -3,6 +3,7 @@ import typer
 from pathlib import Path
 from typing_extensions import Annotated, cast
 
+
 def register_workspace_initialize(app: typer.Typer):
     @app.command(name="initialize")
     def workspace_initialize(
@@ -13,9 +14,7 @@ def register_workspace_initialize(app: typer.Typer):
         ] = False,
         include_examples: Annotated[
             bool,
-            typer.Option(
-                "--include-examples", help="Copy examples parts"
-            ),
+            typer.Option("--include-examples", help="Copy examples parts"),
         ] = False,
     ) -> None:
         """

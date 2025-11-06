@@ -6,6 +6,7 @@ import typer
 from importlib.resources import files
 from rich import print as rprint
 
+
 def register_mcp_development(app: typer.Typer):
     @app.command(name="development")
     def mcp_development() -> None:
@@ -47,5 +48,3 @@ def register_mcp_development(app: typer.Typer):
 
     _ = app.command(name="dev")(mcp_development)
     return mcp_development
-
-

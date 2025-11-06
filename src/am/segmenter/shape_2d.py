@@ -8,25 +8,27 @@ from tqdm import tqdm
 
 from am.solver.segment import SolverSegment
 
+
 class Shape(str, Enum):
     line = "line"
     square = "square"
     circle = "circle"
 
+
 class SegmenterShape2D:
     """
-    Generates a simple tool path given a simple shape argument. 
+    Generates a simple tool path given a simple shape argument.
     """
 
     def __init__(self):
         self.segments: list[SolverSegment] = []
 
     def generate(
-       self,
-       shape: Shape = Shape.line,
-       size: float = 10.0,
-       distance_xy_max: float = 1.0,
-       units: str = "mm",
+        self,
+        shape: Shape = Shape.line,
+        size: float = 10.0,
+        distance_xy_max: float = 1.0,
+        units: str = "mm",
     ):
         """
         Generates shape with a given size
@@ -54,17 +56,17 @@ class SegmenterShape2D:
                     next_x = cast(Quantity, prev_x + segment_distance)
 
                     segment = SolverSegment(
-                        x = prev_x,
-                        y = y,
-                        z = cast(Quantity, Quantity(0.0, units)),
-                        e = cast(Quantity, Quantity(1.0, units)),
-                        x_next = next_x,
-                        y_next = y,
-                        z_next = cast(Quantity, Quantity(0.0, units)),
-                        e_next = cast(Quantity, Quantity(1.0, units)),
-                        angle_xy = cast(Quantity, Quantity(0.0, 'radians')),
-                        distance_xy = cast(Quantity, segment_distance),
-                        travel = False,
+                        x=prev_x,
+                        y=y,
+                        z=cast(Quantity, Quantity(0.0, units)),
+                        e=cast(Quantity, Quantity(1.0, units)),
+                        x_next=next_x,
+                        y_next=y,
+                        z_next=cast(Quantity, Quantity(0.0, units)),
+                        e_next=cast(Quantity, Quantity(1.0, units)),
+                        angle_xy=cast(Quantity, Quantity(0.0, "radians")),
+                        distance_xy=cast(Quantity, segment_distance),
+                        travel=False,
                     )
 
                     self.segments.append(segment)
@@ -74,7 +76,6 @@ class SegmenterShape2D:
 
             case _:
                 print("not implemented yet")
-
 
     def save_segments(
         self,

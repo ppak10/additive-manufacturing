@@ -147,11 +147,24 @@ def test_mesh_parameters_to_dict():
     mesh_parameters = MeshParameters()
     serialized = mesh_parameters.to_dict()
     quantity_fields = [
-        "x_step", "y_step", "z_step",
-        "x_min", "x_max", "y_min", "y_max", "z_min", "z_max",
-        "x_initial", "y_initial", "z_initial",
-        "x_start_pad", "y_start_pad", "z_start_pad",
-        "x_end_pad", "y_end_pad", "z_end_pad",
+        "x_step",
+        "y_step",
+        "z_step",
+        "x_min",
+        "x_max",
+        "y_min",
+        "y_max",
+        "z_min",
+        "z_max",
+        "x_initial",
+        "y_initial",
+        "z_initial",
+        "x_start_pad",
+        "y_start_pad",
+        "z_start_pad",
+        "x_end_pad",
+        "y_end_pad",
+        "z_end_pad",
     ]
     for field in quantity_fields:
         q_dict = serialized[field]
@@ -174,11 +187,24 @@ def test_save_and_load(tmp_path: Path):
 
     loaded_params = MeshParameters.load(saved_path)
     quantity_fields = [
-        "x_step", "y_step", "z_step",
-        "x_min", "x_max", "y_min", "y_max", "z_min", "z_max",
-        "x_initial", "y_initial", "z_initial",
-        "x_start_pad", "y_start_pad", "z_start_pad",
-        "x_end_pad", "y_end_pad", "z_end_pad",
+        "x_step",
+        "y_step",
+        "z_step",
+        "x_min",
+        "x_max",
+        "y_min",
+        "y_max",
+        "z_min",
+        "z_max",
+        "x_initial",
+        "y_initial",
+        "z_initial",
+        "x_start_pad",
+        "y_start_pad",
+        "z_start_pad",
+        "x_end_pad",
+        "y_end_pad",
+        "z_end_pad",
     ]
     for field in quantity_fields:
         original = getattr(params, field)

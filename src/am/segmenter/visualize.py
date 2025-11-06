@@ -11,6 +11,7 @@ from typing import cast
 
 from am.solver.segment import SolverSegment, SolverSegmentDict
 
+
 class SegmenterVisualize:
     """
     Base segmenter methods.

@@ -5,21 +5,17 @@ from typing_extensions import Annotated
 from wa.cli.options import WorkspaceOption
 
 
-
 def register_toolpath_generate(app: typer.Typer):
     from am.config.build_parameters import DEFAULT
 
     @app.command(name="generate")
     def toolpath_generate(
         filename: str,
-
         # TODO: Move to its own CLI method of generate_nonplanar
         # nonplanar: Annotated[bool, typer.Option("--nonplanar")] = False,
-
         build_parameters_filename: Annotated[
             str, typer.Option("--build-parameters", help="Build Parameters filename")
         ] = "default.json",
-
         workspace: WorkspaceOption = None,
     ) -> None:
         """
@@ -38,7 +34,10 @@ def register_toolpath_generate(app: typer.Typer):
             filepath = workspace_path / "parts" / filename
 
             build_parameters = BuildParameters.load(
-                workspace_path / "config" / "build_parameters" / build_parameters_filename
+                workspace_path
+                / "config"
+                / "build_parameters"
+                / build_parameters_filename
             )
 
             toolpath_slicer_planar = ToolpathSlicerPlanar()
@@ -50,4 +49,3 @@ def register_toolpath_generate(app: typer.Typer):
             raise typer.Exit(code=1)
 
     return toolpath_generate
-

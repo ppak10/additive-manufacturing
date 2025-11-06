@@ -2,6 +2,7 @@ from typing_extensions import TypedDict
 
 from pintdantic import QuantityDict, QuantityModel, QuantityField
 
+
 class SolverSegmentDict(TypedDict):
     x: QuantityDict
     y: QuantityDict

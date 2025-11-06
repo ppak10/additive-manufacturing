@@ -5,6 +5,7 @@ from pint import Quantity
 
 from am.process_map.schema import ProcessMap
 
+
 class TestProcessMap:
     def test_empty_initialization(self):
         process_map = ProcessMap()

@@ -139,7 +139,7 @@ class EagarTsai:
         xintegral = termx * xexp1
 
         # Wolfer et al. Equation 18
-        zintegral = 2 * np.exp(-(self.Z ** 2) / (4 * D * tau))
+        zintegral = 2 * np.exp(-(self.Z**2) / (4 * D * tau))
 
         # Wolfer et al. Equation 16
         result = c * start * yintegral * xintegral * zintegral

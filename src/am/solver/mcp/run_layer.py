@@ -57,16 +57,21 @@ def register_solver_run_layer(app: FastMCP):
             segments_file_path = segments_path / f"{layer_number_string}.json"
 
             # TODO: Settle on a better way to handle loading of lists of a particular schema.
-            with open(segments_file_path, 'r') as f:
+            with open(segments_file_path, "r") as f:
                 segments_data = json.load(f)
             segments = [Segment(**seg_data) for seg_data in segments_data]
             # segments = Segment.load(segments_file_path)
 
             # Configs
             build_parameters = BuildParameters.load(
-                workspace_path / "config" / "build_parameters" / build_parameters_filename
+                workspace_path
+                / "config"
+                / "build_parameters"
+                / build_parameters_filename
             )
-            material = Material.load(workspace_path / "config" / "materials" / material_filename)
+            material = Material.load(
+                workspace_path / "config" / "materials" / material_filename
+            )
             mesh_parameters = MeshParameters.load(
                 workspace_path / "config" / "mesh_parameters" / mesh_config_filename
             )

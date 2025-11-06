@@ -167,9 +167,16 @@ def test_segment_to_dict():
 
     # Check quantity fields are properly serialized
     for field in [
-        "x", "y", "z", "e",
-        "x_next", "y_next", "z_next", "e_next",
-        "angle_xy", "distance_xy"
+        "x",
+        "y",
+        "z",
+        "e",
+        "x_next",
+        "y_next",
+        "z_next",
+        "e_next",
+        "angle_xy",
+        "distance_xy",
     ]:
         q_dict = serialized[field]
         q = getattr(segment, field)
@@ -209,9 +216,16 @@ def test_save_and_load(tmp_path: Path):
 
     # Verify all quantity fields are preserved
     for field in [
-        "x", "y", "z", "e",
-        "x_next", "y_next", "z_next", "e_next",
-        "angle_xy", "distance_xy"
+        "x",
+        "y",
+        "z",
+        "e",
+        "x_next",
+        "y_next",
+        "z_next",
+        "e_next",
+        "angle_xy",
+        "distance_xy",
     ]:
         original = getattr(segment, field)
         loaded = getattr(loaded_segment, field)

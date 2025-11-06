@@ -124,4 +124,3 @@ class MeltPoolDimensions(BaseModel):
             raise ValueError(
                 f"Unexpected JSON structure in {path}: expected dict or list of dicts"
             )
-

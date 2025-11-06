@@ -15,7 +15,7 @@ from am.segmenter.mcp import (
     register_segmenter_shape_2d,
     register_segmenter_visualize_layer,
 )
-from am.workspace.mcp import register_workspace_initialize 
+from am.workspace.mcp import register_workspace_initialize
 
 app = FastMCP(name="additive-manufacturing")
 

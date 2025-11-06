@@ -23,7 +23,7 @@ def register_workspace_initialize(app: FastMCP):
         Initialize additive manufacturing workspace folder with relevant subfolders.
 
         Args:
-            name: Name of folder to initialize. 
+            name: Name of folder to initialize.
             out_path: Path of folder containing workspaces.
             force: Overwrite existing workspace.
             include_examples: Copies examples to workspace folder.

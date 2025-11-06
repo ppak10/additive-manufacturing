@@ -2,6 +2,7 @@ import shutil
 
 from pathlib import Path
 
+
 def initialize_parts(
     workspace_path: Path,
     include_examples: bool = False,
@@ -29,4 +30,3 @@ def initialize_parts(
             copied_files.append(file_path.name)
 
     return parts_dir
-

@@ -6,4 +6,3 @@ _ = register_mcp_development(app)
 _ = register_mcp_install(app)
 
 __all__ = ["app"]
-

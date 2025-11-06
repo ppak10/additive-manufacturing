@@ -4,6 +4,7 @@ from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 from pathlib import Path
 from typing import Optional, Tuple, List, Union
 
+
 def create_lack_of_fusion_plot(
     data_2ds: list[tuple[int, list[list[bool]]]],
     x_values: np.ndarray,
@@ -44,23 +45,23 @@ def create_lack_of_fusion_plot(
     except OSError:
         plt.style.use("default")
 
-    plt.rcParams.update({'font.family': 'Lato'})  # or any installed font
-    plt.rcParams['text.color'] = "#71717A"
-    plt.rcParams['axes.labelcolor'] = "#71717A"     # Axis labels (xlabel, ylabel)
-    plt.rcParams['xtick.color'] = "#71717A"         # X-axis tick labels
-    plt.rcParams['ytick.color'] = "#71717A"         # Y-axis tick labels
-    plt.rcParams['axes.edgecolor'] = "#71717A"      # Axis lines/spines
+    plt.rcParams.update({"font.family": "Lato"})  # or any installed font
+    plt.rcParams["text.color"] = "#71717A"
+    plt.rcParams["axes.labelcolor"] = "#71717A"  # Axis labels (xlabel, ylabel)
+    plt.rcParams["xtick.color"] = "#71717A"  # X-axis tick labels
+    plt.rcParams["ytick.color"] = "#71717A"  # Y-axis tick labels
+    plt.rcParams["axes.edgecolor"] = "#71717A"  # Axis lines/spines
 
     # plt.rcParams['legend.facecolor'] = '#047857'  # or any color
-    plt.rcParams['legend.edgecolor'] = "#71717A"      # border color
+    plt.rcParams["legend.edgecolor"] = "#71717A"  # border color
 
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
 
     layer_heights = []
     colors = [
-        "#EAB308", # Yellow 500
-        "#F97316", # Orange 500
-        "#EF4444", # Red 500
+        "#EAB308",  # Yellow 500
+        "#F97316",  # Orange 500
+        "#EF4444",  # Red 500
     ]
     data_2ds.reverse()
     for layer_height, _ in data_2ds:
@@ -82,7 +83,6 @@ def create_lack_of_fusion_plot(
             aspect="auto",
             interpolation="nearest",
         )
-
 
     # Title & labels
     if title is not None:
@@ -113,7 +113,9 @@ def create_lack_of_fusion_plot(
         from matplotlib.patches import Patch
 
         handles = [
-            Patch(facecolor=cmap.colors[i], edgecolor="k", label=f"{layer_heights[i]} µm")
+            Patch(
+                facecolor=cmap.colors[i], edgecolor="k", label=f"{layer_heights[i]} µm"
+            )
             for i in range(len(layer_heights))
         ]
         ax.legend(
@@ -155,4 +157,3 @@ def create_lack_of_fusion_plot(
         transparent=transparent_bg,
     )
     plt.close(fig)
-

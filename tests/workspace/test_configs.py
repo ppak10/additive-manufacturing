@@ -204,7 +204,7 @@ def test_initialize_configs_all_files_are_valid_json(isolated_workspace):
     for config_file in config_files:
         assert config_file.exists()
         # Should not raise JSONDecodeError
-        with open(config_file, 'r') as f:
+        with open(config_file, "r") as f:
             data = json.load(f)
             assert isinstance(data, dict)
 
@@ -220,13 +220,9 @@ def test_initialize_configs_files_are_loadable(isolated_workspace):
     assert isinstance(build_params, BuildParameters)
 
     # Test Material
-    material = Material.load(
-        configs_path / "materials" / "default.json"
-    )
+    material = Material.load(configs_path / "materials" / "default.json")
     assert isinstance(material, Material)
 
     # Test MeshParameters
-    mesh_params = MeshParameters.load(
-        configs_path / "mesh_parameters" / "default.json"
-    )
+    mesh_params = MeshParameters.load(configs_path / "mesh_parameters" / "default.json")
     assert isinstance(mesh_params, MeshParameters)

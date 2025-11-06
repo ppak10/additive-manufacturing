@@ -211,12 +211,8 @@ class TestSolverMeshUpdateXY:
         assert solver_mesh.y != y_before
 
         # Check that new positions match segment
-        assert np.isclose(
-            solver_mesh.x, segment.x_next.to("m").magnitude, rtol=1e-5
-        )
-        assert np.isclose(
-            solver_mesh.y, segment.y_next.to("m").magnitude, rtol=1e-5
-        )
+        assert np.isclose(solver_mesh.x, segment.x_next.to("m").magnitude, rtol=1e-5)
+        assert np.isclose(solver_mesh.y, segment.y_next.to("m").magnitude, rtol=1e-5)
 
     def test_update_xy_updates_indices(self, solver_mesh, mesh_config):
         """Test that update_xy also updates x_index and y_index."""
@@ -242,7 +238,10 @@ class TestSolverMeshUpdateXY:
         solver_mesh.update_xy(segment, mode="absolute")
 
         # Indices should have changed
-        assert solver_mesh.x_index != x_index_before or solver_mesh.y_index != y_index_before
+        assert (
+            solver_mesh.x_index != x_index_before
+            or solver_mesh.y_index != y_index_before
+        )
 
 
 class TestSolverMeshGraft:

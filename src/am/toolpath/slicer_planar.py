@@ -14,14 +14,16 @@ from typing import cast
 
 from am.config import BuildParameters
 
+
 class ToolpathOutputFolder(str, Enum):
     toolpaths = "toolpaths"
+
 
 class ToolpathSlicerPlanar:
     """
     Slicer for generating planar GCode from mesh input.
     """
-    
+
     def __init__(self):
         self.mesh: trimesh.Trimesh | None = None
 
@@ -53,9 +55,7 @@ class ToolpathSlicerPlanar:
         z_levels = np.arange(*z_extents, step=step.magnitude)
 
         sections = self.mesh.section_multiplane(
-            plane_origin=self.mesh.bounds[0],
-            plane_normal=[0, 0, 1],
-            heights=z_levels
+            plane_origin=self.mesh.bounds[0], plane_normal=[0, 0, 1], heights=z_levels
         )
         sections = cast(ArrayLike, sections)
 
@@ -87,16 +87,22 @@ class ToolpathSlicerPlanar:
                 # Draw perimeter
                 exterior_coords = np.array(polygon.exterior.coords)
                 print(f"{section_index}, {exterior_coords}")
-                ax.add_patch(Polygon(exterior_coords, fill=False, edgecolor='black', linewidth=2))
-                
+                ax.add_patch(
+                    Polygon(exterior_coords, fill=False, edgecolor="black", linewidth=2)
+                )
+
                 for interior in polygon.interiors:
                     interior_coords = np.array(interior.coords)
-                    ax.add_patch(Polygon(interior_coords, fill=False, edgecolor='black', linewidth=2))
-                
+                    ax.add_patch(
+                        Polygon(
+                            interior_coords, fill=False, edgecolor="black", linewidth=2
+                        )
+                    )
+
                 # Generate rectilinear infill (alternating 0°/90°)
                 bounds = polygon.bounds
                 is_horizontal = section_index % 2 == 0
-                
+
                 if is_horizontal:
                     # Horizontal lines
                     for y in np.arange(bounds[1], bounds[3], hatch_spacing.magnitude):
@@ -109,10 +115,10 @@ class ToolpathSlicerPlanar:
                         line = LineString([(x, bounds[1] - 1), (x, bounds[3] + 1)])
                         intersection = polygon.intersection(line)
                         self._plot_infill_line(ax, intersection)
-            
-            ax.set_aspect('equal')
+
+            ax.set_aspect("equal")
             ax.autoscale()
-            
+
             infill_file = f"{segment_index_string}.png"
             plt.savefig(infill_out_path / infill_file, dpi=150)
             plt.close()
@@ -121,20 +127,13 @@ class ToolpathSlicerPlanar:
         """Helper to plot infill line intersections."""
         if intersection.is_empty:
             return
-        if intersection.geom_type == 'LineString':
+        if intersection.geom_type == "LineString":
             x, y = intersection.xy
-            ax.plot(x, y, 'b-', linewidth=0.5, alpha=0.6)
-        elif intersection.geom_type == 'MultiLineString':
+            ax.plot(x, y, "b-", linewidth=0.5, alpha=0.6)
+        elif intersection.geom_type == "MultiLineString":
             for geom in intersection.geoms:
                 x, y = geom.xy
-                ax.plot(x, y, 'b-', linewidth=0.5, alpha=0.6)
+                ax.plot(x, y, "b-", linewidth=0.5, alpha=0.6)
 
-
-    def load_mesh(
-        self,
-        file_obj: Path,
-        file_type: str | None = None,
-        **kwargs
-    ):
+    def load_mesh(self, file_obj: Path, file_type: str | None = None, **kwargs):
         self.mesh = trimesh.load_mesh(file_obj, file_type, kwargs)
-
