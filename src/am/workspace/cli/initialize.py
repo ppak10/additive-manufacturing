@@ -11,10 +11,10 @@ def register_workspace_initialize(app: typer.Typer):
         force: Annotated[
             bool, typer.Option("--force", help="Overwrite existing workspace")
         ] = False,
-        include_defaults: Annotated[
+        include_examples: Annotated[
             bool,
             typer.Option(
-                "--include-defaults", help="Copy default files from data directory"
+                "--include-examples", help="Copy examples parts"
             ),
         ] = False,
     ) -> None:
@@ -24,29 +24,15 @@ def register_workspace_initialize(app: typer.Typer):
         from rich import print as rprint
 
         from wa.workspace.tools.create import create_workspace
-        from am.workspace.parts import create_parts_folder 
+        from am.workspace import initialize_configs, initialize_parts
 
         try:
             workspace = create_workspace(name, out_path, force)
             workspace_path = cast(Path, workspace.workspace_path)
 
-            _, copied_files = create_parts_folder(
-                workspace_path, include_defaults
-            )
-
-            if copied_files is not None:
-                if copied_files:
-                    rprint(
-                        f"✅ Workspace initialized at `{workspace_path}` with defaults:"
-                    )
-                    for filename in copied_files:
-                        rprint(f"   - {filename}")
-                else:
-                    rprint(
-                        f"✅ Workspace initialized at `{workspace_path}` (no default files found)"
-                    )
-            else:
-                rprint(f"✅ Workspace initialized at `{workspace_path}`")
+            initialize_configs(workspace_path)
+            initialize_parts(workspace_path, include_examples)
+            rprint(f"✅ Workspace initialized at `{workspace_path}`")
 
         except FileNotFoundError as e:
             rprint(f"⚠️  [yellow]{e}[/yellow]")

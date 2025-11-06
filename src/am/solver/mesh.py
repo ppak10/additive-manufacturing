@@ -10,7 +10,9 @@ from pathlib import Path
 from pint import Quantity
 from typing import cast
 
-from am.config import MeshParameters, Segment
+from am.config import MeshParameters
+
+from .segment import SolverSegment
 from .diffuse import apply_temperature_bc, apply_flux_bc, separable_gaussian_blur_3d
 
 
@@ -152,7 +154,7 @@ class SolverMesh:
         # Add back the background temperature
         self.grid = grid_cropped + grid_offset
 
-    def update_xy(self, segment: Segment, mode: str = "absolute") -> None:
+    def update_xy(self, segment: SolverSegment, mode: str = "absolute") -> None:
         """
         Method to update location via command
         @param segment

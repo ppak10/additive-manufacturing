@@ -6,15 +6,14 @@ from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from pint import Quantity
-from rich import print as rprint
 from typing import cast
 from tqdm import tqdm
 
-from .config import SolverConfig
+from am.config import BuildParameters, Material, MeshParameters
 
-from am.config import BuildParameters, Material, MeshParameters, Segment
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
+from am.solver.segment import SolverSegment
 
 
 class SolverOutputFolder(str, Enum):
@@ -27,46 +26,9 @@ class SolverLayer:
     Base solver methods.
     """
 
-    def __init__(self, solver_path: Path | None = None):
-        self.config: SolverConfig = SolverConfig(solver_path=solver_path)
-
-    @property
-    def solver_path(self):
-        return self.config.solver_path
-
-    @solver_path.setter
-    def solver_path(self, value: Path):
-        self.config.solver_path = value
-
-    def create_solver_config(self, solver_path: Path):
-        # Create `solver` folder
-        solver_path.mkdir(exist_ok=True)
-        self.config.solver_path = solver_path
-        solver_config_file = self.config.save()
-        rprint(f"Solver config file saved at: {solver_config_file}")
-
-    def create_default_configs(self, config_path: Path | None = None):
-        if config_path is None:
-            if self.config.solver_path:
-                config_path = self.config.solver_path / "config"
-            else:
-                config_path = Path.cwd() / "config"
-
-        build_parameters = BuildParameters()
-        build_parameters_path = config_path / "build_parameters" / "default.json"
-        _ = build_parameters.save(build_parameters_path)
-
-        material = Material()
-        material_path = config_path / "materials" / "default.json"
-        _ = material.save(material_path)
-
-        mesh_parameters = MeshParameters()
-        mesh_parameters_path = config_path / "mesh_parameters" / "default.json"
-        _ = mesh_parameters.save(mesh_parameters_path)
-
     def run(
         self,
-        segments: list[Segment],
+        segments: list[SolverSegment],
         build_parameters: BuildParameters,
         material: Material,
         mesh_parameters: MeshParameters,

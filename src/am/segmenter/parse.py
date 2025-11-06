@@ -9,7 +9,7 @@ from typing import cast
 from typing_extensions import TypedDict
 from tqdm import tqdm
 
-from am.config import Segment
+from am.solver.segment import SolverSegment
 
 class Command(TypedDict):
     x: Quantity
@@ -24,7 +24,7 @@ class SegmenterParse:
 
     def __init__(self):
         self.commands: list[Command] = []
-        self.segments: list[Segment] = []
+        self.segments: list[SolverSegment] = []
 
         # List of indexes for `self.commands` where layer change occurs.
         self.commands_layer_change_indexes: list[int] = []
@@ -230,7 +230,7 @@ class SegmenterParse:
                     next_z = next_command["z"]
                     next_e = next_command["e"]
 
-                segment = Segment(
+                segment = SolverSegment(
                     x=prev_x,
                     y=prev_y,
                     z=prev_z,
@@ -256,7 +256,7 @@ class SegmenterParse:
     def save_segments(
         self,
         path: Path,
-        segments: list[Segment] | None = None,
+        segments: list[SolverSegment] | None = None,
         verbose: bool | None = False,
         split_by_layer: bool | None = True,
     ) -> Path:

@@ -2,7 +2,7 @@ from typing_extensions import TypedDict
 
 from pintdantic import QuantityDict, QuantityModel, QuantityField
 
-class SegmentDict(TypedDict):
+class SolverSegmentDict(TypedDict):
     x: QuantityDict
     y: QuantityDict
     z: QuantityDict
@@ -16,7 +16,7 @@ class SegmentDict(TypedDict):
     travel: bool
 
 
-class Segment(QuantityModel):
+class SolverSegment(QuantityModel):
     """
     Segments for providing tool path instructions to solver.
     """

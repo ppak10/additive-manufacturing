@@ -6,7 +6,7 @@ from pint import Quantity
 from typing import cast
 from tqdm import tqdm
 
-from am.config import Segment
+from am.solver.segment import SolverSegment
 
 class Shape(str, Enum):
     line = "line"
@@ -19,7 +19,7 @@ class SegmenterShape2D:
     """
 
     def __init__(self):
-        self.segments: list[Segment] = []
+        self.segments: list[SolverSegment] = []
 
     def generate(
        self,
@@ -53,7 +53,7 @@ class SegmenterShape2D:
                 for segment_index, segment_distance in enumerate(segment_distances):
                     next_x = cast(Quantity, prev_x + segment_distance)
 
-                    segment = Segment(
+                    segment = SolverSegment(
                         x = prev_x,
                         y = y,
                         z = cast(Quantity, Quantity(0.0, units)),
@@ -79,7 +79,7 @@ class SegmenterShape2D:
     def save_segments(
         self,
         segments_path: Path,
-        segments: list[Segment] | None = None,
+        segments: list[SolverSegment] | None = None,
         verbose: bool | None = False,
     ) -> Path:
 

@@ -3,7 +3,7 @@ from pathlib import Path
 from pint import Quantity
 from pydantic import ValidationError
 
-from am.config.segment import Segment
+from am.solver.segment import SolverSegment
 
 # -------------------------------
 # Parsing / validation tests
@@ -25,7 +25,7 @@ def test_valid_segment_parsing_from_quantity():
         "distance_xy": Quantity(1.118, "millimeter"),
         "travel": False,
     }
-    segment = Segment(**data)
+    segment = SolverSegment(**data)
 
     # Check all quantity fields
     for key, value in data.items():
@@ -54,7 +54,7 @@ def test_valid_segment_parsing_from_tuple():
         "distance_xy": (0.001118, "meter"),
         "travel": True,
     }
-    segment = Segment(**data)
+    segment = SolverSegment(**data)
 
     # Check units match what was provided
     assert str(segment.x.units) == "meter"
@@ -85,7 +85,7 @@ def test_segment_with_different_units():
         "distance_xy": Quantity(14.142, "millimeter"),
         "travel": False,
     }
-    segment = Segment(**data)
+    segment = SolverSegment(**data)
 
     # Verify each field has the correct magnitude and units
     assert segment.x.magnitude == 10.0
@@ -99,7 +99,7 @@ def test_segment_with_different_units():
 def test_invalid_type_raises():
     """Invalid types should raise ValidationError."""
     with pytest.raises(ValidationError):
-        Segment(
+        SolverSegment(
             x="not_a_quantity",  # Invalid type
             y=Quantity(0.0, "millimeter"),
             z=Quantity(0.0, "millimeter"),
@@ -117,7 +117,7 @@ def test_invalid_type_raises():
 def test_missing_required_field_raises():
     """Missing required fields should raise ValidationError."""
     with pytest.raises(ValidationError):
-        Segment(
+        SolverSegment(
             x=Quantity(0.0, "millimeter"),
             y=Quantity(0.0, "millimeter"),
             # Missing z and other required fields
@@ -127,7 +127,7 @@ def test_missing_required_field_raises():
 def test_invalid_travel_type_raises():
     """travel field must be a boolean."""
     with pytest.raises(ValidationError):
-        Segment(
+        SolverSegment(
             x=Quantity(0.0, "millimeter"),
             y=Quantity(0.0, "millimeter"),
             z=Quantity(0.0, "millimeter"),
@@ -149,7 +149,7 @@ def test_invalid_travel_type_raises():
 
 def test_segment_to_dict():
     """Test serialization to dictionary."""
-    segment = Segment(
+    segment = SolverSegment(
         x=Quantity(0.0, "millimeter"),
         y=Quantity(0.0, "millimeter"),
         z=Quantity(0.0, "millimeter"),
@@ -187,7 +187,7 @@ def test_segment_to_dict():
 
 def test_save_and_load(tmp_path: Path):
     """Test saving to JSON and loading back."""
-    segment = Segment(
+    segment = SolverSegment(
         x=Quantity(5.0, "millimeter"),
         y=Quantity(10.0, "millimeter"),
         z=Quantity(0.1, "millimeter"),
@@ -205,7 +205,7 @@ def test_save_and_load(tmp_path: Path):
     saved_path = segment.save(path)
     assert saved_path.exists()
 
-    loaded_segment = Segment.load(saved_path)
+    loaded_segment = SolverSegment.load(saved_path)
 
     # Verify all quantity fields are preserved
     for field in [
@@ -224,7 +224,7 @@ def test_save_and_load(tmp_path: Path):
 
 def test_save_and_load_with_different_units(tmp_path: Path):
     """Test that units are preserved through save/load cycle."""
-    segment = Segment(
+    segment = SolverSegment(
         x=Quantity(5000.0, "micrometer"),
         y=Quantity(1.0, "centimeter"),
         z=Quantity(0.0001, "meter"),
@@ -240,7 +240,7 @@ def test_save_and_load_with_different_units(tmp_path: Path):
 
     path = tmp_path / "segment_units.json"
     saved_path = segment.save(path)
-    loaded_segment = Segment.load(saved_path)
+    loaded_segment = SolverSegment.load(saved_path)
 
     # Verify units are exactly preserved
     assert str(loaded_segment.x.units) == str(segment.x.units)

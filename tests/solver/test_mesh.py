@@ -6,8 +6,8 @@ import tempfile
 from pathlib import Path
 from pint import Quantity
 
-from am.config import Segment
 from am.solver.mesh import SolverMesh
+from am.solver.segment import SolverSegment
 from am.config import MeshParameters
 
 
@@ -187,7 +187,7 @@ class TestSolverMeshUpdateXY:
         """Test updating x, y positions in absolute mode."""
         solver_mesh.initialize_grid(mesh_config, 300.0)
 
-        segment = Segment(
+        segment = SolverSegment(
             x=Quantity(0.5, "mm"),
             y=Quantity(0.5, "mm"),
             z=Quantity(0.0, "mm"),
@@ -222,7 +222,7 @@ class TestSolverMeshUpdateXY:
         """Test that update_xy also updates x_index and y_index."""
         solver_mesh.initialize_grid(mesh_config, 300.0)
 
-        segment = Segment(
+        segment = SolverSegment(
             x=Quantity(0.5, "mm"),
             y=Quantity(0.5, "mm"),
             z=Quantity(0.0, "mm"),

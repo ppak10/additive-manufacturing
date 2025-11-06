@@ -10,45 +10,35 @@ def register_workspace_initialize(app: FastMCP):
 
     @app.tool(
         title="Initialize Additive Manufacturing Workspace",
-        description="Uses workspace-agent package to create a workspace for additive manufacturing.",
+        description="Uses workspace-agent package to create a workspace for additive manufacturing with necessary subfolders.",
         structured_output=True,
     )
     async def workspace_initialize(
-        ctx: Context,
         name: str,
         out_path: Path | None = None,
         force: bool = False,
-        include_defaults: bool = False,
+        include_examples: bool = False,
     ) -> Union[ToolSuccess[Path], ToolError]:
         """
-        Initialize parts folder within workspace.
+        Initialize additive manufacturing workspace folder with relevant subfolders.
 
         Args:
-            ctx: Context for long running task.
             name: Name of folder to initialize. 
             out_path: Path of folder containing workspaces.
             force: Overwrite existing workspace.
-            include_defaults: If True, copies default part files from data directory
+            include_examples: Copies examples to workspace folder.
         """
         from wa.workspace.tools.create import create_workspace
-        from am.workspace.parts import create_parts_folder 
+        from am.workspace import initialize_configs, initialize_parts
 
         try:
             workspace = create_workspace(name, out_path, force)
             workspace_path = cast(Path, workspace.workspace_path)
 
-            parts_dir, copied_files = create_parts_folder(
-                workspace_path, include_defaults
-            )
+            initialize_configs(workspace_path)
+            initialize_parts(workspace_path, include_examples)
 
-            if copied_files is not None:
-                await ctx.info(
-                    f"Parts folder initialized at {parts_dir} with {len(copied_files)} default files"
-                )
-            else:
-                await ctx.info(f"Parts folder initialized at {parts_dir}")
-
-            return tool_success(parts_dir)
+            return tool_success(workspace_path)
 
         except PermissionError as e:
             return tool_error(
