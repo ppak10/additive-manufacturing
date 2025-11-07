@@ -9,16 +9,8 @@ from pydantic import (
     field_serializer,
     ValidationError,
 )
+from pintdantic import QuantityDict
 from typing_extensions import cast, ClassVar, TypedDict
-
-# TODO: Make a class for handling quantity for these configs to inherit from.
-
-
-# TypedDict for Quantity serialized as dict
-class QuantityDict(TypedDict):
-    magnitude: float
-    units: str
-
 
 ######################
 # MeltPoolDimensions #

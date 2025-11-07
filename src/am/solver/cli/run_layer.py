@@ -74,15 +74,18 @@ def register_solver_run_layer(app: typer.Typer):
 
             build_parameters = BuildParameters.load(
                 workspace_path
-                / "config"
+                / "configs"
                 / "build_parameters"
                 / build_parameters_filename
             )
             material = Material.load(
-                workspace_path / "config" / "materials" / material_filename
+                workspace_path / "configs" / "materials" / material_filename
             )
             mesh_parameters = MeshParameters.load(
-                workspace_path / "config" / "mesh_parameters" / mesh_parameters_filename
+                workspace_path
+                / "configs"
+                / "mesh_parameters"
+                / mesh_parameters_filename
             )
 
             solver_layer.run(

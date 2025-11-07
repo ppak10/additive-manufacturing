@@ -41,7 +41,7 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
             # Build Parameters
             build_parameters_path = (
                 workspace_path
-                / "config"
+                / "configs"
                 / "build_parameters"
                 / build_parameters_filename
             )

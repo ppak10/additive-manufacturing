@@ -5,11 +5,11 @@ from typing_extensions import Annotated
 from wa.cli.options import WorkspaceOption
 
 
-def register_toolpath_generate(app: typer.Typer):
+def register_slicer_generate(app: typer.Typer):
     from am.config.build_parameters import DEFAULT
 
     @app.command(name="generate")
-    def toolpath_generate(
+    def slicer_generate(
         filename: str,
         # TODO: Move to its own CLI method of generate_nonplanar
         # nonplanar: Annotated[bool, typer.Option("--nonplanar")] = False,
@@ -24,7 +24,7 @@ def register_toolpath_generate(app: typer.Typer):
         from rich import print as rprint
 
         from am.config import BuildParameters
-        from am.toolpath import ToolpathSlicerPlanar
+        from am.slicer.planar import SlicerPlanar
 
         from wa.cli.utils import get_workspace_path
 
@@ -35,12 +35,12 @@ def register_toolpath_generate(app: typer.Typer):
 
             build_parameters = BuildParameters.load(
                 workspace_path
-                / "config"
+                / "configs"
                 / "build_parameters"
                 / build_parameters_filename
             )
 
-            toolpath_slicer_planar = ToolpathSlicerPlanar()
+            toolpath_slicer_planar = SlicerPlanar()
             toolpath_slicer_planar.load_mesh(filepath)
             toolpath_slicer_planar.slice(build_parameters, workspace_path)
 
@@ -48,4 +48,4 @@ def register_toolpath_generate(app: typer.Typer):
             rprint(f"⚠️ [yellow]Unable to slice provided file: {e}[/yellow]")
             raise typer.Exit(code=1)
 
-    return toolpath_generate
+    return slicer_generate

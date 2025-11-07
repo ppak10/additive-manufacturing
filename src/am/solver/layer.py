@@ -67,9 +67,9 @@ class SolverLayer:
                 raise Exception("Invalid `model_name`")
 
         # Save solver configs
-        build_parameters.save(mesh_out_path / "config" / "build_parameters.json")
-        material.save(mesh_out_path / "config" / "material.json")
-        mesh_parameters.save(mesh_out_path / "config" / "mesh_parameters.json")
+        build_parameters.save(mesh_out_path / "configs" / "build_parameters.json")
+        material.save(mesh_out_path / "configs" / "material.json")
+        mesh_parameters.save(mesh_out_path / "configs" / "mesh_parameters.json")
 
         # for segment_index, segment in tqdm(enumerate(segments[0:3])):
         for segment_index, segment in tqdm(enumerate(segments), total=len(segments)):

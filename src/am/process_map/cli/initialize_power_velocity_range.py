@@ -54,7 +54,7 @@ def register_process_map_initialize_power_velocity_range(app: typer.Typer):
             # Build Parameters
             build_parameters_path = (
                 workspace_path
-                / "config"
+                / "configs"
                 / "build_parameters"
                 / build_parameters_filename
             )
@@ -62,7 +62,7 @@ def register_process_map_initialize_power_velocity_range(app: typer.Typer):
             build_parameters = BuildParameters.load(build_parameters_path)
 
             material = Material.load(
-                workspace_path / "config" / "materials" / material_filename
+                workspace_path / "configs" / "materials" / material_filename
             )
 
             out_path = initialize_power_velocity_range(

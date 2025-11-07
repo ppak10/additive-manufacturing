@@ -15,11 +15,11 @@ from typing import cast
 from am.config import BuildParameters
 
 
-class ToolpathOutputFolder(str, Enum):
+class SlicerOutputFolder(str, Enum):
     toolpaths = "toolpaths"
 
 
-class ToolpathSlicerPlanar:
+class SlicerPlanar:
     """
     Slicer for generating planar GCode from mesh input.
     """
@@ -42,7 +42,7 @@ class ToolpathSlicerPlanar:
         toolpaths_out_path.mkdir(exist_ok=True, parents=True)
 
         # Save solver configs
-        build_parameters.save(toolpaths_out_path / "config" / "build_parameters.json")
+        build_parameters.save(toolpaths_out_path / "configs" / "build_parameters.json")
 
         if self.mesh is None:
             return None
