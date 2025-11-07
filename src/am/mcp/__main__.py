@@ -1,10 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 
-from am.config.mcp import (
-    register_config_build_parameters,
-    register_config_material,
-    register_config_mesh_parameters,
-)
+from am.config.mcp import register_config
 from am.process_map.mcp import (
     register_process_map_initialize_power_velocity_range,
     register_process_map_generate_process_map,
@@ -19,9 +15,7 @@ from am.workspace.mcp import register_workspace_initialize
 
 app = FastMCP(name="additive-manufacturing")
 
-_ = register_config_build_parameters(app)
-_ = register_config_material(app)
-_ = register_config_mesh_parameters(app)
+_ = register_config(app)
 _ = register_process_map_initialize_power_velocity_range(app)
 _ = register_process_map_generate_process_map(app)
 _ = register_segmenter_parse(app)

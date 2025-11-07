@@ -1,6 +1,6 @@
+from pintdantic import QuantityDict, QuantityInput, QuantityModel, QuantityField
+from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
-
-from pintdantic import QuantityDict, QuantityModel, QuantityField
 
 DEFAULT = {
     "beam_diameter": (5e-5, "meter"),
@@ -19,6 +19,39 @@ class BuildParametersDict(TypedDict):
     layer_height: QuantityDict
     scan_velocity: QuantityDict
     temperature_preheat: QuantityDict
+
+
+class BuildParametersInput(BaseModel):
+    beam_diameter: QuantityInput | None = Field(
+        default=DEFAULT["beam_diameter"],
+        description="The diameter of the laser beam used during the build process. Affects energy density and melt pool size.",
+        gt=0,
+    )
+    beam_power: QuantityInput | None = Field(
+        default=DEFAULT["beam_power"],
+        description="Power of the laser beam in watts. Higher power increases melt pool temperature and penetration depth.",
+        gt=0,
+    )
+    hatch_spacing: QuantityInput | None = Field(
+        default=DEFAULT["hatch_spacing"],
+        description="Distance between adjacent scan vectors. Affects overlap and part density.",
+        gt=0,
+    )
+    layer_height: QuantityInput | None = Field(
+        default=DEFAULT["layer_height"],
+        description="Thickness of each powder layer applied before scanning.",
+        gt=0,
+    )
+    scan_velocity: QuantityInput | None = Field(
+        default=DEFAULT["scan_velocity"],
+        description="Speed at which the laser beam moves across the powder bed. Affects energy input and cooling rate.",
+        gt=0,
+    )
+    temperature_preheat: QuantityInput | None = Field(
+        default=DEFAULT["temperature_preheat"],
+        description="Initial temperature of the build platform or powder bed before laser scanning begins.",
+        gt=0,
+    )
 
 
 class BuildParameters(QuantityModel):

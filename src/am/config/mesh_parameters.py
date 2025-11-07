@@ -1,7 +1,7 @@
-from typing_extensions import cast, Literal, TypedDict
 from pint import Quantity
-
-from pintdantic import QuantityDict, QuantityModel, QuantityField
+from pintdantic import QuantityDict, QuantityInput, QuantityModel, QuantityField
+from pydantic import BaseModel
+from typing_extensions import cast, Literal, TypedDict
 
 DEFAULT = {
     "x_step": (25, "micrometer"),
@@ -45,6 +45,30 @@ class MeshParametersDict(TypedDict):
     y_end_pad: QuantityDict
     z_end_pad: QuantityDict
     boundary_condition: Literal["flux", "temperature"]
+
+
+class MeshParametersInput(BaseModel):
+    """Mesh parameters configuration"""
+
+    x_step: QuantityInput | None = DEFAULT["x_step"]
+    y_step: QuantityInput | None = DEFAULT["y_step"]
+    z_step: QuantityInput | None = DEFAULT["z_step"]
+    x_min: QuantityInput | None = DEFAULT["x_min"]
+    x_max: QuantityInput | None = DEFAULT["x_max"]
+    y_min: QuantityInput | None = DEFAULT["y_min"]
+    y_max: QuantityInput | None = DEFAULT["y_max"]
+    z_min: QuantityInput | None = DEFAULT["z_min"]
+    z_max: QuantityInput | None = DEFAULT["z_max"]
+    x_initial: QuantityInput | None = DEFAULT["x_initial"]
+    y_initial: QuantityInput | None = DEFAULT["y_initial"]
+    z_initial: QuantityInput | None = DEFAULT["z_initial"]
+    x_start_pad: QuantityInput | None = DEFAULT["x_start_pad"]
+    y_start_pad: QuantityInput | None = DEFAULT["y_start_pad"]
+    z_start_pad: QuantityInput | None = DEFAULT["z_start_pad"]
+    x_end_pad: QuantityInput | None = DEFAULT["x_end_pad"]
+    y_end_pad: QuantityInput | None = DEFAULT["y_end_pad"]
+    z_end_pad: QuantityInput | None = DEFAULT["z_end_pad"]
+    boundary_condition: str | None = "temperature"
 
 
 class MeshParameters(QuantityModel):

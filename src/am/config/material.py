@@ -1,7 +1,7 @@
 from typing_extensions import cast, TypedDict
 from pint import Quantity
-
-from pintdantic import QuantityDict, QuantityModel, QuantityField
+from pintdantic import QuantityDict, QuantityInput, QuantityModel, QuantityField
+from pydantic import BaseModel
 
 DEFAULT = {
     "name": "Stainless Steel 316L",
@@ -37,6 +37,16 @@ class MaterialDict(TypedDict):
 
     # Solidus Temperature (K)
     temperature_solidus: QuantityDict
+
+
+class MaterialInput(BaseModel):
+    specific_heat_capacity: QuantityInput | None = DEFAULT["specific_heat_capacity"]
+    absorptivity: QuantityInput | None = DEFAULT["absorptivity"]
+    thermal_conductivity: QuantityInput | None = DEFAULT["thermal_conductivity"]
+    density: QuantityInput | None = DEFAULT["density"]
+    temperature_melt: QuantityInput | None = DEFAULT["temperature_melt"]
+    temperature_liquidus: QuantityInput | None = DEFAULT["temperature_liquidus"]
+    temperature_solidus: QuantityInput | None = DEFAULT["temperature_solidus"]
 
 
 class Material(QuantityModel):
