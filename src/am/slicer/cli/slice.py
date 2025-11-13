@@ -1,15 +1,16 @@
 import typer
 
+from datetime import datetime
 from typing_extensions import Annotated
 
 from wa.cli.options import WorkspaceOption
 
 
-def register_slicer_generate(app: typer.Typer):
+def register_slicer_slice(app: typer.Typer):
     from am.config.build_parameters import DEFAULT
 
-    @app.command(name="generate")
-    def slicer_generate(
+    @app.command(name="slice")
+    def slicer_slice(
         filename: str,
         # TODO: Move to its own CLI method of generate_nonplanar
         # nonplanar: Annotated[bool, typer.Option("--nonplanar")] = False,
@@ -17,6 +18,7 @@ def register_slicer_generate(app: typer.Typer):
             str, typer.Option("--build-parameters", help="Build Parameters filename")
         ] = "default.json",
         workspace: WorkspaceOption = None,
+        num_proc: Annotated[int, typer.Option("--num-proc")] = 1,
     ) -> None:
         """
         Generates toolpath from loaded mesh (planar).
@@ -40,12 +42,17 @@ def register_slicer_generate(app: typer.Typer):
                 / build_parameters_filename
             )
 
-            toolpath_slicer_planar = SlicerPlanar()
-            toolpath_slicer_planar.load_mesh(filepath)
-            toolpath_slicer_planar.slice(build_parameters, workspace_path)
+            run_name = datetime.now().strftime(f"{filepath.stem}_%Y%m%d_%H%M%S")
+
+            slicer_planar = SlicerPlanar(build_parameters, workspace_path, run_name)
+
+            slicer_planar.load_mesh(filepath)
+            slicer_planar.section_mesh()
+            slicer_planar.generate_infill(num_proc=num_proc)
+            slicer_planar.visualize_infill(num_proc=num_proc)
 
         except Exception as e:
             rprint(f"⚠️ [yellow]Unable to slice provided file: {e}[/yellow]")
             raise typer.Exit(code=1)
 
-    return slicer_generate
+    return slicer_slice
