@@ -1,25 +1,24 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import trimesh
-
-from PIL import Image
+import warnings
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from enum import Enum
-from matplotlib.axes import Axes
-from matplotlib.patches import Polygon
-from numpy.typing import ArrayLike
 from pathlib import Path
+from PIL import Image
 from pint import Quantity
+from rich.console import Console
 from shapely.geometry import LineString
-from shapely import wkb, wkt
-from typing import cast
-from tqdm import tqdm
+from tqdm.rich import tqdm
+from typing import cast, Callable, Awaitable
 
 from am.config import BuildParameters
 
 from .utils.infill import infill_generate, infill_visualization
+
+# Suppress tqdm experimental warning for rich integration
+warnings.filterwarnings("ignore", message=".*rich is experimental.*")
 
 
 class SlicerOutputFolder(str, Enum):
@@ -36,12 +35,20 @@ class SlicerPlanar:
         build_parameters: BuildParameters,
         workspace_path: Path,
         run_name: str | None = None,
+        progress_callback: Callable[[int, int], Awaitable[None]] | None = None,
     ):
         """
         Contains commonly reused variables for slicing.
         More state dependent to allow reslicing with different parameters.
+
+        Args:
+            build_parameters: Build parameters configuration
+            workspace_path: Path to workspace directory
+            run_name: Optional name for this run
+            progress_callback: Optional async callback for progress reporting (current, total)
         """
         self.build_parameters = build_parameters
+        self.progress_callback = progress_callback
 
         # Loaded in / Generated
         self.mesh: trimesh.Trimesh | None = None
@@ -97,7 +104,7 @@ class SlicerPlanar:
 
         # zfill = len(f"{len(sections)}")
 
-    def generate_infill(self, hatch_spacing=None, binary=True, num_proc=1):
+    async def generate_infill(self, hatch_spacing=None, binary=True, num_proc=1):
         """
         Generates infill pattern for section.
 
@@ -118,9 +125,13 @@ class SlicerPlanar:
             step = cast(Quantity, self.build_parameters.hatch_spacing).to("mm")
             hatch_spacing = step.magnitude
 
+        total_sections = len(self.sections)
+
         if num_proc <= 1:
             # Single-threaded execution (original behavior)
-            for section_index, section in tqdm(enumerate(self.sections)):
+            for section_index, section in tqdm(
+                enumerate(self.sections), total=total_sections, desc="Generating infill"
+            ):
                 infill_index_string = f"{section_index}".zfill(self.zfill)
                 infill_generate(
                     section,
@@ -130,6 +141,9 @@ class SlicerPlanar:
                     infill_index_string,
                     binary,
                 )
+                # Report progress if callback is provided
+                if self.progress_callback:
+                    await self.progress_callback(section_index + 1, total_sections)
         else:
             # Multi-process execution
             args_list = []
@@ -149,13 +163,23 @@ class SlicerPlanar:
             with ProcessPoolExecutor(max_workers=num_proc) as executor:
                 futures = []
                 for args in args_list:
-                    executor.submit(infill_generate, *args)
+                    future = executor.submit(infill_generate, *args)
+                    futures.append(future)
 
                 # Use tqdm to track progress
-                for future in tqdm(as_completed(futures), total=len(futures)):
+                completed_count = 0
+                for future in tqdm(
+                    as_completed(futures), total=len(futures), desc="Generating infill"
+                ):
                     future.result()  # This will raise any exceptions that occurred
+                    completed_count += 1
+                    # Report progress if callback is provided
+                    if self.progress_callback:
+                        await self.progress_callback(completed_count, total_sections)
 
-    def visualize_infill(self, binary=True, num_proc=1):
+        return infill_data_out_path
+
+    async def visualize_infill(self, binary=True, num_proc=1):
         """
         Visualizes infill patterns from generated data files.
 
@@ -181,12 +205,19 @@ class SlicerPlanar:
         else:
             infill_files = sorted(infill_data_out_path.glob("*.txt"))
 
+        total_files = len(infill_files)
+
         if num_proc <= 1:
             # Single-threaded execution (original behavior)
-            for infill_file in tqdm(infill_files):
+            for file_index, infill_file in tqdm(
+                enumerate(infill_files), total=total_files, desc="Visualizing infill"
+            ):
                 infill_visualization(
                     infill_file, binary, self.mesh.bounds, infill_images_out_path
                 )
+                # Report progress if callback is provided
+                if self.progress_callback:
+                    await self.progress_callback(file_index + 1, total_files)
         else:
             # Multi-process execution
             args_list = []
@@ -197,25 +228,45 @@ class SlicerPlanar:
             with ProcessPoolExecutor(max_workers=num_proc) as executor:
                 futures = []
                 for args in args_list:
-                    executor.submit(infill_visualization, *args)
+                    future = executor.submit(infill_visualization, *args)
+                    futures.append(future)
 
                 # Use tqdm to track progress
-                for future in tqdm(as_completed(futures), total=len(futures)):
+                completed_count = 0
+                for future in tqdm(
+                    as_completed(futures), total=len(futures), desc="Visualizing infill"
+                ):
                     future.result()  # This will raise any exceptions that occurred
+                    completed_count += 1
+                    # Report progress if callback is provided
+                    if self.progress_callback:
+                        await self.progress_callback(completed_count, total_files)
 
         # Compile images into GIF
         image_files = sorted(infill_images_out_path.glob("*.png"))
         if image_files:
             # Load images into memory and close file handles
             images = []
-            for img_file in tqdm(image_files):
+            for img_file in tqdm(image_files, desc="Creating GIF"):
                 with Image.open(img_file) as img:
                     images.append(img.copy())
             gif_path = self.toolpaths_out_path / "infill" / "infill_animation.gif"
-            images[0].save(
-                gif_path, save_all=True, append_images=images[1:], duration=200, loop=0
+            console = Console()
+            with console.status("[bold green]Writing .gif...", spinner="dots"):
+                images[0].save(
+                    gif_path,
+                    save_all=True,
+                    append_images=images[1:],
+                    duration=200,
+                    loop=0,
+                )
+            console.print(
+                f"[bold green]✓[/bold green] GIF created: {gif_path} ({len(images)} frames)"
             )
-            print(f"GIF created: {gif_path} ({len(images)} frames)")
+
+            return gif_path
+
+        return infill_images_out_path
 
     def generate_solver_segments(self):
         """

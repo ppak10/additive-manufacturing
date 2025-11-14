@@ -1,0 +1,23 @@
+{
+	"servers": {
+		"am": {
+			"type": "stdio",
+			"command": "uv",
+			"args": [
+				"run",
+				"-m",
+				"am.mcp"
+			]
+		},
+		"wa": {
+			"type": "stdio",
+			"command": "uv",
+			"args": [
+				"run",
+				"-m",
+				"wa.mcp"
+			]
+		}
+	},
+	"inputs": []
+}

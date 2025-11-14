@@ -1,5 +1,5 @@
-from .initialize import register_part_initialize
+from .slice import register_slicer_slice
 
 __all__ = [
-    "register_part_initialize",
+    "register_slicer_slice",
 ]

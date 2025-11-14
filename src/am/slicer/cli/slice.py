@@ -7,18 +7,43 @@ from wa.cli.options import WorkspaceOption
 
 
 def register_slicer_slice(app: typer.Typer):
-    from am.config.build_parameters import DEFAULT
 
     @app.command(name="slice")
     def slicer_slice(
         filename: str,
-        # TODO: Move to its own CLI method of generate_nonplanar
-        # nonplanar: Annotated[bool, typer.Option("--nonplanar")] = False,
+        layer_height: Annotated[
+            float | None,
+            typer.Option("--layer-height", help="Optional layer height override (mm)."),
+        ] = None,
+        hatch_spacing: Annotated[
+            float | None,
+            typer.Option(
+                "--hatch_spacing", help="Optional hatch spacing override (mm)."
+            ),
+        ] = None,
         build_parameters_filename: Annotated[
             str, typer.Option("--build-parameters", help="Build Parameters filename")
         ] = "default.json",
+        binary: Annotated[
+            bool,
+            typer.Option(
+                "--binary", help="Generate output files as binary rather than text."
+            ),
+        ] = False,
+        visualize: Annotated[
+            bool,
+            typer.Option(
+                "--visualize", help="Generate visualizations of sliced layers."
+            ),
+        ] = False,
         workspace: WorkspaceOption = None,
-        num_proc: Annotated[int, typer.Option("--num-proc")] = 1,
+        num_proc: Annotated[
+            int,
+            typer.Option(
+                "--num-proc",
+                help="Enable multiprocessing by specifying number of processes to use.",
+            ),
+        ] = 1,
     ) -> None:
         """
         Generates toolpath from loaded mesh (planar).
@@ -44,12 +69,23 @@ def register_slicer_slice(app: typer.Typer):
 
             run_name = datetime.now().strftime(f"{filepath.stem}_%Y%m%d_%H%M%S")
 
-            slicer_planar = SlicerPlanar(build_parameters, workspace_path, run_name)
+            import asyncio
 
-            slicer_planar.load_mesh(filepath)
-            slicer_planar.section_mesh()
-            slicer_planar.generate_infill(num_proc=num_proc)
-            slicer_planar.visualize_infill(num_proc=num_proc)
+            async def run_slicer():
+                slicer_planar = SlicerPlanar(build_parameters, workspace_path, run_name)
+
+                slicer_planar.load_mesh(filepath)
+                slicer_planar.section_mesh(layer_height=layer_height)
+                await slicer_planar.generate_infill(
+                    hatch_spacing=hatch_spacing, binary=binary, num_proc=num_proc
+                )
+
+                if visualize:
+                    await slicer_planar.visualize_infill(
+                        binary=binary, num_proc=num_proc
+                    )
+
+            asyncio.run(run_slicer())
 
         except Exception as e:
             rprint(f"⚠️ [yellow]Unable to slice provided file: {e}[/yellow]")
