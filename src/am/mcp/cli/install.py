@@ -11,20 +11,23 @@ def register_mcp_install(app: typer.Typer):
     @app.command(name="install")
     def mcp_install(
         client: Annotated[
-            str,
-            typer.Option("--client", help="Target client to install for."),
+            str, typer.Argument(help="Target client to install for.")
         ] = "claude-code",
-        include_agent: Annotated[bool, typer.Option("--include-agent")] = True,
+        include_agent: Annotated[bool, typer.Option("--include-agent")] = False,
         project_path: Annotated[str | None, typer.Option("--project-path")] = None,
+        dev: Annotated[bool, typer.Option("--dev")] = False,
     ) -> None:
         import am
 
         # Determine project root path
-        if project_path:
+        if dev:
+            # /Users/ppak/GitHub/additive-manufacturing on mac mini
+            am_path = Path(am.__file__).parents[2]
+        elif project_path:
             am_path = Path(project_path)
         else:
             # Path(am.__file__) example:
-            # /mnt/am/GitHub/additive-manufacturing-agent/.venv/lib/python3.13/site-packages/am
+            # /GitHub/additive-manufacturing-agent/.venv/lib/python3.13/site-packages/am
             # Going up 5 levels to get to the project root
             am_path = Path(am.__file__).parents[5]
 

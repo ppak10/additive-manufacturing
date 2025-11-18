@@ -1,0 +1,70 @@
+name: claude-code 
+
+on: [push, pull_request]
+
+jobs:
+  claude-code:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Set up UV
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install project dependencies
+      run: uv sync --locked --all-extras --dev
+
+    - name: Install additive-manufacturing package locally
+      run: uv pip install -e .
+
+    - name: Install Claude Code CLI
+      run: npm install -g @anthropic-ai/claude-code
+
+    - name: Verify Claude Code installation
+      run: |
+        which claude
+        claude --version
+
+    - name: Install MCP server (Default)
+      run: |
+        source .venv/bin/activate
+        am mcp install --dev
+
+    - name: Verify additive-manufacturing MCP installation
+      run: |
+        claude mcp get am 
+
+    - name: Uninstall MCP server (Default)
+      run: |
+        source .venv/bin/activate
+        am mcp uninstall
+
+    - name: Install MCP server to Claude Code
+      run: |
+        source .venv/bin/activate
+        am mcp install claude-code --dev
+
+    - name: Verify additive-manufacturing MCP installation
+      run: |
+        claude mcp get am 
+
+    - name: Uninstall MCP server Claude Code
+      run: |
+        source .venv/bin/activate
+        am mcp uninstall claude-code

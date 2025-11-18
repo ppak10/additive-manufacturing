@@ -1,0 +1,56 @@
+name: gemini-cli
+
+on: [push, pull_request]
+
+jobs:
+  gemini-cli:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Set up UV
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install project dependencies
+      run: uv sync --locked --all-extras --dev
+
+    - name: Install `additive-manufacturing` package locally
+      run: uv pip install -e .
+
+    - name: Install Gemini CLI
+      run: npm install -g @google/gemini-cli
+
+    - name: Verify Gemini CLI installation
+      run: |
+        which gemini
+        gemini --version
+
+    - name: Install MCP server to Gemini CLI
+      run: |
+        source .venv/bin/activate
+        am mcp install gemini-cli --dev
+
+    - name: Verify additive-manufacturing MCP installation
+      run: |
+        gemini mcp list
+
+    - name: Uninstall MCP server
+      run: |
+        source .venv/bin/activate
+        am mcp uninstall gemini-cli
