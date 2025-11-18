@@ -62,7 +62,7 @@ jobs:
 
     - name: Verify additive-manufacturing MCP installation
       run: |
-        claude mcp get am 
+        claude mcp get additive-manufacturing
 
     - name: Uninstall MCP server Claude Code
       run: |
