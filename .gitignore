@@ -171,3 +171,5 @@ out
 
 *.DS_Store
 
+.claude/
+.gemini/

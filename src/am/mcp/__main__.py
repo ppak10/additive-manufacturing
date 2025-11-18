@@ -12,7 +12,7 @@ from am.segmenter.mcp import (
     register_segmenter_shape_2d,
     register_segmenter_visualize_layer,
 )
-from am.workspace.mcp import register_workspace_initialize
+from am.workspace.mcp import register_workspace_create
 
 app = FastMCP(name="additive-manufacturing")
 
@@ -25,7 +25,7 @@ _ = register_segmenter_visualize_layer(app)
 _ = register_slicer_slice(app)
 _ = register_solver_run_layer(app)
 _ = register_solver_visualize(app)
-_ = register_workspace_initialize(app)
+_ = register_workspace_create(app)
 
 
 def main():

@@ -1,0 +1,31 @@
+{
+  "name": "Stainless Steel 316L",
+  "specific_heat_capacity": {
+    "magnitude": 455,
+    "units": "joule / kelvin / kilogram"
+  },
+  "absorptivity": {
+    "magnitude": 1.0,
+    "units": "dimensionless"
+  },
+  "thermal_conductivity": {
+    "magnitude": 8.9,
+    "units": "watt / kelvin / meter"
+  },
+  "density": {
+    "magnitude": 7910,
+    "units": "kilogram / meter ** 3"
+  },
+  "temperature_melt": {
+    "magnitude": 1673,
+    "units": "kelvin"
+  },
+  "temperature_liquidus": {
+    "magnitude": 1710.26,
+    "units": "kelvin"
+  },
+  "temperature_solidus": {
+    "magnitude": 1683.68,
+    "units": "kelvin"
+  }
+}

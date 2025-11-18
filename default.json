@@ -1,0 +1,75 @@
+{
+  "x_step": {
+    "magnitude": 25,
+    "units": "micrometer"
+  },
+  "y_step": {
+    "magnitude": 25,
+    "units": "micrometer"
+  },
+  "z_step": {
+    "magnitude": 25,
+    "units": "micrometer"
+  },
+  "x_min": {
+    "magnitude": 0.0,
+    "units": "millimeter"
+  },
+  "x_max": {
+    "magnitude": 10.0,
+    "units": "millimeter"
+  },
+  "y_min": {
+    "magnitude": 0.0,
+    "units": "millimeter"
+  },
+  "y_max": {
+    "magnitude": 10.0,
+    "units": "millimeter"
+  },
+  "z_min": {
+    "magnitude": -0.8,
+    "units": "millimeter"
+  },
+  "z_max": {
+    "magnitude": 0.0,
+    "units": "millimeter"
+  },
+  "x_initial": {
+    "magnitude": 0.0,
+    "units": "millimeter"
+  },
+  "y_initial": {
+    "magnitude": 0.0,
+    "units": "millimeter"
+  },
+  "z_initial": {
+    "magnitude": 0.0,
+    "units": "millimeter"
+  },
+  "x_start_pad": {
+    "magnitude": 0.2,
+    "units": "millimeter"
+  },
+  "y_start_pad": {
+    "magnitude": 0.2,
+    "units": "millimeter"
+  },
+  "z_start_pad": {
+    "magnitude": 0.0,
+    "units": "millimeter"
+  },
+  "x_end_pad": {
+    "magnitude": 0.2,
+    "units": "millimeter"
+  },
+  "y_end_pad": {
+    "magnitude": 0.2,
+    "units": "millimeter"
+  },
+  "z_end_pad": {
+    "magnitude": 0.1,
+    "units": "millimeter"
+  },
+  "boundary_condition": "temperature"
+}
