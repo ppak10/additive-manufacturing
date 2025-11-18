@@ -3,6 +3,7 @@ import typer
 
 from rich import print as rprint
 
+
 def register_version(app: typer.Typer):
     @app.command()
     def version() -> None:
@@ -17,4 +18,3 @@ def register_version(app: typer.Typer):
             raise typer.Exit()
 
     return version
-

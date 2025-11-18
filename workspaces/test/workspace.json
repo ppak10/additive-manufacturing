@@ -1,0 +1,47 @@
+{
+  "name": "test",
+  "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test",
+  "folders": {
+    "config": {
+      "name": "config",
+      "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/config",
+      "folders": {
+        "build_parameters": {
+          "name": "build_parameters",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/config/build_parameters",
+          "folders": {},
+          "files": []
+        },
+        "material": {
+          "name": "material",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/config/material",
+          "folders": {},
+          "files": []
+        },
+        "mesh_parameters": {
+          "name": "mesh_parameters",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/config/mesh_parameters",
+          "folders": {},
+          "files": []
+        }
+      },
+      "files": []
+    },
+    "parts": {
+      "name": "parts",
+      "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/parts",
+      "folders": {
+        "test_parts": {
+          "name": "test_parts",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/parts/test_parts",
+          "folders": {},
+          "files": []
+        }
+      },
+      "files": []
+    }
+  },
+  "version": "0.1.2",
+  "workspaces_path": "/Users/ppak/GitHub/additive-manufacturing/workspaces",
+  "config_file": "workspace.json"
+}

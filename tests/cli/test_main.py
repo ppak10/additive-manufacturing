@@ -14,7 +14,7 @@ def test_main_help(runner):
     """Test main CLI help command."""
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "Additive Manufacturing Tools" in result.stdout
+    assert "Additive Manufacturing" in result.stdout
     assert "segmenter" in result.stdout
     assert "solver" in result.stdout
     assert "mcp" in result.stdout
@@ -24,7 +24,7 @@ def test_main_no_args(runner):
     """Test main CLI with no arguments shows help."""
     result = runner.invoke(app, [])
     assert result.exit_code == 2
-    assert "Additive Manufacturing Tools" in result.stdout
+    assert "Additive Manufacturing" in result.stdout
 
 
 def test_version_command(runner):

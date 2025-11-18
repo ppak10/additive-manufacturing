@@ -8,4 +8,3 @@ _ = register_segmenter_shape_2d(app)
 _ = register_segmenter_visualize_layer(app)
 
 __all__ = ["app"]
-

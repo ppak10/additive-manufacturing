@@ -2,6 +2,7 @@ import jax.numpy as jnp
 from jax import lax
 from typing import Tuple, Union
 
+
 def make_gaussian_kernel_1d(sigma: float, truncate: float = 4.0) -> jnp.ndarray:
     """Build a normalized 1D Gaussian kernel."""
     radius = int(truncate * sigma + 0.5)
@@ -10,6 +11,7 @@ def make_gaussian_kernel_1d(sigma: float, truncate: float = 4.0) -> jnp.ndarray:
     g = g / jnp.sum(g)
     return g
 
+
 def make_gaussian_kernel_3d(sigma: float, truncate: float = 4.0) -> jnp.ndarray:
     """Construct a separable 3D Gaussian kernel."""
     g1 = make_gaussian_kernel_1d(sigma, truncate)
@@ -17,10 +19,13 @@ def make_gaussian_kernel_3d(sigma: float, truncate: float = 4.0) -> jnp.ndarray:
     g3 = g3 / jnp.sum(g3)
     return g3
 
+
 def gaussian_blur_3d(
     grid: jnp.ndarray,
     sigma: float,
-    padding: Union[str, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]] = "SAME",
+    padding: Union[
+        str, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]
+    ] = "SAME",
     truncate: float = 4.0,
 ) -> jnp.ndarray:
     """

@@ -8,7 +8,7 @@ from pathlib import Path
 from pint import Quantity
 from tqdm import tqdm
 
-from am.schema import BuildParameters, Material
+from am.config import BuildParameters, Material
 from am.solver.model import Rosenthal
 
 from .classification import lack_of_fusion

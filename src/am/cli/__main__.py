@@ -6,7 +6,7 @@ from rich import print as rprint
 
 app = typer.Typer(
     name="additive-manufacturing",
-    help="Additive Manufacturing Tools",
+    help="Additive Manufacturing",
     add_completion=False,
     no_args_is_help=True,
 )

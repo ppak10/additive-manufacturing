@@ -24,7 +24,7 @@ def register_process_map_generate_melt_pool_measurements(app: typer.Typer):
         verbose: VerboseOption | None = False,
     ) -> None:
         """Create file for build parameters."""
-        from am.schema import BuildParameters, Material
+        from am.config import BuildParameters, Material
         from am.process_map.generate import generate_melt_pool_measurements
         from am.process_map.schema import ProcessMap
 

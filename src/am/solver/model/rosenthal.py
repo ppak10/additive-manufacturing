@@ -5,11 +5,10 @@ from jax import Array
 from pint import Quantity
 from typing import cast
 
-from am.schema import BuildParameters, Material
+from am.config import BuildParameters, Material
 from am.solver.types import MeltPoolDimensions
 from am.solver.mesh import SolverMesh
-from am.segmenter.types import Segment
-
+from am.solver.segment import SolverSegment
 
 FLOOR = 10**-7  # Float32
 
@@ -67,7 +66,7 @@ class Rosenthal:
                 len(solver_mesh.z_range_centered),
             )
 
-    def forward(self, segment: Segment) -> Array:
+    def forward(self, segment: SolverSegment) -> Array:
         """
         Provides Eagar-Tsai approximation of the melt pool centered and rotated
         within the middle of the middle of the mesh.
@@ -227,5 +226,5 @@ class Rosenthal:
 
         return temp
 
-    def __call__(self, segment: Segment) -> Array:
+    def __call__(self, segment: SolverSegment) -> Array:
         return self.forward(segment)

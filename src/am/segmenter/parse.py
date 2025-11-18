@@ -6,9 +6,17 @@ from pathlib import Path
 from pygcode import Line, words2dict, GCodeLinearMove, GCode
 from pint import Quantity, Unit
 from typing import cast
+from typing_extensions import TypedDict
 from tqdm import tqdm
 
-from .types import Command, Segment
+from am.solver.segment import SolverSegment
+
+
+class Command(TypedDict):
+    x: Quantity
+    y: Quantity
+    z: Quantity
+    e: Quantity
 
 
 class SegmenterParse:
@@ -18,14 +26,18 @@ class SegmenterParse:
 
     def __init__(self):
         self.commands: list[Command] = []
-        self.segments: list[Segment] = []
+        self.segments: list[SolverSegment] = []
 
         # List of indexes for `self.commands` where layer change occurs.
         self.commands_layer_change_indexes: list[int] = []
         self.segments_layer_change_indexes: list[int] = []
 
     async def gcode_to_commands(
-            self, path: Path, unit: str = "mm", verbose: bool | None = False, context: Context | None = None
+        self,
+        path: Path,
+        unit: str = "mm",
+        verbose: bool | None = False,
+        context: Context | None = None,
     ):
         """
         Load and parse linear move values within GCode file into commands.
@@ -65,14 +77,13 @@ class SegmenterParse:
         ):
             if context is not None:
                 await context.report_progress(
-                    progress = line_index + 1,
-                    total = len(lines),
-                    message = f"Parsing lines in GCode file {line_index + 1}/{len(lines)}"
+                    progress=line_index + 1,
+                    total=len(lines),
+                    message=f"Parsing lines in GCode file {line_index + 1}/{len(lines)}",
                 )
 
             line = Line(line_text)  # Parses raw gcode text to line instance.
             block = line.block
-
 
             if block is not None:
                 # GCode objects within line text.
@@ -99,9 +110,7 @@ class SegmenterParse:
                     # `{"E": 2.10293}` or `{}` if no extrusion.
                     modal_params = cast(object, block.modal_params)
 
-                    extrusion_dict = cast(
-                        dict[str, float], words2dict(modal_params)
-                    )
+                    extrusion_dict = cast(dict[str, float], words2dict(modal_params))
 
                     # Updates extrusion value explicity to 0.0.
                     if "E" not in extrusion_dict:
@@ -149,9 +158,9 @@ class SegmenterParse:
         ):
             if context is not None:
                 await context.report_progress(
-                    progress = command_index + 1,
-                    total = len(commands_range),
-                    message = f"Converting commands to segments {command_index + 1}/{len(commands_range)}"
+                    progress=command_index + 1,
+                    total=len(commands_range),
+                    message=f"Converting commands to segments {command_index + 1}/{len(commands_range)}",
                 )
 
             if command_index in self.commands_layer_change_indexes:
@@ -224,7 +233,7 @@ class SegmenterParse:
                     next_z = next_command["z"]
                     next_e = next_command["e"]
 
-                segment = Segment(
+                segment = SolverSegment(
                     x=prev_x,
                     y=prev_y,
                     z=prev_z,
@@ -250,7 +259,7 @@ class SegmenterParse:
     def save_segments(
         self,
         path: Path,
-        segments: list[Segment] | None = None,
+        segments: list[SolverSegment] | None = None,
         verbose: bool | None = False,
         split_by_layer: bool | None = True,
     ) -> Path:
@@ -296,7 +305,7 @@ class SegmenterParse:
 
             return segments_layers_dir
         else:
-            # Saving segments as one giant file is not really practical so 
+            # Saving segments as one giant file is not really practical so
             # it's not toggled off by default.
             with path.open("w") as f:
                 _ = f.write("[\n")

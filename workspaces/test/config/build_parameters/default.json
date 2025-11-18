@@ -1,0 +1,26 @@
+{
+  "beam_diameter": {
+    "magnitude": 5e-05,
+    "units": "meter"
+  },
+  "beam_power": {
+    "magnitude": 200,
+    "units": "watt"
+  },
+  "hatch_spacing": {
+    "magnitude": 50,
+    "units": "micron"
+  },
+  "layer_height": {
+    "magnitude": 100,
+    "units": "micron"
+  },
+  "scan_velocity": {
+    "magnitude": 0.8,
+    "units": "meter / second"
+  },
+  "temperature_preheat": {
+    "magnitude": 300,
+    "units": "kelvin"
+  }
+}

@@ -30,7 +30,7 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
             name: Used for the process map folder
         """
 
-        from am.schema import BuildParameters, Material
+        from am.config import BuildParameters, Material
         from am.process_map.initialize import initialize_power_velocity_range
 
         from wa.cli.utils import get_workspace_path
@@ -40,12 +40,15 @@ def register_process_map_initialize_power_velocity_range(app: FastMCP):
 
             # Build Parameters
             build_parameters_path = (
-                workspace_path / "build_parameters" / build_parameters_filename
+                workspace_path
+                / "configs"
+                / "build_parameters"
+                / build_parameters_filename
             )
 
             build_parameters = BuildParameters.load(build_parameters_path)
 
-            material_path = workspace_path / "materials" / material_filename
+            material_path = workspace_path / "config" / "materials" / material_filename
             material = Material.load(material_path)
 
             out_path = initialize_power_velocity_range(

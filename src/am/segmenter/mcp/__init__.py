@@ -7,4 +7,3 @@ __all__ = [
     "register_segmenter_shape_2d",
     "register_segmenter_visualize_layer",
 ]
-

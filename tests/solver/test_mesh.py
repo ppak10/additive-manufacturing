@@ -7,14 +7,14 @@ from pathlib import Path
 from pint import Quantity
 
 from am.solver.mesh import SolverMesh
-from am.solver.types import MeshConfig
-from am.segmenter.types import Segment
+from am.solver.segment import SolverSegment
+from am.config import MeshParameters
 
 
 @pytest.fixture
 def mesh_config():
     """Create a simple MeshConfig for testing."""
-    return MeshConfig(
+    return MeshParameters(
         x_step=Quantity(0.1, "mm"),
         y_step=Quantity(0.1, "mm"),
         z_step=Quantity(0.1, "mm"),
@@ -187,7 +187,7 @@ class TestSolverMeshUpdateXY:
         """Test updating x, y positions in absolute mode."""
         solver_mesh.initialize_grid(mesh_config, 300.0)
 
-        segment = Segment(
+        segment = SolverSegment(
             x=Quantity(0.5, "mm"),
             y=Quantity(0.5, "mm"),
             z=Quantity(0.0, "mm"),
@@ -211,18 +211,14 @@ class TestSolverMeshUpdateXY:
         assert solver_mesh.y != y_before
 
         # Check that new positions match segment
-        assert np.isclose(
-            solver_mesh.x, segment.x_next.to("m").magnitude, rtol=1e-5
-        )
-        assert np.isclose(
-            solver_mesh.y, segment.y_next.to("m").magnitude, rtol=1e-5
-        )
+        assert np.isclose(solver_mesh.x, segment.x_next.to("m").magnitude, rtol=1e-5)
+        assert np.isclose(solver_mesh.y, segment.y_next.to("m").magnitude, rtol=1e-5)
 
     def test_update_xy_updates_indices(self, solver_mesh, mesh_config):
         """Test that update_xy also updates x_index and y_index."""
         solver_mesh.initialize_grid(mesh_config, 300.0)
 
-        segment = Segment(
+        segment = SolverSegment(
             x=Quantity(0.5, "mm"),
             y=Quantity(0.5, "mm"),
             z=Quantity(0.0, "mm"),
@@ -242,7 +238,10 @@ class TestSolverMeshUpdateXY:
         solver_mesh.update_xy(segment, mode="absolute")
 
         # Indices should have changed
-        assert solver_mesh.x_index != x_index_before or solver_mesh.y_index != y_index_before
+        assert (
+            solver_mesh.x_index != x_index_before
+            or solver_mesh.y_index != y_index_before
+        )
 
 
 class TestSolverMeshGraft:

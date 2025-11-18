@@ -9,7 +9,7 @@ from pint import Quantity
 from tqdm import tqdm
 from typing import cast
 
-from .types import Segment, SegmentDict
+from am.solver.segment import SolverSegment, SolverSegmentDict
 
 
 class SegmenterVisualize:
@@ -18,7 +18,7 @@ class SegmenterVisualize:
     """
 
     def __init__(self):
-        self.segments: list[Segment] = []
+        self.segments: list[SolverSegment] = []
 
         self.x_min: Quantity = cast(Quantity, Quantity(0.0, "m"))
         self.x_max: Quantity = cast(Quantity, Quantity(0.0, "m"))
@@ -44,7 +44,6 @@ class SegmenterVisualize:
         if visualization_name is None:
             visualization_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
 
-        cwd = Path.cwd()
         visualization_path = segments_path / "visualizations" / visualization_name
         visualization_path.mkdir(exist_ok=True, parents=True)
 
@@ -103,7 +102,7 @@ class SegmenterVisualize:
         writer.close()
         return animation_out_path
 
-    def load_segments(self, path: Path | str) -> list[Segment]:
+    def load_segments(self, path: Path | str) -> list[SolverSegment]:
         self.segments = []
 
         self.x_min = cast(Quantity, Quantity(0.0, "m"))
@@ -113,10 +112,10 @@ class SegmenterVisualize:
 
         path = Path(path)
         with path.open("r") as f:
-            segments_data = cast(list[SegmentDict], json.load(f))
+            segments_data = cast(list[SolverSegmentDict], json.load(f))
 
         for seg_dict in tqdm(segments_data, desc="Loading segments"):
-            segment = Segment.from_dict(seg_dict)
+            segment = SolverSegment.from_dict(seg_dict)
             self.segments.append(segment)
 
             # Determine x_min, x_max, y_min, y_max

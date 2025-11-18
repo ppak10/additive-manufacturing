@@ -53,7 +53,7 @@ async def _segmenter_parse_async(
         filename_no_ext = filename.split(".")[0]
         segments_path = workspace_path / "segments" / f"{filename_no_ext}.json"
         output_path = segmenter_parse.save_segments(segments_path, verbose=verbose)
-        rprint(f"✅Parsed segments `{filename}` saved at `{output_path}`")
+        rprint(f"✅ Parsed segments `{filename}` saved at `{output_path}`")
     except Exception as e:
-        rprint(f"⚠️  [yellow]Unable to segment {filename}: {e}[/yellow]")
+        rprint(f"⚠️ [yellow]Unable to segment {filename}: {e}[/yellow]")
         raise typer.Exit(code=1)
