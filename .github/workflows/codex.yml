@@ -48,7 +48,7 @@ jobs:
 
     - name: Verify additive-manufacturing MCP installation
       run: |
-        codex mcp get am
+        codex mcp get additive-manufacturing
 
     - name: Uninstall MCP server
       run: |

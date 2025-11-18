@@ -21,7 +21,7 @@ dependencies = [
     "tqdm>=4.67.1",
     "trimesh[easy]>=4.9.0",
     "typer>=0.16.0",
-    "workspace-agent>=0.1.2",
+    "workspace-agent>=0.1.4",
 ]
 
 [project.urls]
