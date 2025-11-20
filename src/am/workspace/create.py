@@ -98,7 +98,7 @@ def create_workspace_configs_folder(
 
     material = Material()
     material_folder = create_workspace_folder(
-        workspace_folder_name=["configs", "material"],
+        workspace_folder_name=["configs", "materials"],
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
