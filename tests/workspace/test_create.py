@@ -50,7 +50,7 @@ class TestCreateAdditiveManufacturingWorkspace:
         configs_path = isolated_workspace / "test" / "configs"
         assert configs_path.exists()
         assert (configs_path / "build_parameters").exists()
-        assert (configs_path / "material").exists()
+        assert (configs_path / "materials").exists()
         assert (configs_path / "mesh_parameters").exists()
 
     def test_creates_parts_folder(self, isolated_workspace):
@@ -73,7 +73,7 @@ class TestCreateAdditiveManufacturingWorkspace:
 
         configs_path = isolated_workspace / "test" / "configs"
         assert (configs_path / "build_parameters" / "default.json").exists()
-        assert (configs_path / "material" / "default.json").exists()
+        assert (configs_path / "materials" / "default.json").exists()
         assert (configs_path / "mesh_parameters" / "default.json").exists()
 
     def test_with_examples(self, isolated_workspace):
@@ -124,7 +124,7 @@ class TestCreateAdditiveManufacturingWorkspace:
         )
         assert isinstance(build_params, BuildParameters)
 
-        material = Material.load(configs_path / "material" / "default.json")
+        material = Material.load(configs_path / "materials" / "default.json")
         assert isinstance(material, Material)
 
         mesh_params = MeshParameters.load(
@@ -160,7 +160,7 @@ class TestCreateWorkspaceConfigsFolder:
         )
 
         assert (configs_folder.path / "build_parameters").exists()
-        assert (configs_folder.path / "material").exists()
+        assert (configs_folder.path / "materials").exists()
         assert (configs_folder.path / "mesh_parameters").exists()
 
     def test_creates_default_files(self, isolated_workspace):
@@ -171,7 +171,7 @@ class TestCreateWorkspaceConfigsFolder:
         )
 
         assert (configs_folder.path / "build_parameters" / "default.json").exists()
-        assert (configs_folder.path / "material" / "default.json").exists()
+        assert (configs_folder.path / "materials" / "default.json").exists()
         assert (configs_folder.path / "mesh_parameters" / "default.json").exists()
 
     def test_with_force(self, isolated_workspace):
@@ -216,7 +216,7 @@ class TestCreateWorkspaceConfigsFolder:
             workspaces_path=isolated_workspace,
         )
 
-        material_file = configs_folder.path / "material" / "default.json"
+        material_file = configs_folder.path / "materials" / "default.json"
         material = Material.load(material_file)
 
         assert isinstance(material, Material)
@@ -260,7 +260,7 @@ class TestCreateWorkspaceConfigsFolder:
 
         config_files = [
             configs_folder.path / "build_parameters" / "default.json",
-            configs_folder.path / "material" / "default.json",
+            configs_folder.path / "materials" / "default.json",
             configs_folder.path / "mesh_parameters" / "default.json",
         ]
 
