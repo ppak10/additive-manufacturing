@@ -61,7 +61,7 @@ def register_config_material(app: typer.Typer):
                 temperature_liquidus=parse_cli_input(temperature_liquidus),
                 temperature_solidus=parse_cli_input(temperature_solidus),
             )
-            save_path = workspace_path / "config" / "materials" / f"{name}.json"
+            save_path = workspace_path / "configs" / "materials" / f"{name}.json"
             material.save(save_path)
         except Exception as e:
             rprint(f"⚠️  [yellow]Unable to create material file: {e}[/yellow]")
