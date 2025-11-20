@@ -7,6 +7,7 @@ from copy import deepcopy
 from pathlib import Path
 from pint import Quantity
 from tqdm import tqdm
+from typing import cast
 
 from am.config import BuildParameters, Material
 from am.solver.model import Rosenthal
@@ -18,7 +19,6 @@ from .plot import create_lack_of_fusion_plot
 
 def process_layer_height_offset(
     layer_height_offset: int,
-    workspace_path: Path,
     build_parameters: BuildParameters,
     material: Material,
     process_map: ProcessMap,
@@ -160,7 +160,9 @@ def generate_melt_pool_measurements(
     if max_processes is None:
         max_processes = min(3, mp.cpu_count())
 
-    prescribed_layer_height = build_parameters.layer_height.to("microns").magnitude
+    prescribed_layer_height = (
+        cast(Quantity, build_parameters.layer_height).to("microns").magnitude
+    )
     layer_height_offsets = [-25, 0, 25]
 
     # Sequential processing for max_processes=1 or compatibility issues
@@ -205,7 +207,6 @@ def generate_melt_pool_measurements(
                 future = executor.submit(
                     process_layer_height_offset,
                     offset,
-                    workspace_path,
                     build_parameters,
                     material,
                     process_map,

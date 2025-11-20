@@ -13,16 +13,16 @@ def register_process_map_generate_process_map(app: FastMCP):
         structured_output=True,
     )
     def process_map_generate_process_map(
-        workspace: str,
-        name: str | None = "default",
+        workspace_name: str,
+        process_map_folder_name: str | None = "default",
         # build_parameters_filename: str = "build_parameters.json",
         # material_filename: str = "material.json",
     ) -> Union[ToolSuccess[list[tuple[int, list[dict[str, int]]]]], ToolError]:
         """
         Creates a configuration file for build parameters.
         Args:
-            workspace: Folder name of existing workspace.
-            name: Used for the process map folder
+            workspace_name: Folder name of existing workspace.
+            process_map_folder_name: Used for the process map folder
         """
 
         from am.config import BuildParameters, Material
@@ -31,11 +31,11 @@ def register_process_map_generate_process_map(app: FastMCP):
 
         from wa.cli.utils import get_workspace_path
 
-        workspace_path = get_workspace_path(workspace)
+        workspace_path = get_workspace_path(workspace_name)
 
         process_maps_folder = workspace_path / "process_maps"
 
-        if name is None:
+        if process_map_folder_name is None:
             # Get list of subdirectories sorted by modification time (newest first)
             process_map_folder = sorted(
                 [d for d in process_maps_folder.iterdir() if d.is_dir()],
@@ -51,7 +51,7 @@ def register_process_map_generate_process_map(app: FastMCP):
             name = process_map_folder[0].name
 
         try:
-            workspace_path = get_workspace_path(workspace)
+            workspace_path = get_workspace_path(workspace_name)
 
             # Build Parameters
             build_parameters_path = (
@@ -88,7 +88,7 @@ def register_process_map_generate_process_map(app: FastMCP):
             return tool_error(
                 "Permission denied when generating process map.",
                 "PERMISSION_DENIED",
-                workspace_name=workspace,
+                workspace_name=workspace_name,
                 exception_type=type(e).__name__,
             )
 
@@ -96,7 +96,7 @@ def register_process_map_generate_process_map(app: FastMCP):
             return tool_error(
                 "Failed to generate process map",
                 "GENERATE_PROCESS_MAP_FAILED",
-                workspace_name=workspace,
+                workspace_name=workspace_name,
                 exception_type=type(e).__name__,
                 exception_message=str(e),
             )

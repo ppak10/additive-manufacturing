@@ -17,8 +17,8 @@ from am.workspace.mcp import register_workspace_create
 app = FastMCP(name="additive-manufacturing")
 
 _ = register_config(app)
-_ = register_process_map_initialize_power_velocity_range(app)
-_ = register_process_map_generate_process_map(app)
+# _ = register_process_map_initialize_power_velocity_range(app)
+# _ = register_process_map_generate_process_map(app)
 _ = register_segmenter_parse(app)
 _ = register_segmenter_shape_2d(app)
 _ = register_segmenter_visualize_layer(app)

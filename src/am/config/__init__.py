@@ -1,6 +1,7 @@
 from .build_parameters import BuildParameters, BuildParametersDict, BuildParametersInput
 from .material import Material, MaterialDict, MaterialInput
 from .mesh_parameters import MeshParameters, MeshParametersDict, MeshParametersInput
+from .process_map import ProcessMap, ProcessMapDict, ProcessMapInput
 
 __all__ = [
     "BuildParameters",
@@ -12,4 +13,7 @@ __all__ = [
     "MeshParameters",
     "MeshParametersDict",
     "MeshParametersInput",
+    "ProcessMap",
+    "ProcessMapDict",
+    "ProcessMapInput",
 ]
