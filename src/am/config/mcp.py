@@ -54,16 +54,17 @@ def register_config(app: FastMCP):
             # Create build parameters config if provided
             if build_parameters is not None:
                 # Handle both dict and Pydantic model inputs
-                bp_data = (
+                build_parameters_data = (
                     build_parameters
                     if isinstance(build_parameters, dict)
                     else build_parameters.model_dump()
                 )
-                bp = BuildParameters(**bp_data)
+                build_parameters_config = BuildParameters(**build_parameters_data)
+
                 save_path = (
                     workspace_path / "configs" / "build_parameters" / f"{name}.json"
                 )
-                bp.save(save_path)
+                build_parameters_config.save(save_path)
                 created_files.append(str(save_path))
 
             # Create material config if provided

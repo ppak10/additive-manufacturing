@@ -39,8 +39,29 @@
         }
       },
       "files": []
+    },
+    "process_maps": {
+      "name": "process_maps",
+      "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps",
+      "folders": {
+        "process_map_test": {
+          "name": "process_map_test",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/process_map_test",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/process_map_test/config",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        }
+      },
+      "files": []
     }
   },
+  "files": [],
   "version": "0.1.2",
   "workspaces_path": "/Users/ppak/GitHub/additive-manufacturing/workspaces",
   "config_file": "workspace.json"

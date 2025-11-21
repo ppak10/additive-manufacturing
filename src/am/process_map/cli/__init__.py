@@ -1,12 +1,9 @@
 from .__main__ import app
 
-from .initialize_power_velocity_range import (
-    register_process_map_initialize_power_velocity_range,
-)
+from .create import register_process_map_create
+from .run import register_process_map_run
 
-from .generate_process_map import register_process_map_generate_melt_pool_measurements
-
-_ = register_process_map_initialize_power_velocity_range(app)
-_ = register_process_map_generate_melt_pool_measurements(app)
+register_process_map_create(app)
+register_process_map_run(app)
 
 __all__ = ["app"]
