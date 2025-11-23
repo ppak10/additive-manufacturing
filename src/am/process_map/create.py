@@ -40,4 +40,12 @@ def create_process_map_folder(
     material.save(process_map_config_folder.path / "material.json")
     process_map.save(process_map_config_folder.path / "process_map.json")
 
+    # Process Map Plots subfolder
+    create_workspace_folder(
+        workspace_folder_name=["process_maps", process_map_folder_name, "plots"],
+        workspace_name=workspace_name,
+        workspaces_path=workspaces_path,
+        force=force,
+    )
+
     return process_map_folder

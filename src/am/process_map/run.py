@@ -96,7 +96,9 @@ def run_process_map(
                 result = future.result()  # This will raise any exceptions that occurred
                 points.append(result)
 
-    process_map_points = ProcessMapPoints(points=points)
+    process_map_points = ProcessMapPoints(
+        parameters=process_map.parameters, points=points
+    )
 
     process_map_points.save(process_map_path / "points.json")
 
