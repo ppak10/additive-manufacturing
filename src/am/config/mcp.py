@@ -1,11 +1,13 @@
 from mcp.server.fastmcp import FastMCP
 from typing import Union
+from pydantic import ValidationError
 
 from am.mcp.types import ToolSuccess, ToolError
 from am.mcp.utils import tool_success, tool_error
 from am.config.build_parameters import BuildParametersInput
 from am.config.material import MaterialInput
 from am.config.mesh_parameters import MeshParametersInput
+from am.config.process_map import ProcessMapInput
 
 
 def register_config(app: FastMCP):
@@ -21,6 +23,7 @@ def register_config(app: FastMCP):
         build_parameters: BuildParametersInput | None = None,
         material: MaterialInput | None = None,
         mesh_parameters: MeshParametersInput | None = None,
+        process_map: ProcessMapInput | None = None,
     ) -> Union[ToolSuccess[dict], ToolError]:
         """
         Create AM configuration files.
@@ -34,11 +37,14 @@ def register_config(app: FastMCP):
             build_parameters: Build parameters configuration (beam diameter, power, velocity, etc.)
             material: Material properties configuration (density, thermal conductivity, etc.)
             mesh_parameters: Mesh parameters configuration (step sizes, bounds, padding, etc.)
+            process_map: Process map configuration with parameter_ranges to generate Cartesian product
+                        of parameter combinations (e.g., beam_power and scan_velocity ranges).
+                        Maximum of 3 parameters allowed.
 
         Returns:
             Dictionary with list of created configuration file paths
         """
-        from am.config import BuildParameters, Material, MeshParameters
+        from am.config import BuildParameters, Material, MeshParameters, ProcessMap
         from wa.cli.utils import get_workspace_path
 
         try:
@@ -48,16 +54,17 @@ def register_config(app: FastMCP):
             # Create build parameters config if provided
             if build_parameters is not None:
                 # Handle both dict and Pydantic model inputs
-                bp_data = (
+                build_parameters_data = (
                     build_parameters
                     if isinstance(build_parameters, dict)
                     else build_parameters.model_dump()
                 )
-                bp = BuildParameters(**bp_data)
+                build_parameters_config = BuildParameters(**build_parameters_data)
+
                 save_path = (
                     workspace_path / "configs" / "build_parameters" / f"{name}.json"
                 )
-                bp.save(save_path)
+                build_parameters_config.save(save_path)
                 created_files.append(str(save_path))
 
             # Create material config if provided
@@ -86,6 +93,17 @@ def register_config(app: FastMCP):
                 mesh.save(save_path)
                 created_files.append(str(save_path))
 
+            if process_map is not None:
+                process_map_data = (
+                    process_map
+                    if isinstance(process_map, dict)
+                    else process_map.model_dump()
+                )
+                process_map_config = ProcessMap(**process_map_data)
+                save_path = workspace_path / "configs" / "process_maps" / f"{name}.json"
+                process_map_config.save(save_path)
+                created_files.append(str(save_path))
+
             if not created_files:
                 return tool_error(
                     "No configuration objects provided. Please provide at least one of: build_parameters, material, or mesh_parameters.",
@@ -94,6 +112,27 @@ def register_config(app: FastMCP):
                 )
 
             return tool_success({"created_files": created_files, "name": name})
+
+        except ValidationError as e:
+            # Extract first validation error message for clearer feedback
+            error_msg = str(e.errors()[0]["msg"]) if e.errors() else str(e)
+            # Convert validation errors to serializable format
+            serializable_errors = []
+            for error in e.errors():
+                serializable_errors.append(
+                    {
+                        "type": error.get("type", ""),
+                        "msg": str(error.get("msg", "")),
+                        "loc": [str(loc) for loc in error.get("loc", [])],
+                    }
+                )
+            return tool_error(
+                f"Configuration validation failed: {error_msg}",
+                "VALIDATION_ERROR",
+                workspace_name=workspace,
+                exception_type=type(e).__name__,
+                validation_errors=serializable_errors,
+            )
 
         except PermissionError as e:
             return tool_error(

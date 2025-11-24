@@ -39,8 +39,169 @@
         }
       },
       "files": []
+    },
+    "process_maps": {
+      "name": "process_maps",
+      "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps",
+      "folders": {
+        "process_map_test": {
+          "name": "process_map_test",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/process_map_test",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/process_map_test/config",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        },
+        "new_process_map": {
+          "name": "new_process_map",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/new_process_map",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/new_process_map/config",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        },
+        "default_map": {
+          "name": "default_map",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/default_map",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/default_map/config",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        },
+        "lack_of_fusion_map": {
+          "name": "lack_of_fusion_map",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/lack_of_fusion_map",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/lack_of_fusion_map/config",
+              "folders": {},
+              "files": []
+            },
+            "plots": {
+              "name": "plots",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/lack_of_fusion_map/plots",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        },
+        "lack_of_fusion_map_swapped": {
+          "name": "lack_of_fusion_map_swapped",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/lack_of_fusion_map_swapped",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/lack_of_fusion_map_swapped/config",
+              "folders": {},
+              "files": []
+            },
+            "plots": {
+              "name": "plots",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/lack_of_fusion_map_swapped/plots",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        },
+        "fine": {
+          "name": "fine",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine/config",
+              "folders": {},
+              "files": []
+            },
+            "plots": {
+              "name": "plots",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine/plots",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        },
+        "fine_hatch_spacing": {
+          "name": "fine_hatch_spacing",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_hatch_spacing",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_hatch_spacing/config",
+              "folders": {},
+              "files": []
+            },
+            "plots": {
+              "name": "plots",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_hatch_spacing/plots",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        },
+        "fine_2d": {
+          "name": "fine_2d",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_2d",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_2d/config",
+              "folders": {},
+              "files": []
+            },
+            "plots": {
+              "name": "plots",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_2d/plots",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        },
+        "fine_hatch_25_150": {
+          "name": "fine_hatch_25_150",
+          "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_hatch_25_150",
+          "folders": {
+            "config": {
+              "name": "config",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_hatch_25_150/config",
+              "folders": {},
+              "files": []
+            },
+            "plots": {
+              "name": "plots",
+              "path": "/Users/ppak/GitHub/additive-manufacturing/workspaces/test/process_maps/fine_hatch_25_150/plots",
+              "folders": {},
+              "files": []
+            }
+          },
+          "files": []
+        }
+      },
+      "files": []
     }
   },
+  "files": [],
   "version": "0.1.2",
   "workspaces_path": "/Users/ppak/GitHub/additive-manufacturing/workspaces",
   "config_file": "workspace.json"

@@ -3,6 +3,7 @@ import typer
 from datetime import datetime
 from typing_extensions import Annotated
 
+from am.cli.options import NumProc
 from wa.cli.options import WorkspaceOption
 
 
@@ -37,13 +38,7 @@ def register_slicer_slice(app: typer.Typer):
             ),
         ] = False,
         workspace: WorkspaceOption = None,
-        num_proc: Annotated[
-            int,
-            typer.Option(
-                "--num-proc",
-                help="Enable multiprocessing by specifying number of processes to use.",
-            ),
-        ] = 1,
+        num_proc: NumProc = 1,
     ) -> None:
         """
         Generates toolpath from loaded mesh (planar).

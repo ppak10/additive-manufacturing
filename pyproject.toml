@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.17"
+version = "0.0.18"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
@@ -50,4 +50,10 @@ dev = [
     "pre-commit>=4.3.0",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
+]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::tqdm.std.TqdmExperimentalWarning",
+    "ignore:In future, it will be an error for 'np.bool' scalars:DeprecationWarning",
 ]

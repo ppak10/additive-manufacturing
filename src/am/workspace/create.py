@@ -28,11 +28,19 @@ def create_additive_manufacturing_workspace(
         workspace_name=workspace_name, workspaces_path=workspaces_path, force=force
     )
 
+    # Creates parts folder for slicing parts
     create_workspace_parts_folder(
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
         include_examples=include_examples,
+    )
+
+    # Creates process maps folder for process map runs
+    create_workspace_process_maps_folder(
+        workspace_name=workspace_name,
+        workspaces_path=workspaces_path,
+        force=force,
     )
 
     return workspace
@@ -70,6 +78,26 @@ def create_workspace_parts_folder(
     return parts_folder
 
 
+def create_workspace_process_maps_folder(
+    workspace_name: str,
+    workspaces_path: Path | None = None,
+    force: bool = False,
+) -> WorkspaceFolder:
+    """
+    Create process maps subfolder within workspace.
+    """
+
+    # Create process maps directory
+    process_maps_folder = create_workspace_folder(
+        workspace_folder_name="process_maps",
+        workspace_name=workspace_name,
+        workspaces_path=workspaces_path,
+        force=force,
+    )
+
+    return process_maps_folder
+
+
 def create_workspace_configs_folder(
     workspace_name: str,
     workspaces_path: Path | None = None,
@@ -86,6 +114,7 @@ def create_workspace_configs_folder(
         force=force,
     )
 
+    # Build Parameters Config
     build_parameters = BuildParameters()
     build_parameters_folder = create_workspace_folder(
         workspace_folder_name=["configs", "build_parameters"],
@@ -96,6 +125,7 @@ def create_workspace_configs_folder(
     build_parameters_path = build_parameters_folder.path / "default.json"
     _ = build_parameters.save(build_parameters_path)
 
+    # Material Config
     material = Material()
     material_folder = create_workspace_folder(
         workspace_folder_name=["configs", "materials"],
@@ -106,6 +136,7 @@ def create_workspace_configs_folder(
     material_path = material_folder.path / "default.json"
     _ = material.save(material_path)
 
+    # Mesh Parameters Config
     mesh_parameters = MeshParameters()
     mesh_parameters_folder = create_workspace_folder(
         workspace_folder_name=["configs", "mesh_parameters"],
@@ -115,5 +146,14 @@ def create_workspace_configs_folder(
     )
     mesh_parameters_path = mesh_parameters_folder.path / "default.json"
     _ = mesh_parameters.save(mesh_parameters_path)
+
+    # Process Maps Config
+    # No default implemented
+    create_workspace_folder(
+        workspace_folder_name=["configs", "process_maps"],
+        workspace_name=workspace_name,
+        workspaces_path=workspaces_path,
+        force=force,
+    )
 
     return configs_folder

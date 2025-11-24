@@ -166,6 +166,7 @@ cython_debug/
 
 dev
 out
+workspaces
 
 !src/am/data/solver/build/
 

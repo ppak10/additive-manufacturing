@@ -1,94 +1,56 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import LinearSegmentedColormap, ListedColormap
+
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.patches import Patch
 from pathlib import Path
-from typing import Optional, Tuple, List, Union
+from typing import cast, Literal
+
+from .models import ProcessMapPlotData
+
+PlotType = Literal["lack_of_fusion"]
 
 
-def create_lack_of_fusion_plot(
-    data_2ds: list[tuple[int, list[list[bool]]]],
-    x_values: np.ndarray,
-    y_values: np.ndarray,
-    save_path: Union[str, Path],
-    title: str = "Process Map",
-    xlabel: str = "X Parameter",
-    ylabel: str = "Y Parameter",
-    colorbar_label: str = "Value",
-    figsize: Tuple[float, float] = (4, 3),
-    dpi: int = 150,
-    save_dpi: int = 300,
-    colormap: Optional[str] = None,
-    custom_colors: Optional[List[str]] = None,
-    style: str = "seaborn-v0_8-whitegrid",
-    interpolation: str = "bilinear",
-    show_grid: bool = True,
-    transparent_bg: bool = False,
-    is_boolean: bool = False,
-    legend_labels: Optional[List[str]] = None,
-) -> None:
+def get_colormap_segment(
+    position: float, base_cmap, width: float = 0.2
+) -> LinearSegmentedColormap:
     """
-    Create an enhanced matplotlib process map with professional styling.
-    Supports both continuous and boolean (categorical) maps.
+    Create a colormap segment centered around a position in the base colormap.
 
-    Parameters
-    ----------
-    is_boolean : bool, optional
-        If True, treats data as 0/1 categorical and uses a discrete colormap.
-    legend_labels : List[str], optional
-        Labels for the boolean categories (only used if is_boolean=True).
-        Example: ["No Lack of Fusion", "Lack of Fusion"]
+    Args:
+        position: Normalized position (0-1) in the base colormap
+        base_cmap: Base colormap to extract segment from
+        width: Width of the segment to extract (default 0.2)
+
+    Returns:
+        A new colormap with colors from the segment
     """
+    n_colors = 256
+    colors = [
+        base_cmap(position + (i / n_colors - 0.5) * width) for i in range(n_colors)
+    ]
+    return LinearSegmentedColormap.from_list("custom", colors)
 
-    # Apply style
-    try:
-        plt.style.use(style)
-    except OSError:
-        plt.style.use("default")
 
-    plt.rcParams.update({"font.family": "Lato"})  # or any installed font
+def plot_process_map(
+    process_map_path: Path,
+    plot_data: ProcessMapPlotData,
+    plot_type: PlotType,
+    flip_xy: bool = False,
+    figsize: tuple[float, float] = (4, 3),
+    dpi: int = 600,
+    transparent_bg: bool = True,
+):
+    # Colors
+    # plt.rcParams.update({"font.family": "Lato"})  # or any installed font
     plt.rcParams["text.color"] = "#71717A"
     plt.rcParams["axes.labelcolor"] = "#71717A"  # Axis labels (xlabel, ylabel)
     plt.rcParams["xtick.color"] = "#71717A"  # X-axis tick labels
     plt.rcParams["ytick.color"] = "#71717A"  # Y-axis tick labels
     plt.rcParams["axes.edgecolor"] = "#71717A"  # Axis lines/spines
-
-    # plt.rcParams['legend.facecolor'] = '#047857'  # or any color
     plt.rcParams["legend.edgecolor"] = "#71717A"  # border color
 
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
-
-    layer_heights = []
-    colors = [
-        "#EAB308",  # Yellow 500
-        "#F97316",  # Orange 500
-        "#EF4444",  # Red 500
-    ]
-    data_2ds.reverse()
-    for layer_height, _ in data_2ds:
-        layer_heights.append(layer_height)
-        # color = (layer_height / 150, 0.14, 0.15, 0.5)
-        # colors.append(color)
-    cmap = ListedColormap(colors)
-
-    print(data_2ds)
-    for index, (layer_height, data_2d) in enumerate(data_2ds):
-        # Mask all the False values so only True (1) areas are drawn
-        masked_data = np.ma.masked_where(~np.array(data_2d, dtype=bool), data_2d)
-
-        ax.imshow(
-            masked_data,
-            cmap=ListedColormap(colors[index]),
-            origin="lower",
-            extent=[x_values[0], x_values[-1], y_values[0], y_values[-1]],
-            aspect="auto",
-            interpolation="nearest",
-        )
-
-    # Title & labels
-    if title is not None:
-        ax.set_title(title, fontsize=16, fontweight="bold", pad=16)
-    ax.set_xlabel(xlabel, fontsize=12, fontweight="medium", labelpad=8)
-    ax.set_ylabel(ylabel, fontsize=12, fontweight="medium", labelpad=8)
 
     # Ticks
     ax.tick_params(
@@ -108,50 +70,101 @@ def create_lack_of_fusion_plot(
         width=0.75,
     )
 
-    # Colorbar or Legend
-    if is_boolean and layer_heights is not None:
-        from matplotlib.patches import Patch
+    # Axis Labels
 
-        handles = [
-            Patch(
-                facecolor=cmap.colors[i], edgecolor="k", label=f"{layer_heights[i]} µm"
+    x_units = f"{plot_data.axes[1][0].units:~}"
+    x_label = plot_data.parameters[1].replace("_", " ").title()
+    ax.set_xlabel(f"{x_label} ({x_units})")
+
+    y_units = f"{plot_data.axes[0][0].units:~}"
+    y_label = plot_data.parameters[0].replace("_", " ").title()
+    ax.set_ylabel(f"{y_label} ({y_units})")
+
+    # Handle 2D vs 3D grids
+    extent = cast(
+        tuple[float, float, float, float],
+        (
+            plot_data.axes[1][0].magnitude,
+            plot_data.axes[1][-1].magnitude,
+            plot_data.axes[0][0].magnitude,
+            plot_data.axes[0][-1].magnitude,
+        ),
+    )
+
+    if plot_type == "lack_of_fusion":
+        # Extract data for plotting.
+        cmap = plt.get_cmap("plasma")
+        data = np.zeros(plot_data.grid.shape)
+
+        for index in np.ndindex(plot_data.grid.shape):
+            point = plot_data.grid[index]
+
+            if point is not None:
+                data[index] = point.melt_pool_classifications.lack_of_fusion
+            else:
+                data[index] = np.nan
+
+        if len(plot_data.grid.shape) == 2:
+            # 2D grid: simple heatmap
+            ax.imshow(
+                data, cmap="viridis", aspect="auto", origin="lower", extent=extent
             )
-            for i in range(len(layer_heights))
-        ]
-        ax.legend(
-            handles=handles,
-            loc="upper right",
-            frameon=True,
-            fontsize=9,
-            title=colorbar_label,
-            title_fontsize=10,
-        )
-    else:
-        cbar = plt.colorbar(im, ax=ax, shrink=0.85, aspect=25, pad=0.02)
-        cbar.set_label(
-            colorbar_label,
-            rotation=270,
-            labelpad=20,
-            fontsize=11,
-            fontweight="medium",
-        )
-        cbar.ax.tick_params(labelsize=9)
 
-    # Grid & spines
-    if show_grid:
-        ax.grid(True, which="major", color="gray", alpha=0.3, linewidth=0.6)
-    for spine in ["top", "right"]:
-        ax.spines[spine].set_visible(False)
-    for spine in ["left", "bottom"]:
-        ax.spines[spine].set_linewidth(1.2)
+        elif len(plot_data.grid.shape) == 3:
+            # 3D grid: overlay plots along z-axis
+            handles = []
+            max_z_value_magnitude = plot_data.axes[2][-1].magnitude
 
-    plt.tight_layout()
+            # z is often layer height or hatch spacing
+            z_values = plot_data.axes[2]
+            z_values.reverse()
 
-    # Save
-    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+            z_units = f"{plot_data.axes[2][0].units:~}"
+            z_label = plot_data.parameters[2].replace("_", " ").title()
+
+            for z_idx, z_value in enumerate(z_values):
+                # Legend
+                position = z_value.magnitude / max_z_value_magnitude
+
+                handles.append(
+                    Patch(
+                        facecolor=cmap(position),
+                        edgecolor="k",
+                        label=f"{z_value.magnitude} ({z_units})",
+                    )
+                )
+
+                # Create colormap segment for this layer
+                layer_cmap = get_colormap_segment(position, cmap)
+
+                # Plotting
+                data_2d = data[:, :, -z_idx]
+                # Mask all the False values so only True (1) areas are drawn
+                data_2d_masked = np.ma.masked_where(
+                    ~np.array(data_2d, dtype=bool), data_2d
+                )
+                ax.imshow(
+                    data_2d_masked,
+                    cmap=layer_cmap,
+                    aspect="auto",
+                    origin="lower",
+                    extent=extent,
+                    interpolation="nearest",
+                )
+
+            ax.legend(
+                handles=handles,
+                loc="upper right",
+                frameon=True,
+                fontsize=9,
+                title=z_label,
+                title_fontsize=10,
+            )
+
+    save_path = process_map_path / "plots" / "lack_of_fusion.png"
     plt.savefig(
         save_path,
-        dpi=save_dpi,
+        dpi=dpi,
         bbox_inches="tight",
         facecolor="white" if not transparent_bg else "none",
         transparent=transparent_bg,
