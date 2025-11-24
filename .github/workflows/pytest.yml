@@ -30,6 +30,9 @@ jobs:
 
     - name: Run tests
       run: uv run pytest tests --cov=am --cov-report xml --junitxml=junitxml -o junit_family=legacy
+      env:
+        NO_COLOR: 1
+        TERM: dumb
 
     - name: Upload to Codecov
       uses: codecov/codecov-action@v5

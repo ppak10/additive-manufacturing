@@ -3,6 +3,11 @@ import tempfile
 import shutil
 from pathlib import Path
 
+# Configure matplotlib to use non-interactive backend for CI environments
+import matplotlib
+
+matplotlib.use("Agg")
+
 
 @pytest.fixture(scope="session")
 def temp_project_root():

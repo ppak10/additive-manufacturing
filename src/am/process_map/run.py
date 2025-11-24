@@ -1,20 +1,30 @@
 import warnings
+import os
+import sys
 
 from copy import deepcopy
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from pint import Quantity
 from typing import cast
-from tqdm.rich import tqdm
+
+# Use rich tqdm only in interactive terminals, fall back to regular tqdm otherwise
+if sys.stdout.isatty() and not os.getenv("NO_COLOR"):
+    try:
+        from tqdm.rich import tqdm
+
+        # Suppress tqdm experimental warning for rich integration
+        warnings.filterwarnings("ignore", message=".*rich is experimental.*")
+    except ImportError:
+        from tqdm import tqdm
+else:
+    from tqdm import tqdm
 
 from am.config import BuildParameters, Material, ProcessMap
 from am.solver.model import Rosenthal
 
 from .classification import lack_of_fusion
 from .models import MeltPoolClassifications, ProcessMapPoint, ProcessMapPoints
-
-# Suppress tqdm experimental warning for rich integration
-warnings.filterwarnings("ignore", message=".*rich is experimental.*")
 
 
 def run_process_map_point(
