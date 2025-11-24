@@ -51,3 +51,9 @@ dev = [
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
 ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::tqdm.std.TqdmExperimentalWarning",
+    "ignore:In future, it will be an error for 'np.bool' scalars:DeprecationWarning",
+]

@@ -10,7 +10,7 @@ from am.config.process_map import ProcessMap
 @pytest.fixture
 def runner():
     """Create CLI runner for testing."""
-    return CliRunner()
+    return CliRunner(env={"NO_COLOR": "1"})
 
 
 @pytest.fixture

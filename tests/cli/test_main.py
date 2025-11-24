@@ -7,7 +7,7 @@ from am.cli import app
 
 @pytest.fixture
 def runner():
-    return CliRunner()
+    return CliRunner(env={"NO_COLOR": "1"})
 
 
 def test_main_help(runner):
