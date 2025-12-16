@@ -1,20 +1,24 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pathlib import Path
 from shapely.geometry import LineString
 from shapely import wkb, wkt
 
 
 # Helper functions for multiprocessing
-def infill_generate(
+def infill_rectilinear(
     section,
-    section_index,
+    horizontal,
     hatch_spacing,
-    infill_data_out_path,
-    infill_index_string,
-    binary,
-):
-    """Process a single section for infill generation."""
+    data_out_path,
+    index_string,
+    binary: bool = True,
+) -> Path | None:
+    """
+    Process to generate alternating rectilinear infill for a single section.
+    """
+
     if section is None:
         return None
 
@@ -23,9 +27,8 @@ def infill_generate(
     for polygon in section.polygons_full:
         # Generate rectilinear infill (alternating 0°/90°)
         bounds = polygon.bounds
-        is_horizontal = section_index % 2 == 0
 
-        if is_horizontal:
+        if horizontal:
             # Horizontal lines
             for y in np.arange(bounds[1], bounds[3], hatch_spacing):
                 line = LineString([(bounds[0] - 1, y), (bounds[2] + 1, y)])
@@ -37,21 +40,21 @@ def infill_generate(
                 intersections.append(polygon.intersection(line))
 
     if binary:
+        infill_file = f"{index_string}.wkb"
         intersections_list = [wkb.dumps(i) for i in intersections]
-        infill_file = f"{infill_index_string}.wkb"
 
         # Write as hex-encoded strings to avoid newline conflicts in binary WKB
-        with open(infill_data_out_path / infill_file, "w") as f:
-            hex_strings = [g_bytes.hex() for g_bytes in intersections_list]
-            f.write("\n".join(hex_strings))
+        infill_output = [g_bytes.hex() for g_bytes in intersections_list]
+
     else:
-        intersections_list = [wkt.dumps(i) for i in intersections]
-        infill_file = f"{infill_index_string}.txt"
+        infill_file = f"{index_string}.txt"
+        infill_output = [wkt.dumps(i) for i in intersections]
 
-        with open(infill_data_out_path / infill_file, "w") as f:
-            f.write("\n".join(intersections_list))
+    infill_out_path = data_out_path / infill_file
+    with open(infill_out_path, "w") as f:
+        f.write("\n".join(infill_output))
 
-    return section_index
+    return infill_out_path
 
 
 def infill_visualization(infill_file, binary, mesh_bounds, infill_images_out_path):

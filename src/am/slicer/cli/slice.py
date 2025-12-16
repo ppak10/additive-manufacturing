@@ -71,12 +71,12 @@ def register_slicer_slice(app: typer.Typer):
 
                 slicer_planar.load_mesh(filepath)
                 slicer_planar.section_mesh(layer_height=layer_height)
-                await slicer_planar.generate_infill(
+                await slicer_planar.slice_sections(
                     hatch_spacing=hatch_spacing, binary=binary, num_proc=num_proc
                 )
 
                 if visualize:
-                    await slicer_planar.visualize_infill(
+                    await slicer_planar.visualize_slices(
                         binary=binary, num_proc=num_proc
                     )
 
