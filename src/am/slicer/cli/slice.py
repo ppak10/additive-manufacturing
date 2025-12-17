@@ -22,6 +22,7 @@ def register_slicer_slice(app: typer.Typer):
                 "--hatch_spacing", help="Optional hatch spacing override (mm)."
             ),
         ] = None,
+        # mesh_units: str = "mm",
         build_parameters_filename: Annotated[
             str, typer.Option("--build-parameters", help="Build Parameters filename")
         ] = "default.json",
@@ -69,6 +70,7 @@ def register_slicer_slice(app: typer.Typer):
             async def run_slicer():
                 slicer_planar = SlicerPlanar(build_parameters, workspace_path, run_name)
 
+                # slicer_planar.load_mesh(filepath, units=mesh_units)
                 slicer_planar.load_mesh(filepath)
                 slicer_planar.section_mesh(layer_height=layer_height)
                 await slicer_planar.slice_sections(

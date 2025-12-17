@@ -24,6 +24,7 @@ def register_slicer_slice(app: FastMCP):
         binary: bool = False,
         visualize: bool = True,
         num_proc: int = 1,
+        # mesh_units: str = "mm",
     ) -> Union[ToolSuccess[Path], ToolError]:
         """
         Slice an stl part within a given workspace.
@@ -39,6 +40,9 @@ def register_slicer_slice(app: FastMCP):
             visualize: Generate visualizations of sliced layers.
             num_proc: Enable multiprocessing by specifying number of processes to use.
         """
+        # TODO: #6 Support "in" stl mesh units.
+        # mesh_units: Units 3D part file is defined in (i.e. "in" or "mm")
+
         from wa.cli.utils import get_workspace_path
 
         from am.config import BuildParameters
@@ -95,6 +99,7 @@ def register_slicer_slice(app: FastMCP):
 
             # Stage 1: Load mesh
             await ctx.report_progress(progress=0, total=100)
+            # slicer_planar.load_mesh(filepath, units=mesh_units)
             slicer_planar.load_mesh(filepath)
             await ctx.report_progress(progress=10, total=100)
 

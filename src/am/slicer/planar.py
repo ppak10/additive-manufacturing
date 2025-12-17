@@ -86,8 +86,12 @@ class SlicerPlanar:
         z_extents = self.mesh.bounds[:, 2]
         z_levels = np.arange(*z_extents, step=layer_height)
 
+        # section_multiplane expects heights relative to plane_origin, not absolute z values
+        plane_origin = self.mesh.bounds[0]
+        heights_relative = z_levels - plane_origin[2]
+
         self.sections = self.mesh.section_multiplane(
-            plane_origin=self.mesh.bounds[0], plane_normal=[0, 0, 1], heights=z_levels
+            plane_origin=plane_origin, plane_normal=[0, 0, 1], heights=heights_relative
         )
         self.zfill = len(f"{len(self.sections)}")
 
@@ -384,5 +388,21 @@ class SlicerPlanar:
 
         # Infill
 
-    def load_mesh(self, file_obj: Path, file_type: str | None = None, **kwargs):
+    def load_mesh(
+        self, file_obj: Path, file_type: str | None = None, units: str = "mm", **kwargs
+    ):
+        """
+        Load a mesh from file with optional unit conversion.
+
+        Args:
+            file_obj: Path to mesh file
+            file_type: Optional file type specification
+            units: Units of the input file ('mm' or 'inch'). Default is 'mm'.
+                   If 'inch', mesh will be scaled to mm internally.
+            **kwargs: Additional arguments passed to trimesh.load_mesh
+        """
         self.mesh = trimesh.load_mesh(file_obj, file_type, kwargs)
+
+        # Convert from inches to mm if needed
+        if units.lower() in ["inch", "inches", "in"]:
+            self.mesh.apply_scale(25.4)
