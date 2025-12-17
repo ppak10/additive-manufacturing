@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-
 from pathlib import Path
 from shapely.geometry import LineString
 from shapely import wkb, wkt
@@ -42,58 +40,3 @@ def contour_generate(
         f.write("\n".join(contour_output))
 
     return contour_out_path
-
-
-def contour_visualization(contour_file, binary, mesh_bounds, contour_images_out_path):
-    """Process a single contour file for visualization."""
-
-    # Read geometries from file
-    perimeters = []
-
-    if binary:
-        # WKB files are hex-encoded to avoid newline conflicts in binary data
-        with open(contour_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    try:
-                        g_bytes = bytes.fromhex(line)
-                        perimeters.append(wkb.loads(g_bytes))
-                    except Exception as e:
-                        # Skip malformed geometries
-                        print(
-                            f"Warning: Skipping malformed geometry in {contour_file.name}: {e}"
-                        )
-    else:
-        with open(contour_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    perimeters.append(wkt.loads(line))
-
-    # Create visualization
-    fig, ax = plt.subplots(figsize=(10, 10))
-
-    # Plot all contour lines
-    for perimeter in perimeters:
-        if perimeter.is_empty:
-            return
-        if perimeter.geom_type == "LineString":
-            x, y = perimeter.xy
-            ax.plot(x, y, "g-", linewidth=1.5, alpha=0.8)
-        elif perimeter.geom_type == "MultiLineString":
-            for geom in perimeter.geoms:
-                x, y = geom.xy
-                ax.plot(x, y, "g-", linewidth=1.5, alpha=0.8)
-
-    # Set consistent bounds across all layers using mesh bounds
-    ax.set_xlim(0, abs(mesh_bounds[0, 0]) + abs(mesh_bounds[1, 0]))
-    ax.set_ylim(0, abs(mesh_bounds[0, 1]) + abs(mesh_bounds[1, 1]))
-    ax.set_aspect("equal")
-
-    # Save image with same base name as data file
-    image_file = contour_file.stem + ".png"
-    plt.savefig(contour_images_out_path / image_file, dpi=150)
-    plt.close()
-
-    return contour_file.name

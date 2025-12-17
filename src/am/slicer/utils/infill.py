@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 from pathlib import Path
@@ -55,58 +54,3 @@ def infill_rectilinear(
         f.write("\n".join(infill_output))
 
     return infill_out_path
-
-
-def infill_visualization(infill_file, binary, mesh_bounds, infill_images_out_path):
-    """Process a single infill file for visualization."""
-
-    # Read geometries from file
-    intersections = []
-
-    if binary:
-        # WKB files are hex-encoded to avoid newline conflicts in binary data
-        with open(infill_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    try:
-                        g_bytes = bytes.fromhex(line)
-                        intersections.append(wkb.loads(g_bytes))
-                    except Exception as e:
-                        # Skip malformed geometries
-                        print(
-                            f"Warning: Skipping malformed geometry in {infill_file.name}: {e}"
-                        )
-    else:
-        with open(infill_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    intersections.append(wkt.loads(line))
-
-    # Create visualization
-    fig, ax = plt.subplots(figsize=(10, 10))
-
-    # Plot all infill lines
-    for intersection in intersections:
-        if intersection.is_empty:
-            return
-        if intersection.geom_type == "LineString":
-            x, y = intersection.xy
-            ax.plot(x, y, "b-", linewidth=0.5, alpha=0.6)
-        elif intersection.geom_type == "MultiLineString":
-            for geom in intersection.geoms:
-                x, y = geom.xy
-                ax.plot(x, y, "b-", linewidth=0.5, alpha=0.6)
-
-    # Set consistent bounds across all layers using mesh bounds
-    ax.set_xlim(0, abs(mesh_bounds[0, 0]) + abs(mesh_bounds[1, 0]))
-    ax.set_ylim(0, abs(mesh_bounds[0, 1]) + abs(mesh_bounds[1, 1]))
-    ax.set_aspect("equal")
-
-    # Save image with same base name as data file
-    image_file = infill_file.stem + ".png"
-    plt.savefig(infill_images_out_path / image_file, dpi=150)
-    plt.close()
-
-    return infill_file.name

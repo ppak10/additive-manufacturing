@@ -6,16 +6,20 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from PIL import Image
 from pint import Quantity
-from rich.console import Console
 from tqdm.rich import tqdm
 from typing import cast, Callable, Awaitable
 
 from am.config import BuildParameters
 
-from .utils.infill import infill_rectilinear, infill_visualization
-from .utils.contour import contour_generate, contour_visualization
+from .utils.infill import infill_rectilinear
+from .utils.contour import contour_generate
+from .utils.visualize_2d import (
+    compile_gif,
+    composite_visualization,
+    toolpath_visualization,
+    ALPHA,
+)
 
 # Suppress tqdm experimental warning for rich integration
 warnings.filterwarnings("ignore", message=".*rich is experimental.*")
@@ -184,7 +188,7 @@ class SlicerPlanar:
                 # Use tqdm to track progress
                 completed_count = 0
                 for future in tqdm(
-                    as_completed(futures), total=len(futures), desc="Generating infill"
+                    as_completed(futures), total=len(futures), desc="Generating slices"
                 ):
                     future.result()  # This will raise any exceptions that occurred
                     completed_count += 1
@@ -210,6 +214,9 @@ class SlicerPlanar:
         contour_images_out_path = self.toolpaths_out_path / "contour" / "images"
         contour_images_out_path.mkdir(exist_ok=True, parents=True)
 
+        composite_images_out_path = self.toolpaths_out_path / "composite" / "images"
+        composite_images_out_path.mkdir(exist_ok=True, parents=True)
+
         if not infill_data_out_path.exists() or not contour_data_out_path.exists():
             raise Exception("Slice data not found. Run slice_sections() first.")
 
@@ -233,8 +240,13 @@ class SlicerPlanar:
             for file_index, infill_file in tqdm(
                 enumerate(infill_files), total=total_files, desc="Visualizing infill"
             ):
-                infill_visualization(
-                    infill_file, binary, self.mesh.bounds, infill_images_out_path
+                toolpath_visualization(
+                    infill_file,
+                    binary,
+                    self.mesh.bounds,
+                    infill_images_out_path,
+                    ALPHA,
+                    "orange",
                 )
                 # Report progress if callback is provided
                 if self.progress_callback:
@@ -242,16 +254,42 @@ class SlicerPlanar:
             for file_index, contour_file in tqdm(
                 enumerate(contour_files), total=total_files, desc="Visualizing contour"
             ):
-                contour_visualization(
+                toolpath_visualization(
                     contour_file, binary, self.mesh.bounds, contour_images_out_path
                 )
                 # Report progress if callback is provided
                 if self.progress_callback:
                     await self.progress_callback(file_index + 1, total_files)
+            for file_index, (infill_file, contour_file) in tqdm(
+                enumerate(zip(infill_files, contour_files)),
+                total=total_files,
+                desc="Visualizing composite",
+            ):
+                composite_visualization(
+                    infill_file,
+                    contour_file,
+                    binary,
+                    self.mesh.bounds,
+                    composite_images_out_path,
+                )
+                # Report progress if callback is provided
+                if self.progress_callback:
+                    await self.progress_callback(file_index + 1, total_files)
+            # Compile images into GIF
+            infill_gif_path = self.toolpaths_out_path / "infill" / "animation.gif"
+            compile_gif(infill_images_out_path, infill_gif_path)
+
+            contour_gif_path = self.toolpaths_out_path / "contour" / "animation.gif"
+            compile_gif(contour_images_out_path, contour_gif_path)
+
+            composite_gif_path = self.toolpaths_out_path / "composite" / "animation.gif"
+            compile_gif(composite_images_out_path, composite_gif_path)
+
         else:
             # Multi-process execution
             infill_args_list = []
             contour_args_list = []
+            composite_args_list = []
 
             for infill_file in infill_files:
                 infill_args = (
@@ -259,6 +297,8 @@ class SlicerPlanar:
                     binary,
                     self.mesh.bounds,
                     infill_images_out_path,
+                    ALPHA,
+                    "orange",
                 )
                 infill_args_list.append(infill_args)
 
@@ -271,15 +311,29 @@ class SlicerPlanar:
                 )
                 contour_args_list.append(contour_args)
 
+            for infill_file, contour_file in zip(infill_files, contour_files):
+                composite_args = (
+                    infill_file,
+                    contour_file,
+                    binary,
+                    self.mesh.bounds,
+                    composite_images_out_path,
+                )
+                composite_args_list.append(composite_args)
+
             with ProcessPoolExecutor(max_workers=num_proc) as executor:
                 futures = []
 
                 for args in infill_args_list:
-                    future = executor.submit(infill_visualization, *args)
+                    future = executor.submit(toolpath_visualization, *args)
                     futures.append(future)
 
                 for args in contour_args_list:
-                    future = executor.submit(contour_visualization, *args)
+                    future = executor.submit(toolpath_visualization, *args)
+                    futures.append(future)
+
+                for args in composite_args_list:
+                    future = executor.submit(composite_visualization, *args)
                     futures.append(future)
 
                 # Use tqdm to track progress
@@ -293,51 +347,39 @@ class SlicerPlanar:
                     if self.progress_callback:
                         await self.progress_callback(completed_count, total_files)
 
-        # Compile images into GIF
-        image_files = sorted(infill_images_out_path.glob("*.png"))
-        if image_files:
-            # Load images into memory and close file handles
-            images = []
-            for img_file in tqdm(image_files, desc="Creating Infill GIF"):
-                with Image.open(img_file) as img:
-                    images.append(img.copy())
-            gif_path = self.toolpaths_out_path / "infill" / "animation.gif"
-            console = Console()
-            with console.status("[bold green]Writing .gif...", spinner="dots"):
-                images[0].save(
-                    gif_path,
-                    save_all=True,
-                    append_images=images[1:],
-                    duration=200,
-                    loop=0,
+                # Compile images into GIF
+                futures = []
+                infill_gif_path = self.toolpaths_out_path / "infill" / "animation.gif"
+                future = executor.submit(
+                    compile_gif, infill_images_out_path, infill_gif_path
                 )
-            console.print(
-                f"[bold green]✓[/bold green] GIF created: {gif_path} ({len(images)} frames)"
-            )
+                futures.append(future)
 
-        # Compile images into GIF
-        image_files = sorted(contour_images_out_path.glob("*.png"))
-        if image_files:
-            # Load images into memory and close file handles
-            images = []
-            for img_file in tqdm(image_files, desc="Creating Contour GIF"):
-                with Image.open(img_file) as img:
-                    images.append(img.copy())
-            gif_path = self.toolpaths_out_path / "contour" / "animation.gif"
-            console = Console()
-            with console.status("[bold green]Writing .gif...", spinner="dots"):
-                images[0].save(
-                    gif_path,
-                    save_all=True,
-                    append_images=images[1:],
-                    duration=200,
-                    loop=0,
+                contour_gif_path = self.toolpaths_out_path / "contour" / "animation.gif"
+                future = executor.submit(
+                    compile_gif, contour_images_out_path, contour_gif_path
                 )
-            console.print(
-                f"[bold green]✓[/bold green] GIF created: {gif_path} ({len(images)} frames)"
-            )
+                futures.append(future)
 
-        return infill_images_out_path
+                composite_gif_path = (
+                    self.toolpaths_out_path / "composite" / "animation.gif"
+                )
+                future = executor.submit(
+                    compile_gif, composite_images_out_path, composite_gif_path
+                )
+                futures.append(future)
+
+                # Use tqdm to track progress
+                completed_count = 0
+                for future in tqdm(
+                    as_completed(futures),
+                    total=len(futures),
+                    desc="Compiling .gif files",
+                ):
+                    future.result()  # This will raise any exceptions that occurred
+                    completed_count += 1
+
+        return composite_gif_path
 
     def generate_solver_segments(self):
         """
