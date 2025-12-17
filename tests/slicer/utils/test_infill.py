@@ -9,7 +9,8 @@ from shapely.geometry import Polygon, LineString, MultiLineString
 from shapely import wkb, wkt
 from unittest.mock import Mock
 
-from am.slicer.utils.infill import infill_rectilinear, infill_visualization
+from am.slicer.utils.infill import infill_rectilinear
+from am.slicer.utils.visualize_2d import toolpath_visualization as infill_visualization
 
 
 class MockSection:
@@ -242,10 +243,10 @@ def test_infill_visualization_binary(tmp_path):
     mesh_bounds = np.array([[0, 0], [5, 5]])
 
     result = infill_visualization(
-        infill_file=infill_file,
+        toolpath_file=infill_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        infill_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     assert result == infill_file.name
@@ -275,10 +276,10 @@ def test_infill_visualization_text(tmp_path):
     mesh_bounds = np.array([[0, 0], [5, 5]])
 
     result = infill_visualization(
-        infill_file=infill_file,
+        toolpath_file=infill_file,
         binary=False,
         mesh_bounds=mesh_bounds,
-        infill_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     assert result == infill_file.name
@@ -302,14 +303,16 @@ def test_infill_visualization_empty_geometry(tmp_path):
 
     # Should handle empty geometry gracefully
     result = infill_visualization(
-        infill_file=infill_file,
+        toolpath_file=infill_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        infill_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
-    # Function returns None for empty geometries
-    assert result is None
+    # Function still creates output even with empty geometries
+    assert result == infill_file.name
+    image_file = images_path / "empty.png"
+    assert image_file.exists()
 
 
 def test_infill_visualization_multilinestring(tmp_path):
@@ -329,10 +332,10 @@ def test_infill_visualization_multilinestring(tmp_path):
     mesh_bounds = np.array([[0, 0], [2, 2]])
 
     result = infill_visualization(
-        infill_file=infill_file,
+        toolpath_file=infill_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        infill_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     assert result == infill_file.name
@@ -355,10 +358,10 @@ def test_infill_visualization_malformed_geometry(tmp_path):
 
     # Should not raise, just skip malformed geometries
     result = infill_visualization(
-        infill_file=infill_file,
+        toolpath_file=infill_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        infill_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     # Should still create output (even if empty)

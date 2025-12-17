@@ -1,6 +1,5 @@
 import numpy as np
 import trimesh
-import warnings
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
@@ -20,9 +19,6 @@ from .utils.visualize_2d import (
     toolpath_visualization,
     ALPHA,
 )
-
-# Suppress tqdm experimental warning for rich integration
-warnings.filterwarnings("ignore", message=".*rich is experimental.*")
 
 
 class SlicerOutputFolder(str, Enum):

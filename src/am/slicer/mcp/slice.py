@@ -22,7 +22,7 @@ def register_slicer_slice(app: FastMCP):
         hatch_spacing: float | None = None,
         build_parameters_filename: str = "default.json",
         binary: bool = False,
-        visualize: bool = False,
+        visualize: bool = True,
         num_proc: int = 1,
     ) -> Union[ToolSuccess[Path], ToolError]:
         """
@@ -103,7 +103,7 @@ def register_slicer_slice(app: FastMCP):
             await ctx.report_progress(progress=20, total=100)
 
             # Stage 3: Generate infill (with progress updates via callback)
-            infill_data_out_path = await slicer_planar.generate_infill(
+            infill_data_out_path = await slicer_planar.slice_sections(
                 hatch_spacing=hatch_spacing, binary=binary, num_proc=num_proc
             )
 
@@ -112,7 +112,7 @@ def register_slicer_slice(app: FastMCP):
                 slicer_planar.progress_callback = viz_progress_callback
 
                 # Stage 4: Visualize infill (with progress updates via callback)
-                visualizations_path = await slicer_planar.visualize_infill(
+                visualizations_path = await slicer_planar.visualize_slices(
                     binary=binary, num_proc=num_proc
                 )
 

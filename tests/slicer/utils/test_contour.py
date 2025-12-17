@@ -8,7 +8,8 @@ from pathlib import Path
 from shapely.geometry import Polygon, LineString, MultiLineString
 from shapely import wkb, wkt
 
-from am.slicer.utils.contour import contour_generate, contour_visualization
+from am.slicer.utils.contour import contour_generate
+from am.slicer.utils.visualize_2d import toolpath_visualization as contour_visualization
 
 
 class MockSection:
@@ -274,10 +275,10 @@ def test_contour_visualization_binary(tmp_path):
     mesh_bounds = np.array([[0, 0], [5, 5]])
 
     result = contour_visualization(
-        contour_file=contour_file,
+        toolpath_file=contour_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        contour_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     assert result == contour_file.name
@@ -306,10 +307,10 @@ def test_contour_visualization_text(tmp_path):
     mesh_bounds = np.array([[0, 0], [5, 5]])
 
     result = contour_visualization(
-        contour_file=contour_file,
+        toolpath_file=contour_file,
         binary=False,
         mesh_bounds=mesh_bounds,
-        contour_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     assert result == contour_file.name
@@ -339,10 +340,10 @@ def test_contour_visualization_with_hole(tmp_path):
     mesh_bounds = np.array([[0, 0], [10, 10]])
 
     result = contour_visualization(
-        contour_file=contour_file,
+        toolpath_file=contour_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        contour_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     assert result == contour_file.name
@@ -365,14 +366,16 @@ def test_contour_visualization_empty_geometry(tmp_path):
 
     # Should handle empty geometry gracefully
     result = contour_visualization(
-        contour_file=contour_file,
+        toolpath_file=contour_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        contour_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
-    # Function returns None for empty geometries
-    assert result is None
+    # Function still creates output even with empty geometries
+    assert result == contour_file.name
+    image_file = images_path / "empty.png"
+    assert image_file.exists()
 
 
 def test_contour_visualization_multilinestring(tmp_path):
@@ -391,10 +394,10 @@ def test_contour_visualization_multilinestring(tmp_path):
     mesh_bounds = np.array([[0, 0], [3, 3]])
 
     result = contour_visualization(
-        contour_file=contour_file,
+        toolpath_file=contour_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        contour_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     assert result == contour_file.name
@@ -416,10 +419,10 @@ def test_contour_visualization_malformed_geometry(tmp_path):
 
     # Should not raise, just skip malformed geometries
     result = contour_visualization(
-        contour_file=contour_file,
+        toolpath_file=contour_file,
         binary=True,
         mesh_bounds=mesh_bounds,
-        contour_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     # Should still create output (even if empty)
@@ -447,10 +450,10 @@ def test_contour_visualization_multiple_perimeters(tmp_path):
     mesh_bounds = np.array([[0, 0], [5, 5]])
 
     result = contour_visualization(
-        contour_file=contour_file,
+        toolpath_file=contour_file,
         binary=False,
         mesh_bounds=mesh_bounds,
-        contour_images_out_path=images_path,
+        images_out_path=images_path,
     )
 
     assert result == contour_file.name
