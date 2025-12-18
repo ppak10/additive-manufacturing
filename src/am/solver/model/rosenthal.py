@@ -8,7 +8,7 @@ from typing import cast
 from am.config import BuildParameters, Material
 from am.solver.types import MeltPoolDimensions
 from am.solver.mesh import SolverMesh
-from am.solver.segment import SolverSegment
+from am.simulator.models import SolverSegment
 
 FLOOR = 10**-7  # Float32
 

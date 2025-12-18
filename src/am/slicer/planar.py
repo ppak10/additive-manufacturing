@@ -11,6 +11,8 @@ from typing import cast, Callable, Awaitable
 
 from am.config import BuildParameters
 
+from .format.solver_segment import export_solver_layer
+from .utils.geometry import load_geometries
 from .utils.infill import infill_rectilinear
 from .utils.contour import contour_generate
 from .utils.visualize_2d import (
@@ -381,12 +383,87 @@ class SlicerPlanar:
 
         return composite_gif_path
 
-    def generate_solver_segments(self):
+    async def export_solver_segments(self, binary=True, num_proc=1):
         """
-        Generates infill and contour slices for solver segment output.
+        Exports sliced geometries to solver segment.
         """
+        infill_data_out_path = self.toolpaths_out_path / "infill" / "data"
+        contour_data_out_path = self.toolpaths_out_path / "contour" / "data"
 
-        # Infill
+        solver_data_out_path = self.toolpaths_out_path / "solver" / "data"
+        solver_data_out_path.mkdir(exist_ok=True, parents=True)
+
+        if not infill_data_out_path.exists() or not contour_data_out_path.exists():
+            raise Exception("Slice data not found. Run slice_sections() first.")
+
+        if self.mesh is None:
+            raise Exception(
+                "No mesh loaded. Cannot determine bounds for consistent plotting."
+            )
+
+        # Get all infill data files
+        if binary:
+            infill_files = sorted(infill_data_out_path.glob("*.wkb"))
+            contour_files = sorted(contour_data_out_path.glob("*.wkb"))
+        else:
+            infill_files = sorted(infill_data_out_path.glob("*.txt"))
+            contour_files = sorted(contour_data_out_path.glob("*.txt"))
+
+        layer_count = min(len(infill_files), len(contour_files))
+
+        if num_proc <= 1:
+            # Single-threaded execution (original behavior)
+            for layer_index in tqdm(range(layer_count), desc="Exporting solver layers"):
+                contour_file = contour_files[layer_index]
+                infill_file = infill_files[layer_index]
+                contour_geometries = load_geometries(
+                    file_path=contour_file, binary=binary
+                )
+                infill_geometries = load_geometries(
+                    file_path=infill_file, binary=binary
+                )
+                geometries = [*contour_geometries, *infill_geometries]
+                export_solver_layer(
+                    solver_data_out_path, geometries, layer_index, layer_count
+                )
+        else:
+            # Multi-process execution
+            with ProcessPoolExecutor(max_workers=num_proc) as executor:
+                futures = []
+
+                for layer_index in range(layer_count):
+                    contour_file = contour_files[layer_index]
+                    infill_file = infill_files[layer_index]
+                    contour_geometries = load_geometries(
+                        file_path=contour_file, binary=binary
+                    )
+                    infill_geometries = load_geometries(
+                        file_path=infill_file, binary=binary
+                    )
+                    geometries = [*contour_geometries, *infill_geometries]
+                    future = executor.submit(
+                        export_solver_layer,
+                        solver_data_out_path,
+                        geometries,
+                        layer_index,
+                        layer_count,
+                    )
+                    futures.append(future)
+
+                # Use tqdm to track progress
+                completed_count = 0
+                for future in tqdm(
+                    as_completed(futures),
+                    total=len(futures),
+                    desc="Exporting solver layers",
+                ):
+                    future.result()  # This will raise any exceptions that occurred
+                    completed_count += 1
+                    # Report progress if callback is provided
+                    if self.progress_callback:
+                        await self.progress_callback(completed_count, layer_count)
+
+        return solver_data_out_path
 
     def load_mesh(
         self, file_obj: Path, file_type: str | None = None, units: str = "mm", **kwargs

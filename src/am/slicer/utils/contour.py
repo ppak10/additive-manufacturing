@@ -1,6 +1,7 @@
 from pathlib import Path
 from shapely.geometry import LineString
-from shapely import wkb, wkt
+
+from am.slicer.utils.geometry import save_geometries
 
 
 def contour_generate(
@@ -26,17 +27,6 @@ def contour_generate(
             interior_coords = list(interior.coords)
             perimeters.append(LineString(interior_coords))
 
-    if binary:
-        perimeters_list = [wkb.dumps(p) for p in perimeters]
-        contour_output = [g_bytes.hex() for g_bytes in perimeters_list]
-        contour_file = f"{index_string}.wkb"
+    out_path = data_out_path / f"{index_string}{'.wkt' if binary else '.txt'}"
 
-    else:
-        contour_output = [wkt.dumps(p) for p in perimeters]
-        contour_file = f"{index_string}.txt"
-
-    contour_out_path = data_out_path / contour_file
-    with open(contour_out_path, "w") as f:
-        f.write("\n".join(contour_output))
-
-    return contour_out_path
+    return save_geometries(perimeters, out_path, binary)

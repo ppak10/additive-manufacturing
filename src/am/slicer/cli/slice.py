@@ -1,10 +1,12 @@
 import typer
 
 from datetime import datetime
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Literal
 
 from am.cli.options import NumProc
 from wa.cli.options import WorkspaceOption
+
+Format = Literal["solver"]
 
 
 def register_slicer_slice(app: typer.Typer):
@@ -32,6 +34,10 @@ def register_slicer_slice(app: typer.Typer):
                 "--binary", help="Generate output files as binary rather than text."
             ),
         ] = False,
+        format: Annotated[
+            Format,
+            typer.Option("--format", help="Output format for sliced geometry"),
+        ] = "solver",
         visualize: Annotated[
             bool,
             typer.Option(
@@ -76,6 +82,11 @@ def register_slicer_slice(app: typer.Typer):
                 await slicer_planar.slice_sections(
                     hatch_spacing=hatch_spacing, binary=binary, num_proc=num_proc
                 )
+
+                if format == "solver":
+                    await slicer_planar.export_solver_segments(
+                        binary=binary, num_proc=num_proc
+                    )
 
                 if visualize:
                     await slicer_planar.visualize_slices(

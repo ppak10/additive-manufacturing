@@ -13,7 +13,7 @@ from am.config import BuildParameters, Material, MeshParameters
 
 from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
-from am.solver.segment import SolverSegment
+from am.simulator.models import SolverSegment
 
 
 class SolverOutputFolder(str, Enum):

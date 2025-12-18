@@ -2,7 +2,8 @@ import numpy as np
 
 from pathlib import Path
 from shapely.geometry import LineString
-from shapely import wkb, wkt
+
+from am.slicer.utils.geometry import save_geometries
 
 
 # Helper functions for multiprocessing
@@ -38,19 +39,6 @@ def infill_rectilinear(
                 line = LineString([(x, bounds[1] - 1), (x, bounds[3] + 1)])
                 intersections.append(polygon.intersection(line))
 
-    if binary:
-        infill_file = f"{index_string}.wkb"
-        intersections_list = [wkb.dumps(i) for i in intersections]
+    out_path = data_out_path / f"{index_string}{'.wkt' if binary else '.txt'}"
 
-        # Write as hex-encoded strings to avoid newline conflicts in binary WKB
-        infill_output = [g_bytes.hex() for g_bytes in intersections_list]
-
-    else:
-        infill_file = f"{index_string}.txt"
-        infill_output = [wkt.dumps(i) for i in intersections]
-
-    infill_out_path = data_out_path / infill_file
-    with open(infill_out_path, "w") as f:
-        f.write("\n".join(infill_output))
-
-    return infill_out_path
+    return save_geometries(intersections, out_path, binary)

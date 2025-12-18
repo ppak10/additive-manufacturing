@@ -3,7 +3,7 @@ from pathlib import Path
 from pint import Quantity
 from pydantic import ValidationError
 
-from am.solver.segment import SolverSegment
+from am.simulator.models import SolverSegment
 
 # -------------------------------
 # Parsing / validation tests

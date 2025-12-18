@@ -9,7 +9,7 @@ from pint import Quantity
 from tqdm import tqdm
 from typing import cast
 
-from am.solver.segment import SolverSegment, SolverSegmentDict
+from am.simulator.models import SolverSegment, SolverSegmentDict
 
 
 class SegmenterVisualize:

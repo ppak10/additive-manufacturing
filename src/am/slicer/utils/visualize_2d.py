@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from PIL import Image
 from rich.console import Console
-from shapely import wkb, wkt
 from tqdm.rich import tqdm
+
+from .geometry import load_geometries
 
 matplotlib.use("Agg")  # Use non-interactive backend
 
@@ -15,33 +16,6 @@ DPI = 600
 LINESTYLE = "solid"
 LINEWIDTH = 1.5
 PADDING = 1.0
-
-
-def load_geometries(file_path: Path, binary: bool):
-    """
-    Load geometries from a toolpath file.
-    """
-
-    geometries = []
-    if binary:
-        with open(file_path, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    try:
-                        g_bytes = bytes.fromhex(line)
-                        geometries.append(wkb.loads(g_bytes))
-                    except Exception as e:
-                        print(
-                            f"Warning: Skipping malformed geometry in {file_path.name}: {e}"
-                        )
-    else:
-        with open(file_path, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    geometries.append(wkt.loads(line))
-    return geometries
 
 
 def plot_geometries(

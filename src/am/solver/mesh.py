@@ -12,7 +12,7 @@ from typing import cast
 
 from am.config import MeshParameters
 
-from .segment import SolverSegment
+from am.simulator.models import SolverSegment
 from .diffuse import apply_temperature_bc, apply_flux_bc, separable_gaussian_blur_3d
 
 

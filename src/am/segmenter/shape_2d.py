@@ -6,7 +6,7 @@ from pint import Quantity
 from typing import cast
 from tqdm import tqdm
 
-from am.solver.segment import SolverSegment
+from am.simulator.models import SolverSegment
 
 
 class Shape(str, Enum):

@@ -39,7 +39,7 @@ def register_solver_run_layer(app: FastMCP):
         import json
 
         from am.config import BuildParameters, Material, MeshParameters
-        from am.solver.segment import SolverSegment
+        from am.simulator.models import SolverSegment
         from am.solver.layer import SolverLayer
         from wa.cli.utils import get_workspace_path
 

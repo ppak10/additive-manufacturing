@@ -9,7 +9,7 @@ from typing import cast
 from typing_extensions import TypedDict
 from tqdm import tqdm
 
-from am.solver.segment import SolverSegment
+from am.simulator.models import SolverSegment
 
 
 class Command(TypedDict):

@@ -7,7 +7,7 @@ from pathlib import Path
 from pint import Quantity
 
 from am.solver.mesh import SolverMesh
-from am.solver.segment import SolverSegment
+from am.simulator.models import SolverSegment
 from am.config import MeshParameters
 
 
