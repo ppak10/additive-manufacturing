@@ -1,4 +1,6 @@
 from typing_extensions import TypedDict
+from pathlib import Path
+from typing import Union
 
 from pydantic import BaseModel
 from pintdantic import QuantityDict, QuantityModel, QuantityField
@@ -42,3 +44,23 @@ class SolverLayer(BaseModel):
     layer_index: int
     layer_count: int
     segments: list[SolverSegment]
+
+    @classmethod
+    def load(cls, file_path: Union[str, Path]) -> "SolverLayer":
+        """
+        Load a SolverLayer from a JSON file.
+
+        Args:
+            file_path: Path to the JSON file containing the layer data
+
+        Returns:
+            SolverLayer instance
+
+        Example:
+            >>> layer = SolverLayer.load("layer_001.json")
+        """
+        path = Path(file_path)
+        with path.open("r") as f:
+            data = f.read()
+        return cls.model_validate_json(data)
+

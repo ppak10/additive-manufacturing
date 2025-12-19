@@ -18,6 +18,7 @@ from .utils.contour import contour_generate
 from .utils.visualize_2d import (
     compile_gif,
     composite_visualization,
+    solver_layer_visualization,
     toolpath_visualization,
     ALPHA,
 )
@@ -287,11 +288,35 @@ class SlicerPlanar:
             composite_gif_path = self.toolpaths_out_path / "composite" / "animation.gif"
             compile_gif(composite_images_out_path, composite_gif_path)
 
+            # Visualize solver data if it exists
+            solver_data_out_path = self.toolpaths_out_path / "solver" / "data"
+            if solver_data_out_path.exists():
+                solver_images_out_path = self.toolpaths_out_path / "solver" / "images"
+                solver_images_out_path.mkdir(exist_ok=True, parents=True)
+
+                solver_files = sorted(solver_data_out_path.glob("*.json"))
+                for file_index, solver_file in tqdm(
+                    enumerate(solver_files),
+                    total=len(solver_files),
+                    desc="Visualizing solver layers",
+                ):
+                    solver_layer_visualization(
+                        solver_file, self.mesh.bounds, solver_images_out_path
+                    )
+                    # Report progress if callback is provided
+                    if self.progress_callback:
+                        await self.progress_callback(file_index + 1, len(solver_files))
+
+                # Compile solver images into GIF
+                solver_gif_path = self.toolpaths_out_path / "solver" / "animation.gif"
+                compile_gif(solver_images_out_path, solver_gif_path)
+
         else:
             # Multi-process execution
             infill_args_list = []
             contour_args_list = []
             composite_args_list = []
+            solver_args_list = []
 
             for infill_file in infill_files:
                 infill_args = (
@@ -323,6 +348,17 @@ class SlicerPlanar:
                 )
                 composite_args_list.append(composite_args)
 
+            # Check for solver data and prepare args
+            solver_data_out_path = self.toolpaths_out_path / "solver" / "data"
+            if solver_data_out_path.exists():
+                solver_images_out_path = self.toolpaths_out_path / "solver" / "images"
+                solver_images_out_path.mkdir(exist_ok=True, parents=True)
+
+                solver_files = sorted(solver_data_out_path.glob("*.json"))
+                for solver_file in solver_files:
+                    solver_args = (solver_file, self.mesh.bounds, solver_images_out_path)
+                    solver_args_list.append(solver_args)
+
             with ProcessPoolExecutor(max_workers=num_proc) as executor:
                 futures = []
 
@@ -336,6 +372,10 @@ class SlicerPlanar:
 
                 for args in composite_args_list:
                     future = executor.submit(composite_visualization, *args)
+                    futures.append(future)
+
+                for args in solver_args_list:
+                    future = executor.submit(solver_layer_visualization, *args)
                     futures.append(future)
 
                 # Use tqdm to track progress
@@ -370,6 +410,14 @@ class SlicerPlanar:
                     compile_gif, composite_images_out_path, composite_gif_path
                 )
                 futures.append(future)
+
+                # Add solver GIF compilation if solver data was visualized
+                if solver_args_list:
+                    solver_gif_path = self.toolpaths_out_path / "solver" / "animation.gif"
+                    future = executor.submit(
+                        compile_gif, solver_images_out_path, solver_gif_path
+                    )
+                    futures.append(future)
 
                 # Use tqdm to track progress
                 completed_count = 0

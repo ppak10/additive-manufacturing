@@ -13,7 +13,7 @@ def register_slicer_slice(app: typer.Typer):
 
     @app.command(name="slice")
     def slicer_slice(
-        filename: str,
+        part_filename: str,
         layer_height: Annotated[
             float | None,
             typer.Option("--layer-height", help="Optional layer height override (mm)."),
@@ -60,7 +60,7 @@ def register_slicer_slice(app: typer.Typer):
         workspace_path = get_workspace_path(workspace)
 
         try:
-            filepath = workspace_path / "parts" / filename
+            filepath = workspace_path / "parts" / part_filename
 
             build_parameters = BuildParameters.load(
                 workspace_path

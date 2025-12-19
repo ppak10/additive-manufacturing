@@ -1,11 +1,14 @@
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 from pathlib import Path
 from PIL import Image
 from rich.console import Console
 from tqdm.rich import tqdm
+from typing import cast
 
+from am.simulator.models import SolverLayer
 from .geometry import load_geometries
 
 matplotlib.use("Agg")  # Use non-interactive backend
@@ -14,7 +17,7 @@ ALPHA = 0.8
 COLOR = "red"
 DPI = 600
 LINESTYLE = "solid"
-LINEWIDTH = 1.5
+LINEWIDTH = 1.0
 PADDING = 1.0
 
 
@@ -168,6 +171,54 @@ def toolpath_visualization(
     plt.close()
 
     return toolpath_file.name
+
+
+def solver_layer_visualization(
+    solver_file,
+    mesh_bounds,
+    images_out_path,
+    alpha: float = ALPHA,
+    color: str = COLOR,
+    dpi: int = DPI,
+    linewidth: float = LINEWIDTH,
+    padding: float = PADDING,
+    units: str = "mm",
+):
+    """Process a single solver layer file for visualization."""
+
+    # Load solver layer from JSON file
+    solver_layer = SolverLayer.load(solver_file)
+    segments = solver_layer.segments
+
+    # Create visualization
+    _, ax = plt.subplots(figsize=(10, 10))
+
+    # Plot segments with random colors
+    for segment in segments:
+        if not segment.travel:
+            # Generate random RGB color for each segment
+            seg_color = np.random.rand(3)
+            ax.plot(
+                (segment.x1.to(units).magnitude, segment.x2.to(units).magnitude),
+                (segment.y1.to(units).magnitude, segment.y2.to(units).magnitude),
+                color=seg_color,
+                linewidth=linewidth,
+                alpha=alpha,
+            )
+
+    # Set consistent bounds across all layers using mesh bounds with padding
+    set_axis_bounds(ax, mesh_bounds, padding)
+
+    # Set title with layer number
+    layer_number = solver_file.stem
+    ax.set_title(f"Solver Layer {layer_number}")
+
+    # Save image with same base name as data file
+    image_file = solver_file.stem + ".png"
+    plt.savefig(images_out_path / image_file, dpi=dpi)
+    plt.close()
+
+    return solver_file.name
 
 
 def compile_gif(images_path: Path, out_path: Path) -> Path:
