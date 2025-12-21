@@ -1,15 +1,12 @@
 import typer
 
-from datetime import datetime
-from typing_extensions import Annotated, Literal
-
-from am.cli.options import NumProc
-from wa.cli.options import WorkspaceOption
-
-Format = Literal["solver"]
-
-
 def register_slicer_slice(app: typer.Typer):
+    from datetime import datetime
+    from typing_extensions import Annotated
+    
+    from am.cli.options import NumProc
+    from am.slicer.format import Format
+    from wa.cli.options import WorkspaceOption
 
     @app.command(name="slice")
     def slicer_slice(
@@ -35,9 +32,9 @@ def register_slicer_slice(app: typer.Typer):
             ),
         ] = False,
         format: Annotated[
-            Format,
+            Format | None,
             typer.Option("--format", help="Output format for sliced geometry"),
-        ] = "solver",
+        ] = None,
         visualize: Annotated[
             bool,
             typer.Option(

@@ -147,8 +147,6 @@ class SlicerPlanar:
                     section_index_string,
                     binary,
                 )
-
-                # Report progress if callback is provided
                 if self.progress_callback:
                     await self.progress_callback(section_index + 1, total_sections)
         else:
@@ -193,9 +191,8 @@ class SlicerPlanar:
                 for future in tqdm(
                     as_completed(futures), total=len(futures), desc="Generating slices"
                 ):
-                    future.result()  # This will raise any exceptions that occurred
+                    future.result()
                     completed_count += 1
-                    # Report progress if callback is provided
                     if self.progress_callback:
                         await self.progress_callback(completed_count, total_sections)
 
@@ -251,7 +248,6 @@ class SlicerPlanar:
                     ALPHA,
                     "orange",
                 )
-                # Report progress if callback is provided
                 if self.progress_callback:
                     await self.progress_callback(file_index + 1, total_files)
             for file_index, contour_file in tqdm(
@@ -260,7 +256,6 @@ class SlicerPlanar:
                 toolpath_visualization(
                     contour_file, binary, self.mesh.bounds, contour_images_out_path
                 )
-                # Report progress if callback is provided
                 if self.progress_callback:
                     await self.progress_callback(file_index + 1, total_files)
             for file_index, (infill_file, contour_file) in tqdm(
@@ -275,7 +270,6 @@ class SlicerPlanar:
                     self.mesh.bounds,
                     composite_images_out_path,
                 )
-                # Report progress if callback is provided
                 if self.progress_callback:
                     await self.progress_callback(file_index + 1, total_files)
             # Compile images into GIF
@@ -303,7 +297,6 @@ class SlicerPlanar:
                     solver_layer_visualization(
                         solver_file, self.mesh.bounds, solver_images_out_path
                     )
-                    # Report progress if callback is provided
                     if self.progress_callback:
                         await self.progress_callback(file_index + 1, len(solver_files))
 
@@ -383,9 +376,8 @@ class SlicerPlanar:
                 for future in tqdm(
                     as_completed(futures), total=len(futures), desc="Visualizing slices"
                 ):
-                    future.result()  # This will raise any exceptions that occurred
+                    future.result()
                     completed_count += 1
-                    # Report progress if callback is provided
                     if self.progress_callback:
                         await self.progress_callback(completed_count, total_files)
 
@@ -505,9 +497,8 @@ class SlicerPlanar:
                     total=len(futures),
                     desc="Exporting solver layers",
                 ):
-                    future.result()  # This will raise any exceptions that occurred
+                    future.result()
                     completed_count += 1
-                    # Report progress if callback is provided
                     if self.progress_callback:
                         await self.progress_callback(completed_count, layer_count)
 

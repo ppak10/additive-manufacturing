@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -55,7 +55,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "mcp", specifier = ">=1.12.3" },
     { name = "pint", specifier = ">=0.24.4" },
-    { name = "pintdantic", specifier = ">=0.0.1" },
+    { name = "pintdantic", specifier = ">=0.0.2" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pygcode", specifier = ">=0.2.1" },
     { name = "rich", specifier = ">=14.0.0" },
