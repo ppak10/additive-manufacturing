@@ -85,7 +85,7 @@ class TestCreateAdditiveManufacturingWorkspace:
         )
 
         parts_path = isolated_workspace / "test" / "parts"
-        expected_files = ["overhang.STL", "overhang.gcode", "README.md"]
+        expected_files = ["overhang.stl", "README.md"]
         for file_name in expected_files:
             assert (parts_path / file_name).exists()
 
@@ -323,7 +323,7 @@ class TestCreateWorkspacePartsFolder:
         assert parts_folder.path.exists()
         assert parts_folder.path.is_dir()
 
-        expected_files = ["overhang.STL", "overhang.gcode", "README.md"]
+        expected_files = ["overhang.stl", "README.md"]
         for file_name in expected_files:
             assert (parts_folder.path / file_name).exists()
 
@@ -362,7 +362,7 @@ class TestCreateWorkspacePartsFolder:
 
         assert custom_file.exists()
         assert custom_file.read_text() == "custom content"
-        assert (parts_folder.path / "overhang.STL").exists()
+        assert (parts_folder.path / "overhang.stl").exists()
         assert (parts_folder.path / "README.md").exists()
 
     def test_return_value_without_examples(self, isolated_workspace):

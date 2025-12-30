@@ -27,6 +27,6 @@ def contour_generate(
             interior_coords = list(interior.coords)
             perimeters.append(LineString(interior_coords))
 
-    out_path = data_out_path / f"{index_string}{'.wkt' if binary else '.txt'}"
+    out_path = data_out_path / f"{index_string}{'.wkb' if binary else '.txt'}"
 
     return save_geometries(perimeters, out_path, binary)

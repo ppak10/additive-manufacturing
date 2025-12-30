@@ -39,6 +39,6 @@ def infill_rectilinear(
                 line = LineString([(x, bounds[1] - 1), (x, bounds[3] + 1)])
                 intersections.append(polygon.intersection(line))
 
-    out_path = data_out_path / f"{index_string}{'.wkt' if binary else '.txt'}"
+    out_path = data_out_path / f"{index_string}{'.wkb' if binary else '.txt'}"
 
     return save_geometries(intersections, out_path, binary)

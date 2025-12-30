@@ -15,7 +15,6 @@ def test_main_help(runner):
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "Additive Manufacturing" in result.stdout
-    assert "segmenter" in result.stdout
     assert "solver" in result.stdout
     assert "mcp" in result.stdout
 
@@ -39,13 +38,6 @@ def test_invalid_command(runner):
     """Test invalid command returns error."""
     result = runner.invoke(app, ["invalid-command"])
     assert result.exit_code != 0
-
-
-def test_segmenter_subcommand_exists(runner):
-    """Test segmenter subcommand is available."""
-    result = runner.invoke(app, ["segmenter", "--help"])
-    assert result.exit_code == 0
-    assert "Segmenter management" in result.stdout
 
 
 def test_solver_subcommand_exists(runner):
