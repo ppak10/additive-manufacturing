@@ -8,6 +8,7 @@ from pathlib import Path
 from pint import Quantity
 from tqdm.rich import tqdm
 from typing import cast, Callable, Awaitable
+from wa import create_workspace_folder
 
 from am.config import BuildParameters
 
@@ -349,7 +350,11 @@ class SlicerPlanar:
 
                 solver_files = sorted(solver_data_out_path.glob("*.json"))
                 for solver_file in solver_files:
-                    solver_args = (solver_file, self.mesh.bounds, solver_images_out_path)
+                    solver_args = (
+                        solver_file,
+                        self.mesh.bounds,
+                        solver_images_out_path,
+                    )
                     solver_args_list.append(solver_args)
 
             with ProcessPoolExecutor(max_workers=num_proc) as executor:
@@ -405,7 +410,9 @@ class SlicerPlanar:
 
                 # Add solver GIF compilation if solver data was visualized
                 if solver_args_list:
-                    solver_gif_path = self.toolpaths_out_path / "solver" / "animation.gif"
+                    solver_gif_path = (
+                        self.toolpaths_out_path / "solver" / "animation.gif"
+                    )
                     future = executor.submit(
                         compile_gif, solver_images_out_path, solver_gif_path
                     )

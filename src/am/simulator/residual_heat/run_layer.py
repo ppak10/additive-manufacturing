@@ -11,7 +11,8 @@ from am.solver.mesh import SolverMesh
 from am.solver.model import EagarTsai, Rosenthal
 from am.simulator.models import SolverSegment
 
-def run_solver_layer(
+
+def run_layer(
     solver_layer: SolverLayer,
     build_parameters: BuildParameters,
     material: Material,
@@ -87,9 +88,6 @@ def run_solver_layer(
         solver_mesh.update_xy(segment)
         solver_mesh.graft(theta, grid_offset)
 
-        _ = solver_mesh.save(
-            mesh_out_path / "timesteps" / f"{segment_index_string}.pt"
-        )
+        _ = solver_mesh.save(mesh_out_path / "timesteps" / f"{segment_index_string}.pt")
 
     return mesh_out_path
-

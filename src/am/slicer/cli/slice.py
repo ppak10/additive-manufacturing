@@ -1,9 +1,10 @@
 import typer
 
+
 def register_slicer_slice(app: typer.Typer):
     from datetime import datetime
     from typing_extensions import Annotated
-    
+
     from am.cli.options import NumProc
     from am.slicer.format import Format
     from wa.cli.options import WorkspaceOption
@@ -41,7 +42,7 @@ def register_slicer_slice(app: typer.Typer):
                 "--visualize", help="Generate visualizations of sliced layers."
             ),
         ] = False,
-        workspace: WorkspaceOption = None,
+        workspace_option: WorkspaceOption = None,
         num_proc: NumProc = 1,
     ) -> None:
         """
@@ -52,29 +53,29 @@ def register_slicer_slice(app: typer.Typer):
         from am.config import BuildParameters
         from am.slicer.planar import SlicerPlanar
 
-        from wa.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace
 
-        workspace_path = get_workspace_path(workspace)
+        workspace = get_workspace(workspace_option)
 
         try:
-            filepath = workspace_path / "parts" / part_filename
+            part_path = workspace.path / "parts" / part_filename
 
             build_parameters = BuildParameters.load(
-                workspace_path
+                workspace.path
                 / "configs"
                 / "build_parameters"
                 / build_parameters_filename
             )
 
-            run_name = datetime.now().strftime(f"{filepath.stem}_%Y%m%d_%H%M%S")
+            run_name = datetime.now().strftime(f"{part_path.stem}_%Y%m%d_%H%M%S")
 
             import asyncio
 
             async def run_slicer():
-                slicer_planar = SlicerPlanar(build_parameters, workspace_path, run_name)
+                slicer_planar = SlicerPlanar(build_parameters, workspace.path, run_name)
 
                 # slicer_planar.load_mesh(filepath, units=mesh_units)
-                slicer_planar.load_mesh(filepath)
+                slicer_planar.load_mesh(part_path)
                 slicer_planar.section_mesh(layer_height=layer_height)
                 await slicer_planar.slice_sections(
                     hatch_spacing=hatch_spacing, binary=binary, num_proc=num_proc
