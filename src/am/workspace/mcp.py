@@ -7,7 +7,7 @@ from typing import Union
 def register_workspace_create(app: FastMCP):
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
-    from wa.models import Workspace
+    from wa import Workspace
 
     @app.tool(
         title="Create Additive Manufacturing Workspace",

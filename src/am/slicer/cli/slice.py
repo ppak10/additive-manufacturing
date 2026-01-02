@@ -3,6 +3,7 @@ import typer
 
 def register_slicer_slice(app: typer.Typer):
     from datetime import datetime
+    from pathlib import Path
     from typing_extensions import Annotated
 
     from am.cli.options import NumProc
@@ -67,12 +68,15 @@ def register_slicer_slice(app: typer.Typer):
                 / build_parameters_filename
             )
 
-            run_name = datetime.now().strftime(f"{part_path.stem}_%Y%m%d_%H%M%S")
+            workspace_folder = workspace.create_folder(
+                name_or_path = Path("toolpaths") / part_path.stem,
+                append_timestamp = True,
+            )
 
             import asyncio
 
             async def run_slicer():
-                slicer_planar = SlicerPlanar(build_parameters, workspace.path, run_name)
+                slicer_planar = SlicerPlanar(build_parameters, workspace_folder.path)
 
                 # slicer_planar.load_mesh(filepath, units=mesh_units)
                 slicer_planar.load_mesh(part_path)
@@ -91,6 +95,8 @@ def register_slicer_slice(app: typer.Typer):
                         binary=binary, num_proc=num_proc
                     )
 
+            # TODO: Make workspace-agent function to update workspace.json 
+            # with created workspace folders.
             asyncio.run(run_slicer())
 
         except Exception as e:

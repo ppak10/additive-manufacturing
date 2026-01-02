@@ -56,35 +56,37 @@ def register_slicer_slice(app: FastMCP):
         from am.config import BuildParameters
         from am.slicer.planar import SlicerPlanar
 
-        from wa.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace
 
-        workspace_path = get_workspace_path(workspace_name)
+        workspace = get_workspace(workspace_name)
 
         try:
-            filepath = workspace_path / "parts" / part_filename
+            part_path = workspace.path / "parts" / part_filename
 
             build_parameters = BuildParameters.load(
-                workspace_path
+                workspace.path
                 / "configs"
                 / "build_parameters"
                 / build_parameters_filename
             )
 
-            run_name = datetime.now().strftime(f"{filepath.stem}_%Y%m%d_%H%M%S")
+            workspace_folder = workspace.create_folder(
+                name_or_path = Path("toolpaths") / part_path.stem,
+                append_timestamp = True,
+            )
 
             async def progress_callback(current: int, total: int):
                 await ctx.report_progress(progress=current, total=total)
 
             slicer_planar = SlicerPlanar(
-                build_parameters,
-                workspace_path,
-                run_name,
-                progress_callback=progress_callback,
+                build_parameters = build_parameters,
+                out_path = workspace_folder.path
+                progress_callback = progress_callback,
             )
 
             # Load mesh (0-10%)
             await ctx.report_progress(progress=0, total=100)
-            slicer_planar.load_mesh(filepath)
+            slicer_planar.load_mesh(part_path)
             await ctx.report_progress(progress=10, total=100)
 
             # Section mesh (10-20%)

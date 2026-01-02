@@ -2,7 +2,7 @@ from pathlib import Path
 
 from am.config import BuildParameters, Material, ProcessMap
 
-from wa.models import WorkspaceFolder
+from wa import WorkspaceFolder
 from wa.workspace.create import create_workspace_folder
 
 
@@ -22,7 +22,7 @@ def create_process_map_folder(
 
     # Process Map subfolder
     process_map_folder = create_workspace_folder(
-        workspace_folder_name=["process_maps", process_map_folder_name],
+        name_or_path=["process_maps", process_map_folder_name],
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
@@ -30,7 +30,7 @@ def create_process_map_folder(
 
     # Process Map Config subfolder
     process_map_config_folder = create_workspace_folder(
-        workspace_folder_name=["process_maps", process_map_folder_name, "config"],
+        name_or_path=["process_maps", process_map_folder_name, "config"],
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
@@ -42,7 +42,7 @@ def create_process_map_folder(
 
     # Process Map Plots subfolder
     create_workspace_folder(
-        workspace_folder_name=["process_maps", process_map_folder_name, "plots"],
+        name_or_path=["process_maps", process_map_folder_name, "plots"],
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,

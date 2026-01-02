@@ -8,7 +8,7 @@ from am.workspace.create import (
     create_workspace_parts_folder,
 )
 from am.config import BuildParameters, Material, MeshParameters
-from wa.models import Workspace, WorkspaceFolder
+from wa import Workspace, WorkspaceFolder
 
 
 # =============================================================================

@@ -8,7 +8,6 @@ from pathlib import Path
 from pint import Quantity
 from tqdm.rich import tqdm
 from typing import cast, Callable, Awaitable
-from wa import create_workspace_folder
 
 from am.config import BuildParameters
 
@@ -37,8 +36,7 @@ class SlicerPlanar:
     def __init__(
         self,
         build_parameters: BuildParameters,
-        workspace_path: Path,
-        run_name: str | None = None,
+        out_path: Path,
         progress_callback: Callable[[int, int], Awaitable[None]] | None = None,
     ):
         """
@@ -53,23 +51,12 @@ class SlicerPlanar:
         """
         self.build_parameters = build_parameters
         self.progress_callback = progress_callback
+        self.out_path = out_path
 
         # Loaded in / Generated
         self.mesh: trimesh.Trimesh | None = None
         self.sections = []
         self.zfill = 0
-
-        # Creates run folder inside workspace for slicer runs.
-        if run_name is None:
-            run_name = datetime.now().strftime("slicer_planar_%Y%m%d_%H%M%S")
-
-        self.toolpaths_out_path = workspace_path / "toolpaths" / run_name
-        self.toolpaths_out_path.mkdir(exist_ok=True, parents=True)
-
-        # Save solver configs
-        self.build_parameters.save(
-            self.toolpaths_out_path / "configs" / "build_parameters.json"
-        )
 
     def section_mesh(self, layer_height=None):
         """
@@ -109,10 +96,10 @@ class SlicerPlanar:
             num_proc: Number of processes to use. If 1, no multiprocessing is used.
         """
 
-        infill_data_out_path = self.toolpaths_out_path / "infill" / "data"
+        infill_data_out_path = self.out_path / "infill" / "data"
         infill_data_out_path.mkdir(exist_ok=True, parents=True)
 
-        contour_data_out_path = self.toolpaths_out_path / "contour" / "data"
+        contour_data_out_path = self.out_path / "contour" / "data"
         contour_data_out_path.mkdir(exist_ok=True, parents=True)
 
         if self.sections is None:
@@ -207,15 +194,15 @@ class SlicerPlanar:
             binary: If True, reads .wkb binary files, otherwise reads .txt WKT files
             num_proc: Number of processes to use. If 1, no multiprocessing is used.
         """
-        infill_data_out_path = self.toolpaths_out_path / "infill" / "data"
-        infill_images_out_path = self.toolpaths_out_path / "infill" / "images"
+        infill_data_out_path = self.out_path / "infill" / "data"
+        infill_images_out_path = self.out_path / "infill" / "images"
         infill_images_out_path.mkdir(exist_ok=True, parents=True)
 
-        contour_data_out_path = self.toolpaths_out_path / "contour" / "data"
-        contour_images_out_path = self.toolpaths_out_path / "contour" / "images"
+        contour_data_out_path = self.out_path / "contour" / "data"
+        contour_images_out_path = self.out_path / "contour" / "images"
         contour_images_out_path.mkdir(exist_ok=True, parents=True)
 
-        composite_images_out_path = self.toolpaths_out_path / "composite" / "images"
+        composite_images_out_path = self.out_path / "composite" / "images"
         composite_images_out_path.mkdir(exist_ok=True, parents=True)
 
         if not infill_data_out_path.exists() or not contour_data_out_path.exists():
@@ -274,19 +261,19 @@ class SlicerPlanar:
                 if self.progress_callback:
                     await self.progress_callback(file_index + 1, total_files)
             # Compile images into GIF
-            infill_gif_path = self.toolpaths_out_path / "infill" / "animation.gif"
+            infill_gif_path = self.out_path / "infill" / "animation.gif"
             compile_gif(infill_images_out_path, infill_gif_path)
 
-            contour_gif_path = self.toolpaths_out_path / "contour" / "animation.gif"
+            contour_gif_path = self.out_path / "contour" / "animation.gif"
             compile_gif(contour_images_out_path, contour_gif_path)
 
-            composite_gif_path = self.toolpaths_out_path / "composite" / "animation.gif"
+            composite_gif_path = self.out_path / "composite" / "animation.gif"
             compile_gif(composite_images_out_path, composite_gif_path)
 
             # Visualize solver data if it exists
-            solver_data_out_path = self.toolpaths_out_path / "solver" / "data"
+            solver_data_out_path = self.out_path / "solver" / "data"
             if solver_data_out_path.exists():
-                solver_images_out_path = self.toolpaths_out_path / "solver" / "images"
+                solver_images_out_path = self.out_path / "solver" / "images"
                 solver_images_out_path.mkdir(exist_ok=True, parents=True)
 
                 solver_files = sorted(solver_data_out_path.glob("*.json"))
@@ -302,7 +289,7 @@ class SlicerPlanar:
                         await self.progress_callback(file_index + 1, len(solver_files))
 
                 # Compile solver images into GIF
-                solver_gif_path = self.toolpaths_out_path / "solver" / "animation.gif"
+                solver_gif_path = self.out_path / "solver" / "animation.gif"
                 compile_gif(solver_images_out_path, solver_gif_path)
 
         else:
@@ -343,9 +330,9 @@ class SlicerPlanar:
                 composite_args_list.append(composite_args)
 
             # Check for solver data and prepare args
-            solver_data_out_path = self.toolpaths_out_path / "solver" / "data"
+            solver_data_out_path = self.out_path / "solver" / "data"
             if solver_data_out_path.exists():
-                solver_images_out_path = self.toolpaths_out_path / "solver" / "images"
+                solver_images_out_path = self.out_path / "solver" / "images"
                 solver_images_out_path.mkdir(exist_ok=True, parents=True)
 
                 solver_files = sorted(solver_data_out_path.glob("*.json"))
@@ -388,20 +375,20 @@ class SlicerPlanar:
 
                 # Compile images into GIF
                 futures = []
-                infill_gif_path = self.toolpaths_out_path / "infill" / "animation.gif"
+                infill_gif_path = self.out_path / "infill" / "animation.gif"
                 future = executor.submit(
                     compile_gif, infill_images_out_path, infill_gif_path
                 )
                 futures.append(future)
 
-                contour_gif_path = self.toolpaths_out_path / "contour" / "animation.gif"
+                contour_gif_path = self.out_path / "contour" / "animation.gif"
                 future = executor.submit(
                     compile_gif, contour_images_out_path, contour_gif_path
                 )
                 futures.append(future)
 
                 composite_gif_path = (
-                    self.toolpaths_out_path / "composite" / "animation.gif"
+                    self.out_path / "composite" / "animation.gif"
                 )
                 future = executor.submit(
                     compile_gif, composite_images_out_path, composite_gif_path
@@ -410,9 +397,7 @@ class SlicerPlanar:
 
                 # Add solver GIF compilation if solver data was visualized
                 if solver_args_list:
-                    solver_gif_path = (
-                        self.toolpaths_out_path / "solver" / "animation.gif"
-                    )
+                    solver_gif_path = self.out_path / "solver" / "animation.gif"
                     future = executor.submit(
                         compile_gif, solver_images_out_path, solver_gif_path
                     )
@@ -434,10 +419,10 @@ class SlicerPlanar:
         """
         Exports sliced geometries to solver segment.
         """
-        infill_data_out_path = self.toolpaths_out_path / "infill" / "data"
-        contour_data_out_path = self.toolpaths_out_path / "contour" / "data"
+        infill_data_out_path = self.out_path / "infill" / "data"
+        contour_data_out_path = self.out_path / "contour" / "data"
 
-        solver_data_out_path = self.toolpaths_out_path / "solver" / "data"
+        solver_data_out_path = self.out_path / "solver" / "data"
         solver_data_out_path.mkdir(exist_ok=True, parents=True)
 
         if not infill_data_out_path.exists() or not contour_data_out_path.exists():
