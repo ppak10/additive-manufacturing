@@ -54,7 +54,7 @@ def register_slicer_slice(app: FastMCP):
         # mesh_units: Units 3D part file is defined in (i.e. "in" or "mm")
 
         from am.config import BuildParameters
-        from am.slicer.planar import SlicerPlanar
+        from am.slicer.models import Slicer
 
         from wa.cli.utils import get_workspace
 
@@ -78,43 +78,44 @@ def register_slicer_slice(app: FastMCP):
             async def progress_callback(current: int, total: int):
                 await ctx.report_progress(progress=current, total=total)
 
-            slicer_planar = SlicerPlanar(
-                build_parameters = build_parameters,
-                out_path = workspace_folder.path
-                progress_callback = progress_callback,
+            slicer = Slicer(
+                build_parameters=build_parameters,
+                out_path=workspace_folder.path,
+                progress_callback=progress_callback,
             )
 
             # Load mesh (0-10%)
             await ctx.report_progress(progress=0, total=100)
-            slicer_planar.load_mesh(part_path)
+            slicer.load_mesh(part_path)
             await ctx.report_progress(progress=10, total=100)
 
             # Section mesh (10-20%)
-            slicer_planar.section_mesh(layer_height=layer_height)
+            slicer.section_mesh(layer_height=layer_height)
             await ctx.report_progress(progress=20, total=100)
 
             # Generate slices (20-50%)
-            await slicer_planar.slice_sections(
+            await slicer.slice_sections(
                 hatch_spacing=hatch_spacing, binary=binary, num_proc=num_proc
             )
             await ctx.report_progress(progress=50, total=100)
 
             # Export to solver format if requested (50-70%)
             if format == "solver":
-                solver_data_out_path = await slicer_planar.export_solver_segments(
+                solver_data_out_path = await slicer.export_solver_segments(
                     binary=binary, num_proc=num_proc
                 )
                 await ctx.report_progress(progress=70, total=100)
 
             # Visualize if requested (70-100% or 50-100% if no export)
             if visualize:
-                visualizations_path = await slicer_planar.visualize_slices(
+                visualizations_path = await slicer.visualize_slices(
                     binary=binary, num_proc=num_proc
                 )
                 await ctx.report_progress(progress=100, total=100)
                 return tool_success(visualizations_path)
 
             await ctx.report_progress(progress=100, total=100)
+            slicer.save()  # Save configuration to slicer.json
             return tool_success(
                 solver_data_out_path if format == "solver" else workspace_path / "toolpaths" / run_name
             )

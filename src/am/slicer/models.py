@@ -6,6 +6,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from pint import Quantity
+from pydantic import BaseModel, Field
 from tqdm.rich import tqdm
 from typing import cast, Callable, Awaitable
 
@@ -28,35 +29,86 @@ class SlicerOutputFolder(str, Enum):
     toolpaths = "toolpaths"
 
 
-class SlicerPlanar:
+class Slicer(BaseModel):
     """
-    Slicer for generating planar GCode from mesh input.
+    Slicer for generating GCode from mesh input.
+
+    Contains commonly reused variables for slicing.
+    More state dependent to allow reslicing with different parameters.
+
+    Args:
+        build_parameters: Build parameters configuration
+        out_path: Path to workspace directory
+        planar: Whether to use planar slicing (default: True)
+        progress_callback: Optional async callback for progress reporting (current, total)
     """
 
-    def __init__(
-        self,
-        build_parameters: BuildParameters,
-        out_path: Path,
-        progress_callback: Callable[[int, int], Awaitable[None]] | None = None,
-    ):
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "validate_assignment": True,
+    }
+
+    # Required fields
+    build_parameters: BuildParameters
+    out_path: Path
+
+    # Slicing mode
+    planar: bool = True
+
+    # Optional callback (excluded from serialization)
+    progress_callback: Callable[[int, int], Awaitable[None]] | None = Field(
+        default=None, exclude=True
+    )
+
+    # Loaded in / Generated (excluded from serialization)
+    mesh: trimesh.Trimesh | None = Field(default=None, exclude=True)
+    sections: list = Field(default_factory=list, exclude=True)
+    zfill: int = 0
+
+    def save(self, file_path: Path | None = None) -> Path:
         """
-        Contains commonly reused variables for slicing.
-        More state dependent to allow reslicing with different parameters.
+        Save slicer configuration to JSON file.
 
         Args:
-            build_parameters: Build parameters configuration
-            workspace_path: Path to workspace directory
-            run_name: Optional name for this run
-            progress_callback: Optional async callback for progress reporting (current, total)
-        """
-        self.build_parameters = build_parameters
-        self.progress_callback = progress_callback
-        self.out_path = out_path
+            file_path: Optional path to save the config. If None, saves to out_path/slicer.json
 
-        # Loaded in / Generated
-        self.mesh: trimesh.Trimesh | None = None
-        self.sections = []
-        self.zfill = 0
+        Returns:
+            Path to the saved configuration file
+        """
+        if file_path is None:
+            file_path = self.out_path / "slicer.json"
+
+        with open(file_path, "w") as f:
+            f.write(self.model_dump_json(indent=2))
+
+        return file_path
+
+    @classmethod
+    def load(cls, file_path: Path, progress_callback=None) -> "Slicer":
+        """
+        Load slicer configuration from JSON file.
+
+        Args:
+            file_path: Path to the slicer.json file
+            progress_callback: Optional progress callback to attach
+
+        Returns:
+            Slicer instance with loaded configuration
+        """
+        import json
+
+        with open(file_path, "r") as f:
+            data = json.load(f)
+
+        # Convert out_path string back to Path
+        if "out_path" in data:
+            data["out_path"] = Path(data["out_path"])
+
+        slicer = cls.model_validate(data)
+        if progress_callback is not None:
+            slicer.progress_callback = progress_callback
+
+        return slicer
 
     def section_mesh(self, layer_height=None):
         """

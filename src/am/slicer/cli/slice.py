@@ -52,7 +52,7 @@ def register_slicer_slice(app: typer.Typer):
         from rich import print as rprint
 
         from am.config import BuildParameters
-        from am.slicer.planar import SlicerPlanar
+        from am.slicer.models import Slicer
 
         from wa.cli.utils import get_workspace
 
@@ -76,24 +76,29 @@ def register_slicer_slice(app: typer.Typer):
             import asyncio
 
             async def run_slicer():
-                slicer_planar = SlicerPlanar(build_parameters, workspace_folder.path)
+                slicer = Slicer(
+                    build_parameters = build_parameters,
+                    out_path = workspace_folder.path
+                )
 
-                # slicer_planar.load_mesh(filepath, units=mesh_units)
-                slicer_planar.load_mesh(part_path)
-                slicer_planar.section_mesh(layer_height=layer_height)
-                await slicer_planar.slice_sections(
+
+                # slicer.load_mesh(filepath, units=mesh_units)
+                slicer.load_mesh(part_path)
+                slicer.section_mesh(layer_height=layer_height)
+                await slicer.slice_sections(
                     hatch_spacing=hatch_spacing, binary=binary, num_proc=num_proc
                 )
 
                 if format == "solver":
-                    await slicer_planar.export_solver_segments(
+                    await slicer.export_solver_segments(
                         binary=binary, num_proc=num_proc
                     )
 
                 if visualize:
-                    await slicer_planar.visualize_slices(
+                    await slicer.visualize_slices(
                         binary=binary, num_proc=num_proc
                     )
+                slicer.save()  # Save configuration to slicer.json
 
             # TODO: Make workspace-agent function to update workspace.json 
             # with created workspace folders.
