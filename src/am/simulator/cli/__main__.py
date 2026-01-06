@@ -1,8 +1,9 @@
 import typer
 
 app = typer.Typer(
-    name="solver",
-    help="Solver management",
+    name="simulator",
+    help="Run simulations such as toolpath based residual heat and process mapping.",
     add_completion=False,
     no_args_is_help=True,
 )
+
