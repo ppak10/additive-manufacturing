@@ -2,7 +2,6 @@ import numpy as np
 import trimesh
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from pint import Quantity
@@ -439,9 +438,7 @@ class Slicer(BaseModel):
                 )
                 futures.append(future)
 
-                composite_gif_path = (
-                    self.out_path / "composite" / "animation.gif"
-                )
+                composite_gif_path = self.out_path / "composite" / "animation.gif"
                 future = executor.submit(
                     compile_gif, composite_images_out_path, composite_gif_path
                 )

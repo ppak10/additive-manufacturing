@@ -2,7 +2,6 @@ import typer
 
 
 def register_slicer_slice(app: typer.Typer):
-    from datetime import datetime
     from pathlib import Path
     from typing_extensions import Annotated
 
@@ -69,18 +68,16 @@ def register_slicer_slice(app: typer.Typer):
             )
 
             workspace_folder = workspace.create_folder(
-                name_or_path = Path("toolpaths") / part_path.stem,
-                append_timestamp = True,
+                name_or_path=Path("toolpaths") / part_path.stem,
+                append_timestamp=True,
             )
 
             import asyncio
 
             async def run_slicer():
                 slicer = Slicer(
-                    build_parameters = build_parameters,
-                    out_path = workspace_folder.path
+                    build_parameters=build_parameters, out_path=workspace_folder.path
                 )
-
 
                 # slicer.load_mesh(filepath, units=mesh_units)
                 slicer.load_mesh(part_path)
@@ -95,12 +92,10 @@ def register_slicer_slice(app: typer.Typer):
                     )
 
                 if visualize:
-                    await slicer.visualize_slices(
-                        binary=binary, num_proc=num_proc
-                    )
+                    await slicer.visualize_slices(binary=binary, num_proc=num_proc)
                 slicer.save()  # Save configuration to slicer.json
 
-            # TODO: Make workspace-agent function to update workspace.json 
+            # TODO: Make workspace-agent function to update workspace.json
             # with created workspace folders.
             asyncio.run(run_slicer())
 

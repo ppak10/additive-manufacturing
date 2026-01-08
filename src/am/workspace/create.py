@@ -35,13 +35,6 @@ def create_additive_manufacturing_workspace(
         include_examples=include_examples,
     )
 
-    # Creates process maps folder for process map runs
-    create_workspace_process_maps_folder(
-        workspace_name=workspace_name,
-        workspaces_path=workspaces_path,
-        force=force,
-    )
-
     return workspace
 
 
@@ -75,26 +68,6 @@ def create_workspace_parts_folder(
             shutil.copy2(file_path, dest_path)
 
     return parts_folder
-
-
-def create_workspace_process_maps_folder(
-    workspace_name: str,
-    workspaces_path: Path | None = None,
-    force: bool = False,
-) -> WorkspaceFolder:
-    """
-    Create process maps subfolder within workspace.
-    """
-
-    # Create process maps directory
-    process_maps_folder = create_workspace_folder(
-        name_or_path="process_maps",
-        workspace_name=workspace_name,
-        workspaces_path=workspaces_path,
-        force=force,
-    )
-
-    return process_maps_folder
 
 
 def create_workspace_configs_folder(
@@ -145,14 +118,5 @@ def create_workspace_configs_folder(
     )
     mesh_parameters_path = mesh_parameters_folder.path / "default.json"
     _ = mesh_parameters.save(mesh_parameters_path)
-
-    # Process Maps Config
-    # No default implemented
-    create_workspace_folder(
-        name_or_path=["configs", "process_maps"],
-        workspace_name=workspace_name,
-        workspaces_path=workspaces_path,
-        force=force,
-    )
 
     return configs_folder
