@@ -6,9 +6,8 @@ from pathlib import Path
 from PIL import Image
 from rich.console import Console
 from tqdm.rich import tqdm
-from typing import cast
 
-from am.simulator.models import SolverLayer
+from am.simulator.solver.models import SolverLayer
 from .geometry import load_geometries
 
 matplotlib.use("Agg")  # Use non-interactive backend

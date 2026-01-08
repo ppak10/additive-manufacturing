@@ -1,7 +1,3 @@
-import math
-
-from numpy.typing import ArrayLike
-
 KEYHOLE_THRESHOLD = 1.5
 # BALLING_THRESHOLD = math.pi
 BALLING_THRESHOLD = 2

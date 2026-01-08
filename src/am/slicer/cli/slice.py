@@ -9,7 +9,7 @@ def register_slicer_slice(app: typer.Typer):
     from am.slicer.format import Format
     from wa.cli.options import WorkspaceOption
 
-    @app.command(name="slice")
+    @app.command(name="slice", rich_help_panel="Slicer Commands")
     def slicer_slice(
         part_filename: str,
         layer_height: Annotated[

@@ -37,7 +37,7 @@ DEFAULTS = {
     },
 }
 
-ProcessMapParameterInputTuple: TypeAlias = tuple[
+ProcessMapParameterRangeInputTuple: TypeAlias = tuple[
     list[str] | None,  # Input Shorthand
     str | None,  # Parameter Name
     list[int] | None,  # Range (start, stop, step)
@@ -45,17 +45,18 @@ ProcessMapParameterInputTuple: TypeAlias = tuple[
 ]
 
 
-class ProcessMapParameterDict(TypedDict):
+class ProcessMapParameterRangeDict(TypedDict):
     name: str
     start: QuantityDict
     stop: QuantityDict
     step: QuantityDict
 
 
-class ProcessMapParameter(QuantityModel):
+class ProcessMapParameterRange(QuantityModel):
     """
-    Parameter model indiating min, max, step, and name of an investigated
-    parameter for a process map (i.e. "beam_power", "scan_velocity", "layer_height").
+    Parameter range model indiating start, stop, step, and name of an
+    investigated parameter for a process map
+    (i.e. "beam_power", "scan_velocity", "layer_height").
 
     Only parameter names defined in DEFAULTS are valid.
     """
@@ -92,7 +93,7 @@ class ProcessMapParameter(QuantityModel):
         return data
 
     @model_validator(mode="after")
-    def validate_units_match(self) -> "ProcessMapParameter":
+    def validate_units_match(self) -> "ProcessMapParameterRange":
         """Validate that start, stop, and step all have the same units."""
         start_units = str(self.start.units)
         stop_units = str(self.stop.units)

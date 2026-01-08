@@ -1,14 +1,14 @@
 from pint import Quantity
 from typing_extensions import cast
 
-from am.simulator.process_map.models.process_map_parameters import (
+from am.simulator.process_map.models.process_map_parameter_range import (
     DEFAULTS,
-    ProcessMapParameter,
-    ProcessMapParameterInputTuple,
+    ProcessMapParameterRange,
+    ProcessMapParameterRangeInputTuple,
 )
 
 
-def parse_shorthand(values: list[str] | None) -> ProcessMapParameter | None:
+def parse_shorthand(values: list[str] | None) -> ProcessMapParameterRange | None:
     """
     Parse shorthand parameter notation: --p1 beam_power 100 1000 100 watts
 
@@ -35,23 +35,23 @@ def parse_shorthand(values: list[str] | None) -> ProcessMapParameter | None:
 
     if name in DEFAULTS.keys():
         # Initialize with defaults
-        parameter = ProcessMapParameter(name=name)
+        parameter_range = ProcessMapParameterRange(name=name)
     else:
         raise Exception(f"parameter name: {name} is invalid.")
 
     # Obtain units from instantiated parameter
     if units is None:
-        units = parameter.units
+        units = parameter_range.units
 
     # If we have 2 numeric values, they will be start and stop
     if numeric_values is not None and len(numeric_values) >= 2:
-        parameter.start = cast(Quantity, Quantity(numeric_values[0], units))
-        parameter.stop = cast(Quantity, Quantity(numeric_values[1], units))
+        parameter_range.start = cast(Quantity, Quantity(numeric_values[0], units))
+        parameter_range.stop = cast(Quantity, Quantity(numeric_values[1], units))
 
     if numeric_values and len(numeric_values) >= 3:
-        parameter.step = cast(Quantity, Quantity(numeric_values[2], units))
+        parameter_range.step = cast(Quantity, Quantity(numeric_values[2], units))
 
-    return parameter
+    return parameter_range
 
 
 def parse_options(
@@ -59,7 +59,7 @@ def parse_options(
     name: str | None,
     range_values: list[int] | None,
     units: str | None,
-) -> ProcessMapParameter | None:
+) -> ProcessMapParameterRange | None:
     """
     Merge shorthand and verbose parameter options.
     Verbose options take precedence over shorthand.
@@ -71,7 +71,7 @@ def parse_options(
     if not parameter:
         if name in DEFAULTS.keys():
             # Initialize with defaults
-            parameter = ProcessMapParameter(name=name)
+            parameter = ProcessMapParameterRange(name=name)
         else:
             return None
 
@@ -94,9 +94,9 @@ def parse_options(
     return parameter
 
 
-def inputs_to_parameters(*input_tuples: ProcessMapParameterInputTuple):
+def inputs_to_parameter_ranges(*input_tuples: ProcessMapParameterRangeInputTuple):
     """
-    Parse and validate parameters from CLI input.
+    Parse and validate parameter ranges from CLI input.
 
     If no parameters are provided, uses defaults in order:
     1. beam_power
@@ -104,19 +104,16 @@ def inputs_to_parameters(*input_tuples: ProcessMapParameterInputTuple):
     3. layer_height
 
     Args:
-        parameter_tuples: List of tuples containing (shorthand, name, range_vals, units)
+        input_tuples: List of tuples containing (shorthand, name, range_vals, units)
         verbose: Whether to print verbose output
 
     Returns:
-        List of ProcessMapParameter objects
+        List of ProcessMapParameterRange objects
 
     Raises:
         typer.Exit: If validation fails
     """
-    from am.simulator.process_map.models import ProcessMapParameter
-    from am.simulator.process_map.models.process_map_parameters import DEFAULTS
-
-    parameters = []
+    parameter_ranges = []
 
     # If no parameters provided, use defaults in order
     if all(all(v is None for v in param) for param in input_tuples):
@@ -125,15 +122,15 @@ def inputs_to_parameters(*input_tuples: ProcessMapParameterInputTuple):
         keys = list(DEFAULTS.keys())[:3]
 
         for key in keys:
-            parameter = ProcessMapParameter(name=key)
-            parameters.append(parameter)
+            parameter_range = ProcessMapParameterRange(name=key)
+            parameter_ranges.append(parameter_range)
 
-        return parameters
+        return parameter_ranges
 
     for shorthand, name, range_values, units in input_tuples:
-        parameter = parse_options(shorthand, name, range_values, units)
+        parameter_range = parse_options(shorthand, name, range_values, units)
 
-        if parameter is not None:
-            parameters.append(parameter)
+        if parameter_range is not None:
+            parameter_ranges.append(parameter_range)
 
-    return parameters
+    return parameter_ranges

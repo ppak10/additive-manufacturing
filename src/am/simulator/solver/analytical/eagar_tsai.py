@@ -7,8 +7,8 @@ from scipy import integrate
 from typing import cast
 
 from am.config import BuildParameters, Material
-from am.solver.mesh import SolverMesh
-from am.simulator.models import SolverSegment
+from am.simulator.solver.mesh import SolverMesh
+from am.simulator.solver.models import SolverSegment
 
 FLOOR = 10**-7  # Float32
 

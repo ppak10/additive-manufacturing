@@ -10,10 +10,10 @@ from am.workspace.cli import app as workspace_app
 
 __all__ = ["app"]
 
-app.add_typer(config_app, name="config")
-app.add_typer(mcp_app, name="mcp")
-app.add_typer(simulator_app, name="simulator")
-app.add_typer(workspace_app, name="workspace")
+app.add_typer(config_app, name="config", rich_help_panel="Configuration Commands")
+app.add_typer(mcp_app, name="mcp", rich_help_panel="Configuration Commands")
+app.add_typer(simulator_app, name="simulator", rich_help_panel="Simulator Commands")
+app.add_typer(workspace_app, name="workspace", rich_help_panel="Configuration Commands")
 
 _ = register_slicer_slice(app)
 # _ = register_version(app)

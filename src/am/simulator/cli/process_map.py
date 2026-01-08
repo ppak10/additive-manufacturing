@@ -72,14 +72,16 @@ def register_simulator_process_map(app: typer.Typer):
 
         from am.config import BuildParameters, Material
         from am.simulator.process_map.models import ProcessMap
-        from am.simulator.process_map.utils.parameters import inputs_to_parameters
+        from am.simulator.process_map.utils.parameter_ranges import (
+            inputs_to_parameter_ranges,
+        )
         from wa.cli.utils import get_workspace
 
         workspace = get_workspace(workspace_name)
 
         try:
             # Parse and validate parameters
-            parameters = inputs_to_parameters(
+            parameter_ranges = inputs_to_parameter_ranges(
                 (p1, p1_name, p1_range, p1_units),
                 (p2, p2_name, p2_range, p2_units),
                 (p3, p3_name, p3_range, p3_units),
@@ -106,7 +108,7 @@ def register_simulator_process_map(app: typer.Typer):
 
             if verbose:
                 rprint(
-                    f"[cyan]Creating process map with {len(parameters)} parameter(s)[/cyan]"
+                    f"[cyan]Creating process map with {len(parameter_ranges)} parameter(s)[/cyan]"
                 )
                 rprint(f"[cyan]Output: {workspace_folder.path}[/cyan]")
 
@@ -114,7 +116,7 @@ def register_simulator_process_map(app: typer.Typer):
             process_map = ProcessMap(
                 build_parameters=build_parameters,
                 material=material,
-                parameters=parameters,
+                parameter_ranges=parameter_ranges,
                 out_path=workspace_folder.path,
             )
 

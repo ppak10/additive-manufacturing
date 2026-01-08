@@ -4,7 +4,7 @@ from pint import Quantity
 from shapely import MultiLineString, LineString, Geometry
 from typing_extensions import cast
 
-from am.simulator.models import SolverSegment, SolverLayer
+from am.simulator.solver.models import SolverSegment, SolverLayer
 
 
 def export_solver_layer(data_out_path, geometries, layer_index, layer_count):
@@ -24,7 +24,7 @@ def export_solver_layer(data_out_path, geometries, layer_index, layer_count):
 
 def geometries_to_solver_segments(
     geometries: list[Geometry],
-    max_segment_length: float = 0.1, # 0.1 mm
+    max_segment_length: float = 0.1,  # 0.1 mm
     units="mm",
     verbose=False,
 ) -> list[SolverSegment]:
