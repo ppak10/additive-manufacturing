@@ -1,14 +1,23 @@
-from am.simulator.process_map.models import ProcessMapPoint
+from pint import Quantity
+from typing_extensions import cast
+
+from am.simulator.solver.analytical import Rosenthal
+from am.simulator.tool.process_map.models import ProcessMapDataPoint
 from am.config import BuildParameters, Material
 
 from .process_map_point_label import lack_of_fusion
 
 
-def run_process_map_point(
-    build_parameters: BuildParameters, material: Material
-) -> ProcessMapPoint:
+def run_process_map_data_point(
+    build_parameters: BuildParameters,
+    material: Material,
+    data_point: ProcessMapDataPoint,
+) -> ProcessMapDataPoint:
+    """
+    Assigns `labels` and `melt_pool_dimensions` to process map data point.
+    Right now, just support lack of fusion labeling.
+    """
 
-    # if model_name == "rosenthal":
     model = Rosenthal(build_parameters, material)
 
     melt_pool_dimensions = model.solve_melt_pool_dimensions()
@@ -20,14 +29,12 @@ def run_process_map_point(
     width = melt_pool_dimensions.width.magnitude
     depth = melt_pool_dimensions.depth.magnitude
 
-    melt_pool_classifications = MeltPoolClassifications(
-        lack_of_fusion=lack_of_fusion(hatch_spacing, layer_height, width, depth)
-    )
+    labels = []
+    if lack_of_fusion(hatch_spacing, layer_height, width, depth):
+        labels.append("lack_of_fusion")
 
-    process_map_point = ProcessMapPoint(
-        build_parameters=build_parameters,
-        melt_pool_dimensions=melt_pool_dimensions,
-        melt_pool_classifications=melt_pool_classifications,
-    )
+    # Assigns values to process map data point.
+    data_point.melt_pool_dimensions = melt_pool_dimensions
+    data_point.labels = labels
 
-    return process_map_point
+    return data_point

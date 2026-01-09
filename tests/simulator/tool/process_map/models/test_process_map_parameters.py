@@ -1,16 +1,16 @@
 import pytest
-from am.simulator.process_map.models.process_map_parameters import (
-    ProcessMapParameter,
+from am.simulator.tool.process_map.models.process_map_parameter_range import (
+    ProcessMapParameterRange,
     DEFAULTS,
 )
 
 
-class TestProcessMapParameterDefaults:
+class TestProcessMapParameterRangeDefaults:
     """Test that defaults are applied correctly based on parameter name."""
 
     def test_beam_power_defaults(self):
         """Test beam_power gets correct defaults."""
-        param = ProcessMapParameter(name="beam_power")
+        param = ProcessMapParameterRange(name="beam_power")
 
         assert param.name == "beam_power"
         assert param.start.magnitude == 100
@@ -23,7 +23,7 @@ class TestProcessMapParameterDefaults:
 
     def test_scan_velocity_defaults(self):
         """Test scan_velocity gets correct defaults."""
-        param = ProcessMapParameter(name="scan_velocity")
+        param = ProcessMapParameterRange(name="scan_velocity")
 
         assert param.name == "scan_velocity"
         assert param.start.magnitude == 100
@@ -36,7 +36,7 @@ class TestProcessMapParameterDefaults:
 
     def test_layer_height_defaults(self):
         """Test layer_height gets correct defaults."""
-        param = ProcessMapParameter(name="layer_height")
+        param = ProcessMapParameterRange(name="layer_height")
 
         assert param.name == "layer_height"
         assert param.start.magnitude == 25
@@ -48,12 +48,12 @@ class TestProcessMapParameterDefaults:
         assert param.units == "micron"
 
 
-class TestProcessMapParameterOverrides:
+class TestProcessMapParameterRangeOverrides:
     """Test that defaults can be overridden."""
 
     def test_override_start_only(self):
         """Test overriding only start value."""
-        param = ProcessMapParameter(name="beam_power", start=(50, "watts"))
+        param = ProcessMapParameterRange(name="beam_power", start=(50, "watts"))
 
         assert param.start.magnitude == 50
         assert str(param.start.units) == "watt"
@@ -64,7 +64,7 @@ class TestProcessMapParameterOverrides:
 
     def test_override_stop_only(self):
         """Test overriding only stop value."""
-        param = ProcessMapParameter(name="beam_power", stop=(1500, "watts"))
+        param = ProcessMapParameterRange(name="beam_power", stop=(1500, "watts"))
 
         assert param.stop.magnitude == 1500
         assert str(param.stop.units) == "watt"
@@ -75,7 +75,7 @@ class TestProcessMapParameterOverrides:
 
     def test_override_step_only(self):
         """Test overriding only step value."""
-        param = ProcessMapParameter(name="beam_power", step=(50, "watts"))
+        param = ProcessMapParameterRange(name="beam_power", step=(50, "watts"))
 
         assert param.step.magnitude == 50
         assert str(param.step.units) == "watt"
@@ -86,7 +86,7 @@ class TestProcessMapParameterOverrides:
 
     def test_override_all_values(self):
         """Test overriding all values."""
-        param = ProcessMapParameter(
+        param = ProcessMapParameterRange(
             name="beam_power",
             start=(200, "watts"),
             stop=(800, "watts"),
@@ -101,7 +101,7 @@ class TestProcessMapParameterOverrides:
 
     def test_override_with_consistent_different_units(self):
         """Test overriding all values with different but consistent units."""
-        param = ProcessMapParameter(
+        param = ProcessMapParameterRange(
             name="scan_velocity",
             start=(0.1, "meter / second"),
             stop=(2.0, "meter / second"),
@@ -116,7 +116,7 @@ class TestProcessMapParameterOverrides:
         assert param.units == "meter / second"
 
 
-class TestProcessMapParameterValidation:
+class TestProcessMapParameterRangeValidation:
     """Test parameter name and units validation."""
 
     def test_invalid_parameter_name_raises_error(self):
@@ -124,7 +124,7 @@ class TestProcessMapParameterValidation:
         from pydantic import ValidationError
 
         with pytest.raises(ValidationError) as exc_info:
-            ProcessMapParameter(name="custom_parameter")
+            ProcessMapParameterRange(name="custom_parameter")
 
         # Check that the error message mentions valid parameter names
         assert "Invalid parameter name" in str(exc_info.value)
@@ -134,7 +134,7 @@ class TestProcessMapParameterValidation:
         from pydantic import ValidationError
 
         with pytest.raises(ValidationError) as exc_info:
-            ProcessMapParameter(
+            ProcessMapParameterRange(
                 name="beam_power",
                 start=(100, "watts"),
                 stop=(1000, "kilowatts"),  # Different unit!
@@ -148,7 +148,7 @@ class TestProcessMapParameterValidation:
         from pydantic import ValidationError
 
         with pytest.raises(ValidationError) as exc_info:
-            ProcessMapParameter(
+            ProcessMapParameterRange(
                 name="beam_power",
                 start=(100, "watts"),
                 stop=(1000, "watts"),
@@ -162,7 +162,7 @@ class TestProcessMapParameterValidation:
         from pydantic import ValidationError
 
         with pytest.raises(ValidationError) as exc_info:
-            ProcessMapParameter(
+            ProcessMapParameterRange(
                 name="custom_parameter",
                 start=(10, "celsius"),
                 stop=(100, "celsius"),
@@ -175,7 +175,7 @@ class TestProcessMapParameterValidation:
         """Test that all names in DEFAULTS are valid."""
         for param_name in DEFAULTS.keys():
             # Should not raise any error
-            param = ProcessMapParameter(name=param_name)
+            param = ProcessMapParameterRange(name=param_name)
             assert param.name == param_name
             # Units field should be accessible
             assert param.units is not None
@@ -185,7 +185,7 @@ class TestProcessMapParameterValidation:
         from pydantic import ValidationError
 
         with pytest.raises(ValidationError):
-            ProcessMapParameter(
+            ProcessMapParameterRange(
                 name="",
                 start=(1, "dimensionless"),
                 stop=(10, "dimensionless"),
@@ -193,13 +193,13 @@ class TestProcessMapParameterValidation:
             )
 
 
-class TestProcessMapParameterDictInput:
+class TestProcessMapParameterRangeDictInput:
     """Test that dict input works correctly."""
 
     def test_dict_with_defaults(self):
         """Test creating from dict with name only."""
         data = {"name": "beam_power"}
-        param = ProcessMapParameter(**data)
+        param = ProcessMapParameterRange(**data)
 
         assert param.start.magnitude == 100
         assert param.stop.magnitude == 1000
@@ -209,7 +209,7 @@ class TestProcessMapParameterDictInput:
     def test_dict_with_partial_override(self):
         """Test creating from dict with partial values."""
         data = {"name": "beam_power", "start": (150, "watts")}
-        param = ProcessMapParameter(**data)
+        param = ProcessMapParameterRange(**data)
 
         assert param.start.magnitude == 150
         assert param.stop.magnitude == 1000  # From defaults
@@ -217,18 +217,18 @@ class TestProcessMapParameterDictInput:
         assert param.units == "watt"
 
 
-class TestProcessMapParameterUnitsField:
+class TestProcessMapParameterRangeUnitsField:
     """Test the read-only units field."""
 
     def test_units_field_from_defaults(self):
         """Test that units field is correctly derived from step field."""
-        param = ProcessMapParameter(name="beam_power")
+        param = ProcessMapParameterRange(name="beam_power")
         assert param.units == "watt"
         assert param.units == str(param.step.units)
 
     def test_units_field_with_custom_values(self):
         """Test that units field updates with custom step values."""
-        param = ProcessMapParameter(
+        param = ProcessMapParameterRange(
             name="scan_velocity",
             start=(100, "millimeter / second"),
             stop=(1000, "millimeter / second"),
@@ -238,7 +238,7 @@ class TestProcessMapParameterUnitsField:
 
     def test_units_field_is_read_only(self):
         """Test that units field cannot be set directly."""
-        param = ProcessMapParameter(name="beam_power")
+        param = ProcessMapParameterRange(name="beam_power")
 
         # Attempting to set units should fail (it's a computed property)
         with pytest.raises(AttributeError):
@@ -246,20 +246,20 @@ class TestProcessMapParameterUnitsField:
 
     def test_units_matches_all_fields(self):
         """Test that units field matches all quantity fields."""
-        param = ProcessMapParameter(name="layer_height")
+        param = ProcessMapParameterRange(name="layer_height")
 
         assert param.units == str(param.start.units)
         assert param.units == str(param.stop.units)
         assert param.units == str(param.step.units)
 
 
-class TestProcessMapParameterEdgeCases:
+class TestProcessMapParameterRangeEdgeCases:
     """Test edge cases and special scenarios."""
 
     def test_all_defaults_are_valid(self):
         """Test that all defaults in DEFAULTS dict are valid."""
         for param_name in DEFAULTS.keys():
-            param = ProcessMapParameter(name=param_name)
+            param = ProcessMapParameterRange(name=param_name)
             assert param.name == param_name
             assert param.start is not None
             assert param.stop is not None

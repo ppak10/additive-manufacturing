@@ -14,7 +14,7 @@ def test_main_help(runner):
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "Additive Manufacturing" in result.stdout
-    assert "simulator" in result.stdout
+    assert "Simulator Commands" in result.stdout or "process-map" in result.stdout
     assert "slice" in result.stdout
     assert "mcp" in result.stdout
 

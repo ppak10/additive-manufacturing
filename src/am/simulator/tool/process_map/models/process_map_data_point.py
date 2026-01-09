@@ -1,11 +1,13 @@
 from pydantic import BaseModel
-from typing import Literal
+from typing import Literal, TypeAlias
 
 from am.simulator.solver.models import MeltPoolDimensions
 
 from .process_map_parameter import ProcessMapParameter
 
 from pydantic import BaseModel
+
+ProcessMapDataPointLabel: TypeAlias = Literal["lack_of_fusion", "keyholing", "balling"]
 
 
 class ProcessMapDataPoint(BaseModel):
@@ -22,4 +24,4 @@ class ProcessMapDataPoint(BaseModel):
 
     parameters: list[ProcessMapParameter]
     melt_pool_dimensions: MeltPoolDimensions | None = None
-    labels: Literal["lack_of_fusion", "keyholing", "balling"] | None = None
+    labels: list[ProcessMapDataPointLabel] | None = None

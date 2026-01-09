@@ -1,12 +1,14 @@
 import pytest
 from pint import Quantity
 
-from am.simulator.process_map.utils.parameters import (
+from am.simulator.tool.process_map.utils.parameter_ranges import (
     parse_shorthand,
     parse_options,
-    inputs_to_parameters,
+    inputs_to_parameter_ranges,
 )
-from am.simulator.process_map.models.process_map_parameters import ProcessMapParameter
+from am.simulator.tool.process_map.models.process_map_parameter_range import (
+    ProcessMapParameterRange,
+)
 
 
 class TestParseShorthand:
@@ -230,12 +232,12 @@ class TestParseOptions:
         assert result is None
 
 
-class TestInputsToParameters:
-    """Test the inputs_to_parameters function."""
+class TestInputsToParameterRanges:
+    """Test the inputs_to_parameter_ranges function."""
 
     def test_no_inputs_uses_defaults(self):
         """Test that no inputs creates default parameters."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (None, None, None, None),
             (None, None, None, None),
             (None, None, None, None),
@@ -248,7 +250,7 @@ class TestInputsToParameters:
 
     def test_single_parameter_shorthand(self):
         """Test creating single parameter with shorthand."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (["beam_power", "100", "1000", "50"], None, None, None),
             (None, None, None, None),
             (None, None, None, None),
@@ -262,7 +264,7 @@ class TestInputsToParameters:
 
     def test_single_parameter_verbose(self):
         """Test creating single parameter with verbose options."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (None, "beam_power", [150, 900, 50], "watts"),
             (None, None, None, None),
             (None, None, None, None),
@@ -276,7 +278,7 @@ class TestInputsToParameters:
 
     def test_single_parameter_name_only(self):
         """Test creating single parameter with name only."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (None, "beam_power", None, None),
             (None, None, None, None),
             (None, None, None, None),
@@ -290,7 +292,7 @@ class TestInputsToParameters:
 
     def test_multiple_parameters(self):
         """Test creating multiple parameters."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (["beam_power"], None, None, None),
             (["scan_velocity", "100", "2000", "100"], None, None, None),
             (None, "layer_height", None, None),
@@ -304,7 +306,7 @@ class TestInputsToParameters:
 
     def test_two_parameters_only(self):
         """Test creating only two parameters."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (["beam_power", "100", "1000", "50"], None, None, None),
             (["scan_velocity"], None, None, None),
             (None, None, None, None),
@@ -316,7 +318,7 @@ class TestInputsToParameters:
 
     def test_mixed_shorthand_and_verbose(self):
         """Test mixing shorthand and verbose options."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (["beam_power"], None, None, None),
             (None, "scan_velocity", [100, 2000, 100], None),
             (["layer_height", "25", "100", "25"], None, None, None),
@@ -330,7 +332,7 @@ class TestInputsToParameters:
 
     def test_empty_tuples_returns_defaults(self):
         """Test that empty tuples return default parameters."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (None, None, None, None),
         )
 
@@ -339,19 +341,19 @@ class TestInputsToParameters:
         assert result[1].name == "scan_velocity"
         assert result[2].name == "layer_height"
 
-    def test_parameters_are_processmap_parameter_objects(self):
-        """Test that returned parameters are ProcessMapParameter objects."""
-        result = inputs_to_parameters(
+    def test_parameters_are_processmap_parameter_range_objects(self):
+        """Test that returned parameters are ProcessMapParameterRange objects."""
+        result = inputs_to_parameter_ranges(
             (["beam_power"], None, None, None),
             (None, None, None, None),
             (None, None, None, None),
         )
 
-        assert all(isinstance(p, ProcessMapParameter) for p in result)
+        assert all(isinstance(p, ProcessMapParameterRange) for p in result)
 
     def test_defaults_order_is_correct(self):
         """Test that default order is beam_power, scan_velocity, layer_height."""
-        result = inputs_to_parameters(
+        result = inputs_to_parameter_ranges(
             (None, None, None, None),
             (None, None, None, None),
             (None, None, None, None),
@@ -362,12 +364,12 @@ class TestInputsToParameters:
         assert result[2].name == "layer_height"
 
 
-class TestParameterIntegration:
-    """Integration tests for parameter parsing."""
+class TestParameterRangeIntegration:
+    """Integration tests for parameter range parsing."""
 
     def test_full_workflow_shorthand(self):
         """Test complete workflow with shorthand notation."""
-        params = inputs_to_parameters(
+        params = inputs_to_parameter_ranges(
             (["beam_power", "100", "1000", "100", "watts"], None, None, None),
             (["scan_velocity", "100", "2000", "100"], None, None, None),
             (["layer_height", "25", "100", "25"], None, None, None),
@@ -393,7 +395,7 @@ class TestParameterIntegration:
 
     def test_full_workflow_verbose(self):
         """Test complete workflow with verbose notation."""
-        params = inputs_to_parameters(
+        params = inputs_to_parameter_ranges(
             (None, "beam_power", [150, 900, 50], "watts"),
             (None, "scan_velocity", [200, 1800, 100], "millimeter / second"),
             (None, "layer_height", [30, 90, 30], "microns"),
@@ -406,7 +408,7 @@ class TestParameterIntegration:
 
     def test_full_workflow_mixed(self):
         """Test complete workflow with mixed notation."""
-        params = inputs_to_parameters(
+        params = inputs_to_parameter_ranges(
             (["beam_power", "100", "1000", "50"], None, None, None),
             (None, "scan_velocity", None, None),  # Uses defaults
             (None, "layer_height", [30, 90, 30], None),
