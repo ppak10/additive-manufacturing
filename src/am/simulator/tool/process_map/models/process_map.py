@@ -1,6 +1,9 @@
+import numpy as np
+
 from pathlib import Path
-from pydantic import BaseModel
-from typing_extensions import TypedDict
+from pint import Quantity
+from pydantic import BaseModel, computed_field, PrivateAttr
+from typing_extensions import cast, TypedDict
 from tqdm.rich import tqdm
 
 from am.config import BuildParameters, BuildParametersDict, Material, MaterialDict
@@ -9,13 +12,15 @@ from .process_map_parameter_range import (
     ProcessMapParameterRange,
     ProcessMapParameterRangeDict,
 )
+from .process_map_data_point import ProcessMapDataPoint
+from .process_map_parameter import ProcessMapParameter
 
 
 class ProcessMapDict(TypedDict):
     build_parameters: BuildParametersDict
     material: MaterialDict
 
-    parameters: list[ProcessMapParameterRangeDict]
+    parameter_ranges: list[ProcessMapParameterRangeDict]
     out_path: Path
 
 
@@ -30,56 +35,65 @@ class ProcessMap(BaseModel):
     parameter_ranges: list[ProcessMapParameterRange]
     out_path: Path
 
-    # def run(self, num_proc: int = 1) -> ProcessMapPoints:
-    #     points = []
-    #
-    #     if num_proc <= 1:
-    #
-    #         # Iterates through points z (inner) -> y (middle) -> x (outer)
-    #         for point in tqdm(process_map.points, desc="Running simulations"):
-    #             # Copies build parameters to a new object to pass as overrides.
-    #             modified_build_parameters = deepcopy(build_parameters)
-    #
-    #             for index, parameter in enumerate(process_map.parameters):
-    #                 modified_build_parameters.__setattr__(parameter, point[index])
-    #
-    #             point = run_process_map_point(modified_build_parameters, material)
-    #
-    #             points.append(point)
-    #     else:
-    #         # Multi-process execution
-    #         args_list = []
-    #
-    #         for point in process_map.points:
-    #             # Copies build parameters to a new object to pass as overrides.
-    #             modified_build_parameters = deepcopy(build_parameters)
-    #
-    #             for index, parameter in enumerate(process_map.parameters):
-    #                 modified_build_parameters.__setattr__(parameter, point[index])
-    #
-    #             args = (modified_build_parameters, material)
-    #             args_list.append(args)
-    #
-    #         with ProcessPoolExecutor(max_workers=num_proc) as executor:
-    #             futures = []
-    #             for args in args_list:
-    #                 future = executor.submit(run_process_map_point, *args)
-    #                 futures.append(future)
-    #
-    #             # Use tqdm to track progress
-    #             for future in tqdm(
-    #                 as_completed(futures), total=len(futures), desc="Running simulations"
-    #             ):
-    #                 result = future.result()  # This will raise any exceptions that occurred
-    #                 points.append(result)
-    #
-    #     process_map_points = ProcessMapPoints(
-    #         parameters=process_map.parameters, points=points
-    #     )
-    #
-    #     process_map_points.save(process_map_path / "points.json")
-    #
-    #     return process_map_points
+    # Private field to cache data points
+    _data_points: list[ProcessMapDataPoint] | None = PrivateAttr(default=None)
+
+    @computed_field
+    @property
+    def data_points(self) -> list[ProcessMapDataPoint]:
+        """
+        Generate all data points from the parameter ranges using a cartesian product.
+        Caches the result after first generation or loading from file.
+
+        Returns:
+            List of ProcessMapDataPoint objects with all parameter combinations.
+        """
+        # If we have cached data points, return those
+        if self._data_points is not None:
+            return self._data_points
+
+        # Otherwise, generate from parameter ranges
+        from itertools import product
+
+        # Build arrays of values for each parameter range
+        ranges = []
+        names = []
+        units = []
+
+        for parameter_range in self.parameter_ranges:
+            # Generate numpy array of values from start to stop with step
+            step = cast(Quantity, parameter_range.step).magnitude
+            start = cast(Quantity, parameter_range.start).magnitude
+
+            # Add half step to include stop
+            stop = cast(Quantity, parameter_range.stop).magnitude + step / 2
+            values = np.arange(start, stop, step)
+
+            ranges.append(values)
+            names.append(parameter_range.name)
+            units.append(parameter_range.units)
+
+        # Generate cartesian product of all parameter values
+        data_points = []
+        for combination in product(*ranges):
+            parameters = []
+
+            for name, value, unit in zip(names, combination, units):
+                # Create ProcessMapParameter with the value and units from the range
+                param = ProcessMapParameter(
+                    name=name, value=cast(Quantity, Quantity(value, unit))
+                )
+                parameters.append(param)
+
+            # Create data point with these parameters
+            data_point = ProcessMapDataPoint(
+                parameters=parameters, melt_pool_dimensions=None, labels=None
+            )
+            data_points.append(data_point)
+
+        # Cache the generated data points
+        self._data_points = data_points
+        return data_points
 
     def save(self, file_path: Path | None = None) -> Path:
         """
@@ -120,7 +134,21 @@ class ProcessMap(BaseModel):
         if "out_path" in data:
             data["out_path"] = Path(data["out_path"])
 
+        # Extract data_points if present (will be loaded into private field)
+        loaded_data_points = None
+        if "data_points" in data:
+            loaded_data_points = [
+                ProcessMapDataPoint.model_validate(dp) for dp in data["data_points"]
+            ]
+            # Remove from data since it's not a direct field
+            del data["data_points"]
+
         process_map = cls.model_validate(data)
+
+        # Set the loaded data points
+        if loaded_data_points is not None:
+            process_map._data_points = loaded_data_points
+
         # if progress_callback is not None:
         #     slicer.progress_callback = progress_callback
 

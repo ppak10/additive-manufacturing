@@ -22,7 +22,7 @@ def register_simulator_process_map(app: typer.Typer):
     from am.cli.options import NumProc, VerboseOption
     from wa.cli.options import WorkspaceOption
 
-    @app.command(name="process-map")
+    @app.command(name="process-map", rich_help_panel="Simulator Commands")
     def simulator_process_map(
         material_filename: Annotated[
             str, typer.Option("--material", help="Material configuration filename")
@@ -71,8 +71,8 @@ def register_simulator_process_map(app: typer.Typer):
         from rich import print as rprint
 
         from am.config import BuildParameters, Material
-        from am.simulator.process_map.models import ProcessMap
-        from am.simulator.process_map.utils.parameter_ranges import (
+        from am.simulator.tool.process_map.models import ProcessMap
+        from am.simulator.tool.process_map.utils.parameter_ranges import (
             inputs_to_parameter_ranges,
         )
         from wa.cli.utils import get_workspace

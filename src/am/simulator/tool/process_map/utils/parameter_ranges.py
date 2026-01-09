@@ -1,7 +1,7 @@
 from pint import Quantity
 from typing_extensions import cast
 
-from am.simulator.process_map.models.process_map_parameter_range import (
+from am.simulator.tool.process_map.models.process_map_parameter_range import (
     DEFAULTS,
     ProcessMapParameterRange,
     ProcessMapParameterRangeInputTuple,
