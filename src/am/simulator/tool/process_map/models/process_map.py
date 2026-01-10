@@ -5,9 +5,10 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from copy import deepcopy
 from itertools import product
 from matplotlib.patches import Patch
+from msgpack import packb, unpackb
 from pathlib import Path
 from pint import Quantity
-from pydantic import BaseModel, computed_field, PrivateAttr
+from pydantic import BaseModel, PrivateAttr
 from typing_extensions import cast, TypedDict
 from tqdm.rich import tqdm
 
@@ -191,7 +192,6 @@ class ProcessMap(BaseModel):
 
         return plot_data
 
-    @computed_field
     @property
     def data_points(self) -> list[ProcessMapDataPoint]:
         """
@@ -396,7 +396,7 @@ class ProcessMap(BaseModel):
 
     def save(self, file_path: Path | None = None) -> Path:
         """
-        Save process map configuration to JSON file.
+        Save process map configuration using messagepack, including all fields.
 
         Args:
             file_path: Optional path to save
@@ -404,52 +404,42 @@ class ProcessMap(BaseModel):
         Returns:
             Path to the saved configuration file
         """
-        if file_path is None:
-            file_path = self.out_path / "process_map.json"
 
-        with open(file_path, "w") as f:
-            # Exclude plot_data as it contains numpy arrays that aren't JSON-serializable
-            f.write(self.model_dump_json(indent=2, exclude={"plot_data"}))
+        if file_path is None:
+            file_path = self.out_path / "process_map.msgpack"
+
+        data = self.model_dump(mode="json")
+        packed: bytes = cast(bytes, packb(data, use_bin_type=True))
+
+        with open(file_path, "wb") as f:
+            f.write(packed)
 
         return file_path
 
     @classmethod
     def load(cls, file_path: Path, progress_callback=None) -> "ProcessMap":
         """
-        Load process map configuration from JSON file.
+        Load process map configuration using messagepack.
 
         Args:
-            file_path: Path to the process_map.json file
+            file_path: Path to the process_map.msgpack file
             progress_callback: Optional progress callback to attach
 
         Returns:
             Process map instance with loaded configuration
         """
-        import json
 
-        with open(file_path, "r") as f:
-            data = json.load(f)
+        with open(file_path, "rb") as f:
+            # raw=False decodes binary strings to unicode
+            data = unpackb(f.read(), raw=False)
 
         # Convert out_path string back to Path
-        if "out_path" in data:
+        if "out_path" in data and isinstance(data["out_path"], str):
             data["out_path"] = Path(data["out_path"])
 
-        # Extract data_points if present (will be loaded into private field)
-        loaded_data_points = None
-        if "data_points" in data:
-            loaded_data_points = [
-                ProcessMapDataPoint.model_validate(dp) for dp in data["data_points"]
-            ]
-            # Remove from data since it's not a direct field
-            del data["data_points"]
-
+        # Create the ProcessMap instance using the validated data.
+        # Pydantic's model_validate will handle populating the public fields.
+        # Private fields (_data_points, _plot_data) will be initialized to their defaults (None).
         process_map = cls.model_validate(data)
-
-        # Set the loaded data points
-        if loaded_data_points is not None:
-            process_map._data_points = loaded_data_points
-
-        # if progress_callback is not None:
-        #     slicer.progress_callback = progress_callback
 
         return process_map

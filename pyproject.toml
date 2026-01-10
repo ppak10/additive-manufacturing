@@ -12,6 +12,7 @@ dependencies = [
     "jax>=0.6.2",
     "matplotlib>=3.10.3",
     "mcp>=1.12.3",
+    "msgpack>=1.1.2",
     "pint>=0.24.4",
     "pintdantic>=0.0.3",
     "pydantic>=2.11.7",
