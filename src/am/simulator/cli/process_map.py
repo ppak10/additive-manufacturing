@@ -78,65 +78,68 @@ def register_simulator_process_map(app: typer.Typer):
         )
         from wa.cli.utils import get_workspace
 
-        workspace = get_workspace(workspace_name)
+        try:
+            workspace = get_workspace(workspace_name)
 
-        # try:
-        # Parse and validate parameters
-        parameter_ranges = inputs_to_parameter_ranges(
-            (p1, p1_name, p1_range, p1_units),
-            (p2, p2_name, p2_range, p2_units),
-            (p3, p3_name, p3_range, p3_units),
-        )
-
-        # Load material and build parameters
-        material = Material.load(
-            workspace.path / "configs" / "materials" / material_filename
-        )
-
-        build_parameters = BuildParameters.load(
-            workspace.path / "configs" / "build_parameters" / build_parameters_filename
-        )
-
-        # Create output folder
-        process_map_path = Path("simulations/process_map") / material.name
-        workspace_folder = workspace.create_folder(
-            name_or_path=process_map_path,
-            append_timestamp=True,
-        )
-
-        if verbose:
-            rprint(
-                f"[cyan]Creating process map with {len(parameter_ranges)} parameter(s)[/cyan]"
+            # Parse and validate parameters
+            parameter_ranges = inputs_to_parameter_ranges(
+                (p1, p1_name, p1_range, p1_units),
+                (p2, p2_name, p2_range, p2_units),
+                (p3, p3_name, p3_range, p3_units),
             )
-            rprint(f"[cyan]Output: {workspace_folder.path}[/cyan]")
 
-        # Create ProcessMap
-        process_map = ProcessMap(
-            build_parameters=build_parameters,
-            material=material,
-            parameter_ranges=parameter_ranges,
-            out_path=workspace_folder.path,
-        )
+            # Load material and build parameters
+            material = Material.load(
+                workspace.path / "configs" / "materials" / material_filename
+            )
 
-        process_map.run(num_proc=num_proc)
+            build_parameters = BuildParameters.load(
+                workspace.path
+                / "configs"
+                / "build_parameters"
+                / build_parameters_filename
+            )
 
-        if visualize:
-            process_map.plot()
+            # Create output folder
+            process_map_path = Path("simulations/process_map") / material.name
+            workspace_folder = workspace.create_folder(
+                name_or_path=process_map_path,
+                append_timestamp=True,
+            )
 
-        process_map.save()
+            if verbose:
+                rprint(
+                    f"[cyan]Creating process map with {len(parameter_ranges)} parameter(s)[/cyan]"
+                )
+                rprint(f"[cyan]Output: {workspace_folder.path}[/cyan]")
 
-        # TODO: Generate process map
-        rprint(f"✅ [green]Process map created successfully[/green]")
-        rprint(f"   Output: {workspace_folder.path}")
+            # Create ProcessMap
+            process_map = ProcessMap(
+                build_parameters=build_parameters,
+                material=material,
+                parameter_ranges=parameter_ranges,
+                out_path=workspace_folder.path,
+            )
 
-        # except typer.Exit:
-        #     raise
-        # except Exception as e:
-        #     rprint(f"⚠️  [yellow]Unable to generate process map: {e}[/yellow]")
-        #     if verbose:
-        #         import traceback
-        #
-        #         traceback.print_exc()
-        #     raise typer.Exit(code=1)
+            process_map.run(num_proc=num_proc)
+
+            if visualize:
+                process_map.plot()
+
+            process_map.save()
+
+            # TODO: Generate process map
+            rprint(f"✅ [green]Process map created successfully[/green]")
+            rprint(f"   Output: {workspace_folder.path}")
+
+        except typer.Exit:
+            raise
+        except Exception as e:
+            rprint(f"⚠️  [yellow]Unable to generate process map: {e}[/yellow]")
+            if verbose:
+                import traceback
+
+                traceback.print_exc()
+            raise typer.Exit(code=1)
 
     return simulator_process_map

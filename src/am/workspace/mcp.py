@@ -45,7 +45,7 @@ def register_workspace_create(app: FastMCP):
             return tool_error(
                 "Permission denied when creating workspace folder",
                 "PERMISSION_DENIED",
-                workspace_name=workspace.name,
+                workspace_name=workspace_name,
                 exception_type=type(e).__name__,
             )
 
@@ -53,7 +53,7 @@ def register_workspace_create(app: FastMCP):
             return tool_error(
                 "Failed to create workspace folder",
                 "WORKSPACE_CREATE_FAILED",
-                workspace_name=workspace.name,
+                workspace_name=workspace_name,
                 exception_type=type(e).__name__,
                 exception_message=str(e),
             )
