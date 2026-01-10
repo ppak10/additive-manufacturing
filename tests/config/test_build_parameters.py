@@ -85,7 +85,9 @@ def test_invalid_type_raises():
 
 def test_build_parameters_to_dict():
     build_parameters = BuildParameters()
-    serialized = build_parameters.to_dict()
+    serialized = build_parameters.to_dict(
+        verbose=True
+    )  # Use verbose format for dict output
     for field in [
         "beam_diameter",
         "beam_power",

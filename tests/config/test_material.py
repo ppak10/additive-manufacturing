@@ -110,7 +110,7 @@ def test_invalid_type_raises():
 
 def test_material_to_dict():
     material = Material()
-    serialized = material.to_dict()
+    serialized = material.to_dict(verbose=True)  # Use verbose format for dict output
     assert serialized["name"] == "Stainless Steel 316L"
     for field in [
         "specific_heat_capacity",

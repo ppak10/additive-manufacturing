@@ -7,6 +7,8 @@ def register_simulator_tool_process_map(app: FastMCP):
     from am.mcp.types import ToolSuccess, ToolError
     from am.mcp.utils import tool_success, tool_error
 
+    from am.simulator.tool.process_map.models import ProcessMap
+
     @app.tool(
         title="Generate Process Map",
         description="Generates process map of a given material over a range of build parameters",
@@ -30,7 +32,7 @@ def register_simulator_tool_process_map(app: FastMCP):
         p3_units: str | None = None,
         num_proc: int = 1,
         visualize: bool = True,
-    ) -> ToolSuccess[Path] | ToolError:
+    ) -> ToolSuccess[ProcessMap] | ToolError:
         """
         Generate a process map for additive manufacturing simulations.
 
@@ -119,7 +121,7 @@ def register_simulator_tool_process_map(app: FastMCP):
 
             process_map.save()
 
-            return tool_success(workspace_folder.path)
+            return tool_success(process_map)
 
         except PermissionError as e:
             return tool_error(

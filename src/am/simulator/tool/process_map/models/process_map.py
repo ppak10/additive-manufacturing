@@ -114,7 +114,6 @@ class ProcessMap(BaseModel):
 
         return data_points_updated
 
-    @computed_field
     @property
     def plot_data(self) -> ProcessMapPlotData:
         """

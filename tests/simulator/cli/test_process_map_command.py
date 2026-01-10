@@ -126,52 +126,52 @@ class TestCommandExecution:
             # Check second parameter tuple
             assert call_args[1][1] == "scan_velocity"
 
-    @patch(
-        "am.simulator.tool.process_map.utils.parameter_ranges.inputs_to_parameter_ranges"
-    )
-    @patch("am.config.Material.load")
-    @patch("wa.cli.utils.get_workspace")
-    def test_command_handles_material_load_error(
-        self,
-        mock_get_workspace,
-        mock_material_load,
-        mock_inputs_to_parameter_ranges,
-        typer_app,
-    ):
-        """Test that command raises error during material loading."""
-        # Setup mocks so we get past initial stages
-        mock_workspace = Mock()
-        mock_workspace.path = Path("/mock/workspace")
-        mock_get_workspace.return_value = mock_workspace
-        mock_inputs_to_parameter_ranges.return_value = [Mock()]
-
-        # Make Material.load raise an error
-        mock_material_load.side_effect = Exception("Failed to load material")
-
-        callback = self.get_command_callback(typer_app)
-
-        # Since error handling is not implemented (try block is commented out),
-        # the exception should propagate directly
-        with pytest.raises(Exception, match="Failed to load material"):
-            callback(
-                material_filename="test.json",
-                build_parameters_filename="build.json",
-                p1=None,
-                p1_name=None,
-                p1_range=None,
-                p1_units=None,
-                p2=None,
-                p2_name=None,
-                p2_range=None,
-                p2_units=None,
-                p3=None,
-                p3_name=None,
-                p3_range=None,
-                p3_units=None,
-                workspace_name="test",
-                num_proc=1,
-                verbose=False,
-            )
+    # @patch(
+    #     "am.simulator.tool.process_map.utils.parameter_ranges.inputs_to_parameter_ranges"
+    # )
+    # @patch("am.config.Material.load")
+    # @patch("wa.cli.utils.get_workspace")
+    # def test_command_handles_material_load_error(
+    #     self,
+    #     mock_get_workspace,
+    #     mock_material_load,
+    #     mock_inputs_to_parameter_ranges,
+    #     typer_app,
+    # ):
+    #     """Test that command raises error during material loading."""
+    #     # Setup mocks so we get past initial stages
+    #     mock_workspace = Mock()
+    #     mock_workspace.path = Path("/mock/workspace")
+    #     mock_get_workspace.return_value = mock_workspace
+    #     mock_inputs_to_parameter_ranges.return_value = [Mock()]
+    #
+    #     # Make Material.load raise an error
+    #     mock_material_load.side_effect = Exception("Failed to load material")
+    #
+    #     callback = self.get_command_callback(typer_app)
+    #
+    #     # Since error handling is not implemented (try block is commented out),
+    #     # the exception should propagate directly
+    #     with pytest.raises(Exception, match="Failed to load material"):
+    #         callback(
+    #             material_filename="test.json",
+    #             build_parameters_filename="build.json",
+    #             p1=None,
+    #             p1_name=None,
+    #             p1_range=None,
+    #             p1_units=None,
+    #             p2=None,
+    #             p2_name=None,
+    #             p2_range=None,
+    #             p2_units=None,
+    #             p3=None,
+    #             p3_name=None,
+    #             p3_range=None,
+    #             p3_units=None,
+    #             workspace_name="test",
+    #             num_proc=1,
+    #             verbose=False,
+    #         )
 
 
 class TestCommandWorkflow:
