@@ -57,7 +57,7 @@ requires-dist = [
     { name = "mcp", specifier = ">=1.12.3" },
     { name = "msgpack", specifier = ">=1.1.2" },
     { name = "pint", specifier = ">=0.24.4" },
-    { name = "pintdantic", specifier = ">=0.0.3" },
+    { name = "pintdantic", specifier = ">=0.0.4" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pygcode", specifier = ">=0.2.1" },
     { name = "rich", specifier = ">=14.0.0" },
@@ -2275,16 +2275,16 @@ wheels = [
 
 [[package]]
 name = "pintdantic"
-version = "0.0.3"
+version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pint", version = "0.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pint", version = "0.25.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/24/c3/f1c2e9b50144b6d871a3c283e20cb9076250cbe50e8d467a11e4a854391d/pintdantic-0.0.3.tar.gz", hash = "sha256:3dacbacae61c8b6384146b70a31281851e815cb6559a264db07ca9dbd29234a4", size = 7775, upload-time = "2026-01-10T14:55:38.243Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/ef/a658620002b73534ebdfc22169fb0011f744bfa89b737c54367165eca263/pintdantic-0.0.4.tar.gz", hash = "sha256:21e56c73a06c0727010aef486e2eb5261c389d9977592f9aee3842c5371a4525", size = 8572, upload-time = "2026-01-11T01:51:33.086Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a2/df/18f1d00a746f35d9075caae1e8ea8cf7b9310324b888b0fbaa3931d2e373/pintdantic-0.0.3-py3-none-any.whl", hash = "sha256:3d36ca438a6644af4b8d3a3da32784bafadf5bb8fce65703be92a2ecce7934c3", size = 7488, upload-time = "2026-01-10T14:55:37.366Z" },
+    { url = "https://files.pythonhosted.org/packages/af/58/e3a3e3fa4234b5779dd9ea17e71a218527fdd577a3d3b709ff3d40d85be9/pintdantic-0.0.4-py3-none-any.whl", hash = "sha256:4ea6b8bb52a61bdd6cdb0124ad411ebd40c6844794958ff6e740f16711ea58b5", size = 8414, upload-time = "2026-01-11T01:51:31.731Z" },
 ]
 
 [[package]]

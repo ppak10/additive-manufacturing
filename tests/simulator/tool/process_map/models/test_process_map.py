@@ -1,5 +1,5 @@
 import pytest
-import json
+from msgpack import unpackb
 import tempfile
 from pathlib import Path
 
@@ -129,23 +129,23 @@ class TestProcessMapSave:
         saved_path = process_map.save()
 
         assert saved_path.exists()
-        assert saved_path.name == "process_map.json"
+        assert saved_path.name == "process_map.msgpack"
         assert saved_path.parent == process_map.out_path
 
     def test_save_custom_path(self, process_map, temp_dir):
         """Test saving ProcessMap to custom path."""
-        custom_path = temp_dir / "custom_process_map.json"
+        custom_path = temp_dir / "custom_process_map.msgpack"
         saved_path = process_map.save(file_path=custom_path)
 
         assert saved_path.exists()
         assert saved_path == custom_path
 
-    def test_save_creates_valid_json(self, process_map):
-        """Test that saved file contains valid JSON."""
+    def test_save_creates_valid_msgpack(self, process_map):
+        """Test that saved file contains valid msgpack data."""
         saved_path = process_map.save()
 
-        with open(saved_path, "r") as f:
-            data = json.load(f)
+        with open(saved_path, "rb") as f:
+            data = unpackb(f.read(), raw=False)
 
         assert "build_parameters" in data
         assert "material" in data
@@ -156,8 +156,8 @@ class TestProcessMapSave:
         """Test that saved file preserves all parameter data."""
         saved_path = process_map.save()
 
-        with open(saved_path, "r") as f:
-            data = json.load(f)
+        with open(saved_path, "rb") as f:
+            data = unpackb(f.read(), raw=False)
 
         assert len(data["parameter_ranges"]) == len(process_map.parameter_ranges)
         assert data["parameter_ranges"][0]["name"] == "beam_power"
@@ -244,7 +244,7 @@ class TestProcessMapLoad:
 
     def test_load_nonexistent_file_raises_error(self, temp_dir):
         """Test that loading from nonexistent file raises error."""
-        nonexistent_path = temp_dir / "nonexistent.json"
+        nonexistent_path = temp_dir / "nonexistent.msgpack"
         with pytest.raises(FileNotFoundError):
             ProcessMap.load(nonexistent_path)
 
@@ -304,9 +304,9 @@ class TestProcessMapSaveLoadRoundTrip:
 
     def test_multiple_save_load_cycles(self, process_map, temp_dir):
         """Test multiple save/load cycles maintain data integrity."""
-        path1 = temp_dir / "cycle1.json"
-        path2 = temp_dir / "cycle2.json"
-        path3 = temp_dir / "cycle3.json"
+        path1 = temp_dir / "cycle1.msgpack"
+        path2 = temp_dir / "cycle2.msgpack"
+        path3 = temp_dir / "cycle3.msgpack"
 
         # First cycle
         process_map.save(file_path=path1)

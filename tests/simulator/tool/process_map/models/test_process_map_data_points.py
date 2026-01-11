@@ -1,5 +1,5 @@
 import pytest
-import json
+from msgpack import unpackb
 import tempfile
 from pathlib import Path
 
@@ -336,10 +336,10 @@ class TestDataPointsCaching:
 class TestDataPointsSaveLoad:
     """Test that data_points are properly saved and loaded."""
 
-    def test_data_points_included_in_save(
+    def test_data_points_not_included_in_save(
         self, build_parameters, material, single_param_ranges, temp_dir
     ):
-        """Test that data_points are included when saving."""
+        """Test that data_points are NOT included when saving (computed on demand)."""
         process_map = ProcessMap(
             build_parameters=build_parameters,
             material=material,
@@ -353,13 +353,13 @@ class TestDataPointsSaveLoad:
         # Save to file
         saved_path = process_map.save()
 
-        # Load JSON and verify data_points are present
-        with open(saved_path, "r") as f:
-            data = json.load(f)
+        # Load msgpack and verify data_points are NOT present (computed on demand)
+        with open(saved_path, "rb") as f:
+            data = unpackb(f.read(), raw=False)
 
-        assert "data_points" in data
-        assert isinstance(data["data_points"], list)
-        assert len(data["data_points"]) == 3
+        # data_points should not be in the saved file since they're computed on demand
+        assert "data_points" not in data
+        assert "_data_points" not in data
 
     def test_data_points_loaded_from_file(
         self, build_parameters, material, single_param_ranges, temp_dir
@@ -416,7 +416,7 @@ class TestDataPointsSaveLoad:
     def test_loaded_data_points_use_cache(
         self, build_parameters, material, single_param_ranges, temp_dir
     ):
-        """Test that loaded data_points use cache instead of regenerating."""
+        """Test that loaded data_points use cache after first access."""
         # Create and save
         original_map = ProcessMap(
             build_parameters=build_parameters,
@@ -430,11 +430,14 @@ class TestDataPointsSaveLoad:
         # Load
         loaded_map = ProcessMap.load(saved_path)
 
-        # _data_points should be set from loading
+        # _data_points should be None initially (computed on demand)
+        assert loaded_map._data_points is None
+
+        # First access computes and caches data_points
+        data_points_1 = loaded_map.data_points
         assert loaded_map._data_points is not None
 
-        # Accessing data_points should return cached version
-        data_points_1 = loaded_map.data_points
+        # Second access should return same cached version
         data_points_2 = loaded_map.data_points
 
         assert data_points_1 is data_points_2
