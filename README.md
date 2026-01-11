@@ -28,6 +28,16 @@ uv add additive-manufacturing
 am mcp install
 ```
 
+#### Claude Desktop
+
+1. Install MCP tools (Development)
+
+```bash
+am mcp install claude-desktop --project-path /path/to/additive-manufacturing
+```
+
+Note: After installation, restart Claude Desktop for the changes to take effect.
+
 ### CLI (`am --help`)
 #### 1. Create Workspace (via `workspace-agent`)
 ```bash

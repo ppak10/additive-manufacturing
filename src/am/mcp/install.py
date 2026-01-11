@@ -1,5 +1,7 @@
+import json
 import shutil
 import subprocess
+import sys
 
 from importlib.resources import files
 from pathlib import Path
@@ -48,6 +50,81 @@ def install(path: Path, client: str, include_agent: bool = True) -> None:
                 rprint(
                     f"[bold green]Installed agent under path:[/bold green] {claude_agent_config_path}"
                 )
+
+        case "claude-desktop":
+            # Determine config file path based on platform
+            if sys.platform == "darwin":
+                config_path = (
+                    Path.home()
+                    / "Library"
+                    / "Application Support"
+                    / "Claude"
+                    / "claude_desktop_config.json"
+                )
+            elif sys.platform == "win32":
+                config_path = (
+                    Path.home()
+                    / "AppData"
+                    / "Roaming"
+                    / "Claude"
+                    / "claude_desktop_config.json"
+                )
+            else:  # Linux
+                config_path = (
+                    Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
+                )
+
+            # Ensure config directory exists
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Read existing config or create new one
+            if config_path.exists():
+                with open(config_path, "r") as f:
+                    config = json.load(f)
+                rprint(f"[blue]Found existing config at:[/blue] {config_path}")
+            else:
+                config = {}
+                rprint(f"[yellow]Creating new config at:[/yellow] {config_path}")
+
+            # Ensure mcpServers section exists
+            if "mcpServers" not in config:
+                config["mcpServers"] = {}
+
+            # Add workspace server if not present
+            if "workspace" not in config["mcpServers"]:
+                rprint("[yellow]Adding 'workspace' MCP server to config...[/yellow]")
+                config["mcpServers"]["workspace"] = {
+                    "command": "uv",
+                    "args": ["--directory", str(path), "run", "-m", "wa.mcp"],
+                }
+
+            # Add additive-manufacturing server
+            rprint(
+                "[blue]Adding 'additive-manufacturing' MCP server to config...[/blue]"
+            )
+            config["mcpServers"]["additive-manufacturing"] = {
+                "command": "uv",
+                "args": ["--directory", str(path), "run", "-m", "am.mcp"],
+            }
+
+            # Write config back
+            with open(config_path, "w") as f:
+                json.dump(config, f, indent=2)
+
+            rprint(
+                f"[bold green]Successfully updated config at:[/bold green] {config_path}"
+            )
+            rprint(
+                "[yellow]Note: Please restart Claude Desktop for changes to take effect.[/yellow]"
+            )
+
+            # Skip agent installation as Claude Desktop doesn't support custom agents
+            if include_agent:
+                rprint(
+                    "[yellow]Note: Claude Desktop does not support custom agents like Claude Code does.[/yellow]"
+                )
+
+            return  # Early return since we don't need to run subprocess command
 
         case "gemini-cli":
             gemini_wa_check = ["gemini", "mcp", "list"]
