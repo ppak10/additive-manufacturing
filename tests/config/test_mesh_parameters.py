@@ -145,7 +145,9 @@ def test_invalid_type_raises():
 
 def test_mesh_parameters_to_dict():
     mesh_parameters = MeshParameters()
-    serialized = mesh_parameters.to_dict()
+    serialized = mesh_parameters.to_dict(
+        verbose=True
+    )  # Use verbose format for dict output
     quantity_fields = [
         "x_step",
         "y_step",

@@ -7,7 +7,10 @@ def register_mcp_uninstall(app: typer.Typer):
     @app.command(name="uninstall")
     def mcp_uninstall(
         client: Annotated[
-            str, typer.Argument(help="Target client to uninstall.")
+            str,
+            typer.Argument(
+                help="Target client to uninstall. Options: claude-code, claude-desktop, gemini-cli, codex"
+            ),
         ] = "claude-code",
     ) -> None:
         from am.mcp.uninstall import uninstall

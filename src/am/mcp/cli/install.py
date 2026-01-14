@@ -11,7 +11,10 @@ def register_mcp_install(app: typer.Typer):
     @app.command(name="install")
     def mcp_install(
         client: Annotated[
-            str, typer.Argument(help="Target client to install for.")
+            str,
+            typer.Argument(
+                help="Target client to install for. Options: claude-code, claude-desktop, gemini-cli, codex"
+            ),
         ] = "claude-code",
         include_agent: Annotated[bool, typer.Option("--include-agent")] = False,
         project_path: Annotated[str | None, typer.Option("--project-path")] = None,

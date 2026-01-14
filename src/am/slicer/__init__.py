@@ -1,3 +1,3 @@
-from .planar import SlicerPlanar
+from .models import Slicer
 
-__all__ = ["SlicerPlanar"]
+__all__ = ["Slicer"]

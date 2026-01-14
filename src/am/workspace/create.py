@@ -1,8 +1,7 @@
 import shutil
 from pathlib import Path
 
-from wa.models import Workspace, WorkspaceFolder
-from wa.workspace.create import create_workspace, create_workspace_folder
+from wa import create_workspace, create_workspace_folder, Workspace, WorkspaceFolder
 
 from am.config import BuildParameters, Material, MeshParameters
 
@@ -36,13 +35,6 @@ def create_additive_manufacturing_workspace(
         include_examples=include_examples,
     )
 
-    # Creates process maps folder for process map runs
-    create_workspace_process_maps_folder(
-        workspace_name=workspace_name,
-        workspaces_path=workspaces_path,
-        force=force,
-    )
-
     return workspace
 
 
@@ -58,7 +50,7 @@ def create_workspace_parts_folder(
 
     # Create parts directory
     parts_folder = create_workspace_folder(
-        workspace_folder_name="parts",
+        name_or_path="parts",
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
@@ -78,26 +70,6 @@ def create_workspace_parts_folder(
     return parts_folder
 
 
-def create_workspace_process_maps_folder(
-    workspace_name: str,
-    workspaces_path: Path | None = None,
-    force: bool = False,
-) -> WorkspaceFolder:
-    """
-    Create process maps subfolder within workspace.
-    """
-
-    # Create process maps directory
-    process_maps_folder = create_workspace_folder(
-        workspace_folder_name="process_maps",
-        workspace_name=workspace_name,
-        workspaces_path=workspaces_path,
-        force=force,
-    )
-
-    return process_maps_folder
-
-
 def create_workspace_configs_folder(
     workspace_name: str,
     workspaces_path: Path | None = None,
@@ -108,7 +80,7 @@ def create_workspace_configs_folder(
     """
 
     configs_folder = create_workspace_folder(
-        workspace_folder_name="configs",
+        name_or_path="configs",
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
@@ -117,7 +89,7 @@ def create_workspace_configs_folder(
     # Build Parameters Config
     build_parameters = BuildParameters()
     build_parameters_folder = create_workspace_folder(
-        workspace_folder_name=["configs", "build_parameters"],
+        name_or_path=["configs", "build_parameters"],
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
@@ -128,7 +100,7 @@ def create_workspace_configs_folder(
     # Material Config
     material = Material()
     material_folder = create_workspace_folder(
-        workspace_folder_name=["configs", "materials"],
+        name_or_path=["configs", "materials"],
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
@@ -139,21 +111,12 @@ def create_workspace_configs_folder(
     # Mesh Parameters Config
     mesh_parameters = MeshParameters()
     mesh_parameters_folder = create_workspace_folder(
-        workspace_folder_name=["configs", "mesh_parameters"],
+        name_or_path=["configs", "mesh_parameters"],
         workspace_name=workspace_name,
         workspaces_path=workspaces_path,
         force=force,
     )
     mesh_parameters_path = mesh_parameters_folder.path / "default.json"
     _ = mesh_parameters.save(mesh_parameters_path)
-
-    # Process Maps Config
-    # No default implemented
-    create_workspace_folder(
-        workspace_folder_name=["configs", "process_maps"],
-        workspace_name=workspace_name,
-        workspaces_path=workspaces_path,
-        force=force,
-    )
 
     return configs_folder

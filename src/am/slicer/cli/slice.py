@@ -1,17 +1,17 @@
 import typer
 
-from datetime import datetime
-from typing_extensions import Annotated
-
-from am.cli.options import NumProc
-from wa.cli.options import WorkspaceOption
-
 
 def register_slicer_slice(app: typer.Typer):
+    from pathlib import Path
+    from typing_extensions import Annotated
 
-    @app.command(name="slice")
+    from am.cli.options import NumProc
+    from am.slicer.format import Format
+    from wa.cli.options import WorkspaceOption
+
+    @app.command(name="slice", rich_help_panel="Slicer Commands")
     def slicer_slice(
-        filename: str,
+        part_filename: str,
         layer_height: Annotated[
             float | None,
             typer.Option("--layer-height", help="Optional layer height override (mm)."),
@@ -22,6 +22,7 @@ def register_slicer_slice(app: typer.Typer):
                 "--hatch_spacing", help="Optional hatch spacing override (mm)."
             ),
         ] = None,
+        # mesh_units: str = "mm",
         build_parameters_filename: Annotated[
             str, typer.Option("--build-parameters", help="Build Parameters filename")
         ] = "default.json",
@@ -31,13 +32,17 @@ def register_slicer_slice(app: typer.Typer):
                 "--binary", help="Generate output files as binary rather than text."
             ),
         ] = False,
+        format: Annotated[
+            Format | None,
+            typer.Option("--format", help="Output format for sliced geometry"),
+        ] = None,
         visualize: Annotated[
             bool,
             typer.Option(
                 "--visualize", help="Generate visualizations of sliced layers."
             ),
         ] = False,
-        workspace: WorkspaceOption = None,
+        workspace_option: WorkspaceOption = None,
         num_proc: NumProc = 1,
     ) -> None:
         """
@@ -46,40 +51,52 @@ def register_slicer_slice(app: typer.Typer):
         from rich import print as rprint
 
         from am.config import BuildParameters
-        from am.slicer.planar import SlicerPlanar
+        from am.slicer.models import Slicer
 
-        from wa.cli.utils import get_workspace_path
+        from wa.cli.utils import get_workspace
 
-        workspace_path = get_workspace_path(workspace)
+        workspace = get_workspace(workspace_option)
 
         try:
-            filepath = workspace_path / "parts" / filename
+            part_path = workspace.path / "parts" / part_filename
 
             build_parameters = BuildParameters.load(
-                workspace_path
+                workspace.path
                 / "configs"
                 / "build_parameters"
                 / build_parameters_filename
             )
 
-            run_name = datetime.now().strftime(f"{filepath.stem}_%Y%m%d_%H%M%S")
+            workspace_folder = workspace.create_folder(
+                name_or_path=Path("toolpaths") / part_path.stem,
+                append_timestamp=True,
+            )
 
             import asyncio
 
             async def run_slicer():
-                slicer_planar = SlicerPlanar(build_parameters, workspace_path, run_name)
+                slicer = Slicer(
+                    build_parameters=build_parameters, out_path=workspace_folder.path
+                )
 
-                slicer_planar.load_mesh(filepath)
-                slicer_planar.section_mesh(layer_height=layer_height)
-                await slicer_planar.generate_infill(
+                # slicer.load_mesh(filepath, units=mesh_units)
+                slicer.load_mesh(part_path)
+                slicer.section_mesh(layer_height=layer_height)
+                await slicer.slice_sections(
                     hatch_spacing=hatch_spacing, binary=binary, num_proc=num_proc
                 )
 
-                if visualize:
-                    await slicer_planar.visualize_infill(
+                if format == "solver":
+                    await slicer.export_solver_segments(
                         binary=binary, num_proc=num_proc
                     )
 
+                if visualize:
+                    await slicer.visualize_slices(binary=binary, num_proc=num_proc)
+                slicer.save()  # Save configuration to slicer.json
+
+            # TODO: Make workspace-agent function to update workspace.json
+            # with created workspace folders.
             asyncio.run(run_slicer())
 
         except Exception as e:
