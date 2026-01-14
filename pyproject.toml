@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.18"
+version = "0.0.19"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
