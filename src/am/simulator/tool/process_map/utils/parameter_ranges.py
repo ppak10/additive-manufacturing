@@ -115,11 +115,11 @@ def inputs_to_parameter_ranges(*input_tuples: ProcessMapParameterRangeInputTuple
     """
     parameter_ranges = []
 
+    # Should be just "beam_power", "scan_velocity", and "layer_height"
+    keys = list(DEFAULTS.keys())[:3]
+
     # If no parameters provided, use defaults in order
     if all(all(v is None for v in param) for param in input_tuples):
-
-        # Should be just "beam_power", "scan_velocity", and "layer_height"
-        keys = list(DEFAULTS.keys())[:3]
 
         for key in keys:
             parameter_range = ProcessMapParameterRange(name=key)
@@ -127,10 +127,11 @@ def inputs_to_parameter_ranges(*input_tuples: ProcessMapParameterRangeInputTuple
 
         return parameter_ranges
 
-    for shorthand, name, range_values, units in input_tuples:
+    for index, (shorthand, name, range_values, units) in enumerate(input_tuples):
         parameter_range = parse_options(shorthand, name, range_values, units)
 
-        if parameter_range is not None:
-            parameter_ranges.append(parameter_range)
+        if parameter_range is None:
+            parameter_range = ProcessMapParameterRange(name=keys[index])
+        parameter_ranges.append(parameter_range)
 
     return parameter_ranges
