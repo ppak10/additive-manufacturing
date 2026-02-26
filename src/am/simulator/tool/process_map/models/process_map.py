@@ -62,7 +62,8 @@ class ProcessMap(BaseModel):
         if num_proc <= 1:
 
             # Iterates through points z (inner) -> y (middle) -> x (outer)
-            for data_point in tqdm(_data_points, desc="Running Process Map"):
+            # for data_point in tqdm(_data_points, desc="Running Process Map"):
+            for data_point in tqdm(_data_points):
                 # Copies build parameters to a new object to pass as overrides.
                 modified_build_parameters = deepcopy(self.build_parameters)
 
@@ -104,7 +105,7 @@ class ProcessMap(BaseModel):
                 for future in tqdm(
                     as_completed(futures),
                     total=len(futures),
-                    desc="Running Process Map",
+                    # desc="Running Process Map", # Causes invalid json warning in claude-desktop
                 ):
                     result = (
                         future.result()
@@ -337,10 +338,10 @@ class ProcessMap(BaseModel):
             max_z_value_magnitude = _plot_data.axes[2][-1].magnitude
 
             # z is often layer height or hatch spacing
-            z_values = _plot_data.axes[2]
-            z_values.reverse()
+            # Use reversed() to avoid mutating the original list
+            z_values = list(reversed(_plot_data.axes[2]))
 
-            z_units = f"{_plot_data.axes[2][0].units:~}"
+            z_units = _plot_data.axes[2][0].units
             z_label = _plot_data.parameter_names[2].replace("_", " ").title()
 
             for z_idx, z_value in enumerate(z_values):
@@ -359,7 +360,8 @@ class ProcessMap(BaseModel):
                 layer_cmap = get_colormap_segment(position, cmap)
 
                 # Plotting
-                data_2d = data[:, :, -z_idx]
+                # Use -(z_idx + 1) since -0 equals 0, not -1
+                data_2d = data[:, :, -(z_idx + 1)]
                 # Mask all the False values so only True (1) areas are drawn
                 data_2d_masked = np.ma.masked_where(
                     ~np.array(data_2d, dtype=bool), data_2d
@@ -367,6 +369,8 @@ class ProcessMap(BaseModel):
                 ax.imshow(
                     data_2d_masked,
                     cmap=layer_cmap,
+                    vmin=0,
+                    vmax=2,
                     aspect="auto",
                     origin="lower",
                     extent=extent,

@@ -8,15 +8,15 @@ DEFAULTS = {
     "beam_power": {
         "start": (100, "watts"),
         "stop": (1000, "watts"),
-        "step": (100, "watts"),
+        "step": (25, "watts"),
     },
     "scan_velocity": {
         "start": (100, "millimeter / second"),
         "stop": (2000, "millimeter / second"),
-        "step": (100, "millimeter / second"),
+        "step": (25, "millimeter / second"),
     },
     "layer_height": {
-        "start": (25, "microns"),
+        "start": (50, "microns"),
         "stop": (100, "microns"),
         "step": (25, "microns"),
     },
