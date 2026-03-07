@@ -175,3 +175,6 @@ workspaces
 .claude/
 .gemini/
 .vscode/
+
+junit.xml
+junitxml
