@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.21"
+version = "0.0.22"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
@@ -38,7 +38,7 @@ benchmark = [
     "datasets>=4.6.0",
     "sentence-transformers>=5.2.3",
     "torch>=2.10.0",
-    "transformers>=5.2.0",
+    "transformers>=4.56.0",
 ]
 cuda12 = [
     "jax[cuda12]>=0.6.2",
