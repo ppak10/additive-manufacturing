@@ -46,3 +46,14 @@ am workspace create test
 
 #### Example
 An example implementation can be found [here](https://github.com/ppak10/additive-manufacturing-agent)
+
+## Benchmark
+To run the benchmark commands, install the optional `benchmark` dependencies:
+
+```bash
+uv pip install "additive-manufacturing[benchmark]"
+```
+
+```bash
+am benchmark <model>
+```

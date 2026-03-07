@@ -4,6 +4,7 @@ from .__main__ import app
 
 from am.config.cli import app as config_app
 from am.mcp.cli import app as mcp_app
+from am.benchmark.cli import register_benchmark
 from am.slicer.cli.slice import register_slicer_slice
 from am.simulator.cli.process_map import register_simulator_process_map
 from am.workspace.cli import app as workspace_app
@@ -16,6 +17,7 @@ app.add_typer(workspace_app, name="workspace", rich_help_panel="Configuration Co
 
 _ = register_slicer_slice(app)
 _ = register_simulator_process_map(app)
+_ = register_benchmark(app)
 # _ = register_version(app)
 
 if __name__ == "__main__":
