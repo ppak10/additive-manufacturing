@@ -38,7 +38,7 @@ wheels = [
 
 [[package]]
 name = "additive-manufacturing"
-version = "0.0.22"
+version = "0.0.23"
 source = { virtual = "." }
 dependencies = [
     { name = "imageio" },
@@ -66,8 +66,6 @@ benchmark = [
     { name = "accelerate" },
     { name = "datasets" },
     { name = "sentence-transformers" },
-    { name = "torch" },
-    { name = "transformers" },
 ]
 cuda12 = [
     { name = "jax", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, extra = ["cuda12"], marker = "python_full_version < '3.11'" },
@@ -100,9 +98,7 @@ requires-dist = [
     { name = "rich", specifier = ">=14.0.0" },
     { name = "scipy", specifier = ">=1.15.3" },
     { name = "sentence-transformers", marker = "extra == 'benchmark'", specifier = ">=5.2.3" },
-    { name = "torch", marker = "extra == 'benchmark'", specifier = ">=2.10.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
-    { name = "transformers", marker = "extra == 'benchmark'", specifier = ">=4.56.0" },
     { name = "trimesh", extras = ["easy"], specifier = ">=4.9.0" },
     { name = "typer", specifier = ">=0.16.0" },
     { name = "workspace-agent", specifier = ">=0.1.9" },
