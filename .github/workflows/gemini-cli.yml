@@ -38,6 +38,7 @@ jobs:
 
     - name: Verify Gemini CLI installation
       run: |
+        mkdir -p ~/.gemini
         which gemini
         gemini --version
 
@@ -49,7 +50,7 @@ jobs:
         am mcp install gemini-cli --dev
 
     - name: Verify additive-manufacturing MCP installation
-      run: cat ~/.gemini/settings.json
+      run: cat .gemini/settings.json
 
     - name: Uninstall MCP server
       env:
