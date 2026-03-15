@@ -44,20 +44,14 @@ jobs:
     - name: Install MCP server to Gemini CLI
       env:
         GEMINI_API_KEY: "placeholder"
-      run: |
-        source .venv/bin/activate
-        am mcp install gemini-cli --dev
-
+      run: uv run am mcp install gemini-cli --dev
 
     - name: Verify additive-manufacturing MCP installation
       env:
         GEMINI_API_KEY: "placeholder"
-      run: |
-        gemini mcp list
+      run: gemini mcp list
 
     - name: Uninstall MCP server
       env:
         GEMINI_API_KEY: "placeholder"
-      run: |
-        source .venv/bin/activate
-        am mcp uninstall gemini-cli
+      run: uv run am mcp uninstall gemini-cli
