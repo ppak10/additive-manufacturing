@@ -73,6 +73,20 @@ _TEXT_ONLY_CHAT_TEMPLATE = (
 )
 
 
+def _is_model_cached(model_id: str) -> bool:
+    """Return True if the model is already present in the local HF cache."""
+    try:
+        from huggingface_hub import scan_cache_dir
+
+        cache_info = scan_cache_dir()
+        for repo in cache_info.repos:
+            if repo.repo_id == model_id:
+                return True
+        return False
+    except Exception:
+        return False
+
+
 def _is_lora_adapter(model_id: str) -> bool:
     try:
         from huggingface_hub import hf_hub_download
@@ -189,6 +203,19 @@ def managed_vllm_server(
     if is_lora:
         base_model = _get_lora_base_model(model_id)
         print(f"[{label}] Detected LoRA adapter. Base model: {base_model}")
+
+    # Use a longer startup timeout when the model isn't cached locally,
+    # since vLLM will need to download it first.
+    model_to_check = base_model if is_lora else model_id
+    cached = _is_model_cached(model_to_check)
+    startup_timeout = 300 if cached else 3600
+    if not cached:
+        print(
+            f"[{label}] Model '{model_to_check}' not found in local cache. "
+            f"Startup timeout extended to {startup_timeout}s to allow for download."
+        )
+
+    if is_lora:
         cmd = [
             "vllm",
             "serve",
@@ -236,10 +263,10 @@ def managed_vllm_server(
     print(f"[{label}] Starting vLLM on GPU {cuda_visible_devices}: {' '.join(cmd)}")
     proc = subprocess.Popen(cmd, env=env, start_new_session=True)
     try:
-        if not _wait_for_server(server_url):
+        if not _wait_for_server(server_url, timeout=startup_timeout):
             _kill_process_group(proc)
             raise RuntimeError(
-                f"vLLM server did not become ready within timeout on port {port}"
+                f"vLLM server did not become ready within {startup_timeout}s on port {port}"
             )
         print(f"[{label}] vLLM server ready.")
         yield server_url, model_id
