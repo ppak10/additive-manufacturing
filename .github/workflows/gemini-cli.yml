@@ -48,6 +48,7 @@ jobs:
         source .venv/bin/activate
         am mcp install gemini-cli --dev
 
+
     - name: Verify additive-manufacturing MCP installation
       env:
         GEMINI_API_KEY: "placeholder"
