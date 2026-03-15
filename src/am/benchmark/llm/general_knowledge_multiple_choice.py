@@ -37,6 +37,7 @@ def _benchmark_general_knowledge_multiple_choice(
     model: str,
     num_proc: int,
     out_path: Path | None,
+    run_index: int = 1,
 ) -> dict:
     config = "general_knowledge_multiple_choice"
     print(f"\n[{config}] Loading dataset...")
@@ -91,7 +92,7 @@ def _benchmark_general_knowledge_multiple_choice(
     _print_gkmc_report(report)
 
     if out_path is not None:
-        report_file = Path(out_path) / f"{config}.json"
+        report_file = Path(out_path) / f"run_{run_index:02d}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
         print(f"Report saved to: {report_file}")

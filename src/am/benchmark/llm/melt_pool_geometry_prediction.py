@@ -66,11 +66,21 @@ def _parse_melt_pool_response(response: str) -> dict[str, float | None]:
     if json_str:
         try:
             parsed = json.loads(json_str)
-            return {
-                k: float(parsed[k]) if parsed.get(k) is not None else None
-                for k in _MELT_POOL_TARGETS
-            }
-        except (json.JSONDecodeError, ValueError, KeyError):
+
+            def _to_float(v):
+                if v is None:
+                    return None
+                if isinstance(v, (int, float)):
+                    return float(v)
+                if isinstance(v, str):
+                    try:
+                        return float(v)
+                    except ValueError:
+                        return None
+                return None
+
+            return {k: _to_float(parsed.get(k)) for k in _MELT_POOL_TARGETS}
+        except (json.JSONDecodeError, ValueError, KeyError, TypeError):
             pass
 
     return {k: None for k in _MELT_POOL_TARGETS}
@@ -87,6 +97,7 @@ def _benchmark_melt_pool_geometry_prediction(
     model: str,
     num_proc: int,
     out_path: Path | None,
+    run_index: int = 1,
 ) -> dict:
     config = "melt_pool_geometry_prediction"
     print(f"\n[{config}] Loading dataset...")
@@ -139,7 +150,7 @@ def _benchmark_melt_pool_geometry_prediction(
     _print_mpgp_report(report)
 
     if out_path is not None:
-        report_file = Path(out_path) / f"{config}.json"
+        report_file = Path(out_path) / f"run_{run_index:02d}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
         print(f"Report saved to: {report_file}")
