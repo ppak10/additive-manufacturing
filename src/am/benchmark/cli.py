@@ -19,6 +19,19 @@ def register_benchmark(app: typer.Typer):
         url: str = typer.Option(
             None, help="URL of a running vLLM server (e.g. http://localhost:8000/v1)."
         ),
+        proctor_url: str = typer.Option(
+            None,
+            help="URL of vLLM server for rubric proctoring (e.g. http://localhost:8001/v1).",
+        ),
+        proctor_model: str = typer.Option(
+            "openai/gpt-oss-20b", help="Model name for rubric proctoring."
+        ),
+        port: int = typer.Option(
+            8000, help="Local port for the auto-started vLLM server."
+        ),
+        num_runs: int = typer.Option(
+            1, help="Number of benchmark runs (for error bar statistics)."
+        ),
         workspace_option: WorkspaceOption = None,
         num_proc: NumProc = 1,
     ) -> None:
@@ -44,8 +57,12 @@ def register_benchmark(app: typer.Typer):
                 tasks=tasks,
                 batch_size=batch_size,
                 url=url,
+                port=port,
+                num_runs=num_runs,
                 num_proc=num_proc,
                 out_path=workspace_folder_path,
+                proctor_url=proctor_url,
+                proctor_model=proctor_model,
             )
 
         except Exception as e:
