@@ -19,7 +19,7 @@ def _has_chat_template(model_id: str) -> bool:
             cfg = json.load(f)
         return bool(cfg.get("chat_template"))
     except Exception:
-        return True  # assume it has one if we can't check
+        return False  # if we can't check, inject a fallback template to avoid transformers v4.44 error
 
 
 def _get_it_model_template(model_id: str) -> str | None:
@@ -215,6 +215,28 @@ def managed_vllm_server(
             f"Startup timeout extended to {startup_timeout}s to allow for download."
         )
 
+    # Determine which model to check for a chat template.
+    # For LoRA, the base model is what vLLM actually loads; for regular models it's model_id.
+    template_source = base_model if is_lora else model_id
+    if not _has_chat_template(template_source):
+        # Try to borrow the chat template from the corresponding IT model.
+        # This is the most reliable path for base/pt models (e.g. gemma-3-12b-pt
+        # borrows from gemma-3-12b-it) because it includes the correct image
+        # placeholder tokens already known to work with that model family.
+        it_template = _get_it_model_template(template_source)
+        if it_template:
+            print(
+                f"[{label}] No chat template in {template_source}; "
+                "using borrowed IT model template."
+            )
+            tmp_template_path = _write_template_file(it_template)
+        else:
+            print(
+                f"[{label}] No chat template found for {template_source}. "
+                "Injecting a text-only default chat template."
+            )
+            tmp_template_path = _write_template_file(_TEXT_ONLY_CHAT_TEMPLATE)
+
     if is_lora:
         cmd = [
             "vllm",
@@ -228,25 +250,9 @@ def managed_vllm_server(
         ]
     else:
         cmd = ["vllm", "serve", model_id, "--port", str(port)]
-        if not _has_chat_template(model_id):
-            # Try to borrow the chat template from the corresponding IT model.
-            # This is the most reliable path for base models (e.g. gemma-3-12b-pt
-            # borrows from gemma-3-12b-it) because it includes the correct image
-            # placeholder tokens already known to work with that model family.
-            it_template = _get_it_model_template(model_id)
-            if it_template:
-                print(
-                    f"[{label}] No chat template in {model_id}; "
-                    "using borrowed IT model template."
-                )
-                tmp_template_path = _write_template_file(it_template)
-            else:
-                print(
-                    f"[{label}] No chat template found for {model_id}. "
-                    "Injecting a text-only default chat template."
-                )
-                tmp_template_path = _write_template_file(_TEXT_ONLY_CHAT_TEMPLATE)
-            cmd.extend(["--chat-template", tmp_template_path])
+
+    if tmp_template_path:
+        cmd.extend(["--chat-template", tmp_template_path])
 
     if extra_args:
         cmd.extend(extra_args)

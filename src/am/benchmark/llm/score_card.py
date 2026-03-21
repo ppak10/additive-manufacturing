@@ -1,4 +1,5 @@
 import json
+import math
 import statistics
 from datetime import datetime, timezone
 from pathlib import Path
@@ -6,7 +7,11 @@ from pathlib import Path
 
 def _stats(values: list, num_runs: int):
     """Return mean for a single run, or {"mean": ..., "std": ...} for multiple runs."""
-    valid = [v for v in values if v is not None]
+    valid = [
+        v
+        for v in values
+        if v is not None and not (isinstance(v, float) and math.isnan(v))
+    ]
     if not valid:
         return None
     mean = round(statistics.mean(valid), 4)
@@ -106,6 +111,19 @@ def _compile_score_card(
                 for field in ["process", "name", "manufacturer"]
             },
             "sample_size": all_reports[0]["machines"].get("sample_size"),
+        }
+
+    if any("peregrine_anomaly_detection" in r for r in all_reports):
+        tasks_summary["peregrine_anomaly_detection"] = {
+            "mean_f1": _stats(
+                _gather("peregrine_anomaly_detection", "mean_f1"), num_runs
+            ),
+            "sample_size": all_reports[0]["peregrine_anomaly_detection"].get(
+                "sample_size"
+            ),
+            "total_layers": all_reports[0]["peregrine_anomaly_detection"].get(
+                "total_layers"
+            ),
         }
 
     dataset = next((r[next(iter(r))].get("dataset") for r in all_reports if r), None)

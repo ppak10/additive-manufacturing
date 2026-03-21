@@ -89,7 +89,14 @@ def _parse_melt_pool_response(response: str) -> dict[str, float | None]:
 def _rmse(pairs: list[tuple[float, float]]) -> float | None:
     if not pairs:
         return None
-    return round(math.sqrt(sum((a - p) ** 2 for a, p in pairs) / len(pairs)), 4)
+    valid = [
+        (a, p)
+        for a, p in pairs
+        if not (math.isnan(a) or math.isnan(p) or math.isinf(a) or math.isinf(p))
+    ]
+    if not valid:
+        return None
+    return round(math.sqrt(sum((a - p) ** 2 for a, p in valid) / len(valid)), 4)
 
 
 def _benchmark_melt_pool_geometry_prediction(

@@ -10,6 +10,7 @@ from .general_knowledge_short_answer import _benchmark_general_knowledge_short_a
 from .melt_pool_geometry_prediction import _benchmark_melt_pool_geometry_prediction
 from .fdm_3d_printing_defect import _benchmark_fdm_3d_printing_defect
 from .machines import _benchmark_machines
+from .peregrine_anomaly_detection import _benchmark_peregrine_anomaly_detection
 from .score_card import _compile_score_card
 
 
@@ -62,6 +63,10 @@ def _run_benchmark_tasks(
                 proctor_url=proctor_url,
                 proctor_model=proctor_model,
                 run_index=run_index,
+            )
+        elif task == "peregrine_anomaly_detection":
+            reports[task] = _benchmark_peregrine_anomaly_detection(
+                vision_runner, model, num_proc, task_out, run_index=run_index
             )
         else:
             print(f"Unknown task '{task}', skipping.")
