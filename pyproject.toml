@@ -1,6 +1,6 @@
 [project]
 name = "additive-manufacturing"
-version = "0.0.28"
+version = "0.0.30"
 authors = [
   { name = "Peter Pak", email = "ppak10@gmail.com" },
 ]
@@ -34,8 +34,8 @@ am = "am.cli:app"
 
 [project.optional-dependencies]
 benchmark = [
-    "datasets>=4.6.0",
-    "vllm>=0.17.1",
+    "datasets>=4.8.3",
+    "vllm==0.17.1",
 ]
 cuda12 = [
     "jax[cuda12]>=0.6.2",
