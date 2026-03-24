@@ -85,6 +85,7 @@ def benchmark_llm(
     out_path: Path | None = None,
     proctor_url: str | None = None,
     proctor_model: str = PROCTOR_MODEL,
+    vllm_extra_args: list[str] | None = None,
 ) -> list[dict]:
 
     missing = [pkg for pkg in ("datasets",) if importlib.util.find_spec(pkg) is None]
@@ -147,7 +148,10 @@ def benchmark_llm(
     else:
         from .server import managed_vllm_server
 
-        with managed_vllm_server(model, port=port) as (server_url, serve_model):
+        with managed_vllm_server(model, port=port, extra_args=vllm_extra_args) as (
+            server_url,
+            serve_model,
+        ):
             runner = lambda questions, max_tokens: _run_openai_compatible(
                 server_url, serve_model, questions, max_tokens
             )

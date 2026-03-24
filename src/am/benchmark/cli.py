@@ -32,6 +32,11 @@ def register_benchmark(app: typer.Typer):
         num_runs: int = typer.Option(
             1, help="Number of benchmark runs (for error bar statistics)."
         ),
+        vllm_args: list[str] = typer.Option(
+            [],
+            "--vllm-arg",
+            help="Extra argument forwarded to 'vllm serve' (repeatable, e.g. --vllm-arg='--max-model-len=8192').",
+        ),
         workspace_option: WorkspaceOption = None,
         num_proc: NumProc = 1,
     ) -> None:
@@ -63,6 +68,7 @@ def register_benchmark(app: typer.Typer):
                 out_path=workspace_folder_path,
                 proctor_url=proctor_url,
                 proctor_model=proctor_model,
+                vllm_extra_args=vllm_args or None,
             )
 
         except Exception as e:
